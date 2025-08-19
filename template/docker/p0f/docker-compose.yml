@@ -1,0 +1,14 @@
+services:
+
+# P0f service
+  p0f:
+    build: .
+    container_name: p0f
+    restart: always
+#    cpu_count: 1
+#    cpus: 0.75
+    network_mode: "host"
+    image: "ghcr.io/telekom-security/p0f:24.04.1"
+    read_only: true
+    volumes:
+     - $HOME/tpotce/data/p0f/log:/var/log/p0f

@@ -1,0 +1,21 @@
+services:
+
+# glutton service
+  glutton:
+    build: .
+    container_name: glutton
+    restart: always
+    tmpfs:
+     - /var/lib/glutton:uid=2000,gid=2000
+     - /run:uid=2000,gid=2000
+#    cpu_count: 1
+#    cpus: 0.75
+    network_mode: "host"
+    cap_add:
+     - NET_ADMIN
+    image: "ghcr.io/telekom-security/glutton:24.04.1"
+    read_only: true
+    volumes:
+     - $HOME/tpotce/data/glutton/log:/var/log/glutton
+     - $HOME/tpotce/data/glutton/payloads:/opt/glutton/payloads
+#     - $HOME/tpotce/docker/glutton/dist/rules.yaml:/opt/glutton/config/rules.yaml

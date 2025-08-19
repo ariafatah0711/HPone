@@ -1,0 +1,42 @@
+#networks:
+#  map_local:
+
+services:
+
+# Map Redis Service
+  map_redis:
+    container_name: map_redis
+    restart: always
+    stop_signal: SIGKILL
+    tty: true
+    image: "dtagdevsec/redis:24.04"
+    read_only: true
+
+# Map Web Service
+  map_web:
+    build: .
+    container_name: map_web
+    restart: always
+    environment:
+     - MAP_COMMAND=AttackMapServer.py
+    stop_signal: SIGKILL
+    tty: true
+    ports:
+     - "127.0.0.1:64299:64299"
+    image: "dtagdevsec/map:24.04"
+    depends_on:
+     - map_redis
+
+# Map Data Service
+  map_data:
+    container_name: map_data
+    restart: always
+    environment:
+     - MAP_COMMAND=DataServer_v2.py
+#     - TPOT_ATTACKMAP_TEXT=${TPOT_ATTACKMAP_TEXT}
+#     - TZ=${TPOT_ATTACKMAP_TEXT_TIMEZONE}
+    stop_signal: SIGKILL
+    tty: true
+    image: "dtagdevsec/map:24.04"
+    depends_on:
+     - map_redis

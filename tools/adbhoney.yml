@@ -1,0 +1,9 @@
+name: adbhoney
+description: adb honey
+enabled: true
+ports:
+- host: 5555
+  container: 5555
+env: {}
+volumes:
+- data/adbhoney/log:/opt/adbhoney/log

@@ -1,0 +1,20 @@
+networks:
+  wordpot_local:
+
+services:
+
+# Wordpot service
+  wordpot:
+    build: .
+    container_name: wordpot
+    restart: always
+#    cpu_count: 1
+#    cpus: 0.25
+    networks:
+     - wordpot_local
+    ports:
+     - "80:80"
+    image: "ghcr.io/telekom-security/wordpot:24.04.1"
+    read_only: true
+    volumes:
+     - $HOME/tpotce/data/wordpot/log:/opt/wordpot/logs/

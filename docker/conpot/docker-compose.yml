@@ -1,0 +1,33 @@
+networks:
+  conpot_local_default: null
+  conpot_local_IEC104: null
+  conpot_local_guardian_ast: null
+  conpot_local_ipmi: null
+  conpot_local_kamstrup_382: null
+services:
+  conpot_default:
+    build: .
+    container_name: conpot_default
+    restart: always
+    environment:
+    - CONPOT_CONFIG=/etc/conpot/conpot.cfg
+    - CONPOT_JSON_LOG=/var/log/conpot/conpot_default.json
+    - CONPOT_LOG=/var/log/conpot/conpot_default.log
+    - CONPOT_TEMPLATE=default
+    - CONPOT_TMP=/tmp/conpot
+    tmpfs:
+    - /tmp/conpot:uid=2000,gid=2000
+    networks:
+    - conpot_local_default
+    ports:
+    - ${CONPOT_PORT1_SRC}:${CONPOT_PORT1_DST}
+    - ${CONPOT_PORT2_SRC}:${CONPOT_PORT2_DST}
+    - ${CONPOT_PORT3_SRC}:${CONPOT_PORT3_DST}
+    - ${CONPOT_PORT4_SRC}:${CONPOT_PORT4_DST}
+    - ${CONPOT_PORT5_SRC}:${CONPOT_PORT5_DST}
+    - ${CONPOT_PORT6_SRC}:${CONPOT_PORT6_DST}
+    - ${CONPOT_PORT7_SRC}:${CONPOT_PORT7_DST}
+    image: dtagdevsec/conpot:24.04
+    read_only: true
+    volumes:
+    - ${CONPOT_VOL1_SRC}:${CONPOT_VOL1_DST}

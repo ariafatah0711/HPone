@@ -1,0 +1,20 @@
+networks:
+  elasticpot_local:
+
+services:
+
+# Elasticpot service
+  elasticpot:
+    build: .
+    container_name: elasticpot
+    restart: always
+#    cpu_count: 1
+#    cpus: 0.25
+    networks:
+     - elasticpot_local
+    ports:
+     - "9200:9200"
+    image: "dtagdevsec/elasticpot:24.04"
+    read_only: true
+    volumes:
+     - $HOME/tpotce/data/elasticpot/log:/opt/elasticpot/log

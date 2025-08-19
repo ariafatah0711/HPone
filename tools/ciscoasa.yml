@@ -1,0 +1,11 @@
+name: ciscoasa
+description: deskripsi tools nya
+enabled: false
+ports:
+- host: 5000
+  container: 5000
+- host: 8443
+  container: 8443
+env: {}
+volumes:
+- data/ciscoasa/log:/var/log/ciscoasa

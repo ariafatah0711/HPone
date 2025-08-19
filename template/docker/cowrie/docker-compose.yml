@@ -1,0 +1,27 @@
+networks:
+  cowrie_local:
+
+services:
+
+# Cowrie service
+  cowrie:
+    build: .
+    container_name: cowrie
+    restart: always
+    tmpfs:
+     - /tmp/cowrie:uid=2000,gid=2000
+     - /tmp/cowrie/data:uid=2000,gid=2000
+#    cpu_count: 1
+#    cpus: 0.25
+    networks:
+     - cowrie_local
+    ports:
+     - "22:22"
+     - "23:23"
+    image: "ghcr.io/telekom-security/cowrie:24.04.1"
+    read_only: true
+    volumes:
+     - $HOME/tpotce/data/cowrie/downloads:/home/cowrie/cowrie/dl
+     - $HOME/tpotce/data/cowrie/keys:/home/cowrie/cowrie/etc
+     - $HOME/tpotce/data/cowrie/log:/home/cowrie/cowrie/log
+     - $HOME/tpotce/data/cowrie/log/tty:/home/cowrie/cowrie/log/tty

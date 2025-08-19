@@ -1,0 +1,205 @@
+[MAIN]
+homedir = /opt/ewsposter/
+spooldir = /opt/ewsposter/spool/
+logdir = /opt/ewsposter/log/
+del_malware_after_send = false
+send_malware = false
+sendlimit = 5000
+contact = your_email_address
+proxy = None
+ip_int = None
+ip_ext = None
+
+[EWS]
+ews = true
+username = community-01-user
+token = foth{a5maiCee8fineu7
+rhost_first = https://community.sicherheitstacho.eu/ews-0.1/alert/postSimpleMessage
+rhost_second = https://community.sicherheitstacho.eu/ews-0.1/alert/postSimpleMessage
+ignorecert = false
+
+[HPFEED]
+hpfeed = %(EWS_HPFEEDS_ENABLE)s
+host = %(EWS_HPFEEDS_HOST)s
+port = %(EWS_HPFEEDS_PORT)s
+channels = %(EWS_HPFEEDS_CHANNELS)s
+ident = %(EWS_HPFEEDS_IDENT)s
+secret= %(EWS_HPFEEDS_SECRET)s
+# path/to/certificate for tls broker - or "false" for non-tls broker
+tlscert = %(EWS_HPFEEDS_TLSCERT)s
+# hpfeeds submission format: "ews" (xml) or "json"
+hpfformat = %(EWS_HPFEEDS_FORMAT)s
+
+[EWSJSON]
+json = false
+jsondir = /data/ews/json/
+
+[INFLUXDB]
+influxdb = false
+host = http://localhost
+port = 8086
+username = <your username for influx 1.8>
+password = <your password for influx 1.8>
+token = <your token for influx 2.0>
+bucket = <your bucket/database for 2.0/1.8>
+org = <your org for influx 2.0>
+
+[ADBHONEY]
+adbhoney = true
+nodeid = adbhoney-community-01
+logfile = /data/adbhoney/log/adbhoney.json
+malwaredir = /data/adbhoney/downloads
+
+[BEELZEBUB]
+beelzebub = true
+nodeid = beelzebub-community-01
+logfile = /data/beelzebub/log/beelzebub.json
+
+[CISCOASA]
+ciscoasa = true
+nodeid = ciscoasa-community-01
+logfile = /data/ciscoasa/log/ciscoasa.log
+
+[CITRIX]
+citrix = true
+nodeid = citrix-community-01
+logfile = /data/citrixhoneypot/logs/server.log
+
+[CONPOT]
+conpot = true
+nodeid = conpot-community-01
+logdir = /data/conpot/log
+
+[COWRIE]
+cowrie = true
+nodeid = cowrie-community-01
+logfile = /data/cowrie/log/cowrie.json
+
+[DDOSPOT]
+ddospot = true
+nodeid = ddospot-community-01
+logdir = /data/ddospot/log
+
+[DICOMPOT]
+dicompot = true
+nodeid = dicompot-community-01
+logfile = /data/dicompot/log/dicompot.log
+
+[DIONAEA]
+dionaea = true
+nodeid = dionaea-community-01
+malwaredir = /data/dionaea/binaries/
+sqlitedb = /data/dionaea/log/dionaea.sqlite
+
+[ELASTICPOT]
+elasticpot = true
+nodeid = elasticpot-community-01
+logfile = /data/elasticpot/log/elasticpot.json
+
+[ENDLESSH]
+endlessh = true
+nodeid = endlessh-community-01
+logfile = /data/endlessh/log/endlessh.log
+
+[FATT]
+fatt = false
+nodeid = fatt-community-01
+logfile = /data/fatt/log/fatt.log
+
+[GALAH]
+galah = true
+nodeid = galah-community-01
+logfile = /data/galah/log/galah.json
+
+[GLUTTON]
+glutton = true
+nodeid = glutton-community-01
+logfile = /data/glutton/log/glutton.log
+
+[GOPOT]
+gopot = true
+nodeid = gopot-community-01
+logfile = /data/go-pot/log/go-pot.json
+
+[H0NEYTR4P]
+h0neytr4p = true
+nodeid = h0neytr4p-community-01
+logfile = /data/h0neytr4p/log/log.json
+payloaddir = /data/h04neytr4p/payload
+
+[HELLPOT]
+hellpot = true
+nodeid = hellpot-community-01
+logfile = /data/hellpot/log/hellpot.log
+
+[HERALDING]
+heralding = true
+nodeid = heralding-community-01
+logfile = /data/heralding/log/auth.csv
+
+[HONEYAML]
+honeyaml = true
+nodeid = honeyaml-community-01
+logfile = /data/honeyaml/log/honeyaml.log
+
+[HONEYPOTS]
+honeypots = true
+nodeid = honeypots-community-01
+logdir = /data/honeypots/log
+
+[HONEYTRAP]
+honeytrap = true
+nodeid = honeytrap-community-01
+newversion = true
+payloaddir = /data/honeytrap/attacks/
+attackerfile = /data/honeytrap/log/attacker.log
+
+[IPPHONEY]
+ipphoney = true
+nodeid = ipphoney-community-01
+logfile = /data/ipphoney/log/ipphoney.json
+
+[LOG4POT]
+log4pot = true
+nodeid = log4pot-community-01
+logfile = /data/log4pot/log/log4pot.log
+
+[MAILONEY]
+mailoney = true
+nodeid = mailoney-community-01
+logfile = /data/mailoney/log/commands.log
+
+[MEDPOT]
+medpot = true
+nodeid = medpot-community-01
+logfile = /data/medpot/log/medpot.log
+
+[MINIPRINT]
+miniprint = true
+nodeid = miniprint-community-01
+logfile = /data/miniprint/log/miniprint.json
+
+[REDISHONEYPOT]
+redishoneypot = true
+nodeid = redishoneypot-community-01
+logfile = /data/redishoneypot/log/redishoneypot.log
+
+[SENTRYPEER]
+sentrypeer = true
+nodeid = sentrypeer-community-01
+logfile = /data/sentrypeer/log/sentrypeer.json
+
+[SURICATA]
+suricata = false
+nodeid = suricata-community-01
+logfile = /data/suricata/log/eve.json
+
+[TANNER]
+tanner = true
+nodeid = tanner-community-01
+logfile = /data/tanner/log/tanner_report.json
+
+[WORDPOT]
+wordpot = true
+nodeid = wordpot-community-01
+logfile = /data/wordpot/log/wordpot.log

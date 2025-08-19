@@ -1,0 +1,20 @@
+services:
+
+# Honeytrap service
+  honeytrap:
+    build: .
+    container_name: honeytrap
+    restart: always
+    tmpfs:
+     - /tmp/honeytrap:uid=2000,gid=2000
+#    cpu_count: 1
+#    cpus: 0.75
+    network_mode: "host"
+    cap_add:
+     - NET_ADMIN
+    image: "ghcr.io/telekom-security/honeytrap:24.04.1"
+    read_only: true
+    volumes:
+     - $HOME/tpotce/data/honeytrap/attacks:/opt/honeytrap/var/attacks
+     - $HOME/tpotce/data/honeytrap/downloads:/opt/honeytrap/var/downloads
+     - $HOME/tpotce/data/honeytrap/log:/opt/honeytrap/var/log

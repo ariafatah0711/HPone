@@ -1,0 +1,27 @@
+networks:
+  ewsposter_local:
+
+services:
+
+# Ewsposter service
+  ewsposter:
+    build: .
+    container_name: ewsposter
+    restart: always
+#    cpu_count: 1
+#    cpus: 0.75
+    networks:
+     - ewsposter_local
+    environment:
+     - EWS_HPFEEDS_ENABLE=false
+     - EWS_HPFEEDS_HOST=host
+     - EWS_HPFEEDS_PORT=port
+     - EWS_HPFEEDS_CHANNELS=channels
+     - EWS_HPFEEDS_IDENT=user
+     - EWS_HPFEEDS_SECRET=secret
+     - EWS_HPFEEDS_TLSCERT=false
+     - EWS_HPFEEDS_FORMAT=json
+    image: "ghcr.io/telekom-security/ewsposter:24.04.1"
+    volumes:
+     - $HOME/tpotce/data:/data
+     - $HOME/tpotce/data/ews/conf/ews.ip:/opt/ewsposter/ews.ip
