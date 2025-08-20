@@ -1,7 +1,7 @@
 """
-Constants untuk HPone Helpers
+Constants untuk HPone Core
 
-File ini berisi constants yang dibutuhkan oleh semua helper modules.
+File ini berisi constants yang dibutuhkan oleh semua core modules.
 """
 
 from pathlib import Path

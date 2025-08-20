@@ -14,73 +14,18 @@ except ImportError:
     raise ImportError("PyYAML diperlukan untuk modul ini")
 
 # Import constants dan functions dari helpers
-from .constants import TOOLS_DIR, OUTPUT_DOCKER_DIR
-from .utils import _format_table
-from .config_helpers import parse_ports, parse_volumes
-from .docker_helpers import is_tool_running
+from core.constants import TOOLS_DIR, OUTPUT_DOCKER_DIR
+from core.utils import _format_table
+from core.config import parse_ports, parse_volumes
+from core.docker import is_tool_running
 
-
-def list_tools(detailed: bool = False) -> None:
-    yaml_files = sorted(glob.glob(str(TOOLS_DIR / "*.yml")))
-    if not yaml_files:
-        print("Tidak ada file YAML di folder 'tools/'.")
-        return
-
-    rows_basic: List[List[str]] = []
-    rows_detail: List[List[str]] = []
-
-    for path_str in yaml_files:
-        p = Path(path_str)
-        try:
-            with p.open("r", encoding="utf-8") as f:
-                data = yaml.safe_load(f) or {}
-        except Exception:
-            data = {}
-
-        name = str(data.get("name") or p.stem)
-        description = str(data.get("description") or "")
-        enabled_flag = bool(data.get("enabled") is True)
-        imported_flag = (OUTPUT_DOCKER_DIR / p.stem).exists()
-        running_flag = is_tool_running(p.stem)
-
-        enabled_str = "True" if enabled_flag else "False"
-        imported_str = "IMPORTED" if imported_flag else "NOT IMPORTED"
-        status_str = "UP" if running_flag else "DOWN"
-
-        rows_basic.append([name, enabled_str, imported_str, status_str, description])
-
-        if detailed:
-            # Ports
-            ports_info = ""
-            try:
-                ports = parse_ports(data)
-                if ports:
-                    ports_info = ", ".join([f"{host}:{container}" for host, container in ports])
-            except Exception:
-                ports_info = "(error parsing)"
-            # Volumes
-            volumes_info = ""
-            try:
-                vols = parse_volumes(data)
-                if vols:
-                    volumes_info = ", ".join([f"{src}:{dst}" for src, dst in vols])
-            except Exception:
-                volumes_info = "(error parsing)"
-
-            rows_detail.append([name, enabled_str, imported_str, status_str, description, ports_info, volumes_info])
-
-    if detailed:
-        table = _format_table(["TOOL", "ENABLED", "IMPORTED", "STATUS", "DESCRIPTION", "PORTS", "VOLUMES"], rows_detail, max_width=50)
-    else:
-        table = _format_table(["TOOL", "ENABLED", "IMPORTED", "STATUS", "DESCRIPTION"], rows_basic, max_width=50)
-
-    print(table)
+# Fungsi list_tools dipindah ke scripts/list.py untuk avoid duplication
 
 
 def inspect_tool(tool_id: str) -> None:
     """Tampilkan informasi detail dari satu tool."""
     try:
-        from .yaml_helpers import load_tool_yaml_by_filename, find_tool_yaml_path
+        from core.yaml import load_tool_yaml_by_filename, find_tool_yaml_path
         resolved_name, config = load_tool_yaml_by_filename(tool_id)
     except FileNotFoundError as exc:
         print(f"[ERROR] Tool '{tool_id}' tidak ditemukan: {exc}")
@@ -148,7 +93,7 @@ def inspect_tool(tool_id: str) -> None:
             print(f"\n💾 VOLUMES ({len(volumes)} configured)")
             print("   ┌─────────────────────────────────────────────────────────────────────────┐")
             for i, (src, dst) in enumerate(volumes, 1):
-                from .config_helpers import normalize_host_path
+                from core.config import normalize_host_path
                 normalized_src = normalize_host_path(src)
                 # Truncate src dan dst jika terlalu panjang
                 src_display = src if len(src) <= 25 else "..." + src[-22:]

@@ -10,12 +10,13 @@ from typing import List
 
 # Import constants dan functions dari helpers
 from .constants import OUTPUT_DOCKER_DIR
-from .list_helpers import resolve_tool_dir_id
-
+# Import di dalam function untuk avoid circular import
 
 def is_tool_running(tool_id: str) -> bool:
     """Check if tool is running by checking Docker container status."""
     try:
+        # Import di dalam function untuk avoid circular import
+        from scripts.list import resolve_tool_dir_id
         dir_id = resolve_tool_dir_id(tool_id)
         dest_dir = OUTPUT_DOCKER_DIR / dir_id
         if not dest_dir.exists():
@@ -63,6 +64,8 @@ def run_compose_action(tool_dir: Path, action: str) -> None:
 
 
 def up_tool(tool_id: str, force: bool = False) -> None:
+    # Import di dalam function untuk avoid circular import
+    from scripts.list import resolve_tool_dir_id
     dir_id = resolve_tool_dir_id(tool_id)
     dest_dir = OUTPUT_DOCKER_DIR / dir_id
     if not dest_dir.exists():
@@ -70,7 +73,7 @@ def up_tool(tool_id: str, force: bool = False) -> None:
 
     # Check if tool is enabled (unless force is used)
     if not force:
-        from .yaml_helpers import is_tool_enabled
+        from .yaml import is_tool_enabled
         if not is_tool_enabled(tool_id):
             raise ValueError(f"Tool '{tool_id}' tidak enabled. Jalankan 'enable {tool_id}' terlebih dahulu atau gunakan --force.")
 
@@ -80,6 +83,8 @@ def up_tool(tool_id: str, force: bool = False) -> None:
 
 
 def down_tool(tool_id: str) -> None:
+    # Import di dalam function untuk avoid circular import
+    from scripts.list import resolve_tool_dir_id
     dir_id = resolve_tool_dir_id(tool_id)
     dest_dir = OUTPUT_DOCKER_DIR / dir_id
     if not dest_dir.exists():

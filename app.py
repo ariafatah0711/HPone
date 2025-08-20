@@ -12,26 +12,20 @@ import sys
 from typing import List
 
 # Import semua helpers
-from helpers import (
-    # YAML helpers
+from core import (
+    # YAML operations
     load_tool_yaml_by_filename,
     find_tool_yaml_path,
     set_tool_enabled,
     is_tool_enabled,
     
-    # Docker helpers
+    # Docker operations
     is_tool_running,
     run_compose_action,
     up_tool,
     down_tool,
     
-    # File helpers
-    ensure_destination_dir,
-    find_template_dir,
-    copy_template_to_destination,
-    remove_tool,
-    
-    # Config helpers
+    # Configuration handling
     parse_ports,
     parse_volumes,
     parse_env,
@@ -40,22 +34,30 @@ from helpers import (
     ensure_volume_directories,
     rewrite_compose_with_env,
     
-    # List helpers
+    # Utility functions
+    to_var_prefix,
+    _format_table
+)
+
+from scripts import (
+    # List commands
+    list_tools,
     list_enabled_tool_ids,
     list_all_enabled_tool_ids,
     list_imported_tool_ids,
     resolve_tool_dir_id,
     
-    # Utils
-    to_var_prefix,
-    _format_table,
-    
-    # Display helpers
-    list_tools,
+    # Display commands
     inspect_tool,
     
-    # Import helpers
+    # Import commands
     import_tool,
+    
+    # File operations
+    ensure_destination_dir,
+    find_template_dir,
+    copy_template_to_destination,
+    remove_tool,
     
     # Dependency checker
     require_dependencies
@@ -120,7 +122,7 @@ def main(argv: List[str]) -> int:
     # Check dependencies command
     if args.command == "check":
         try:
-            from helpers import print_dependency_status
+            from scripts import print_dependency_status
             print_dependency_status()
         except Exception as exc:
             print(f"[ERROR] Gagal check dependencies: {exc}", file=sys.stderr)
