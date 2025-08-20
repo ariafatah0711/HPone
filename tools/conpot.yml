@@ -2,6 +2,7 @@ name: conpot
 description: ICS/SCADA honeypot (multi-templates)
 enabled: true
 service: conpot_default
+# image: dtagdevsec/conpot:24.04
 ports:
   - host: 8080
     container: 80
@@ -20,3 +21,4 @@ ports:
 env: {}
 volumes:
   - data/conpot/log:/var/log/conpot
+  - data/conpot/test:/tmp
