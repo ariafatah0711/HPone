@@ -67,15 +67,6 @@ def build_arg_parser() -> argparse.ArgumentParser:
     """Buat argument parser untuk aplikasi."""
     parser = argparse.ArgumentParser(
         description="HPone Docker template manager - Modular Version",
-        epilog=(
-            "Examples:\n"
-            "  app.py list\n"
-            "  app.py status\n"
-            "  app.py import cowrie\n"
-            "  app.py update\n"
-            "  app.py up --all\n"
-            "  app.py down cowrie\n"
-        ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
     sub = parser.add_subparsers(dest="command", required=True, title="Commands", metavar="COMMAND")
@@ -131,9 +122,138 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
     return parser
 
+
+def _format_full_help(parser: argparse.ArgumentParser) -> str:
+    """Cetak help komprehensif dengan layout ringkas. Menghindari copy panjang."""
+    prog = parser.prog
+    desc = parser.description or ""
+
+    # Kumpulkan subparsers
+    subparsers_actions = [
+        action for action in getattr(parser, "_actions", [])
+        if isinstance(action, argparse._SubParsersAction)
+    ]
+    if not subparsers_actions:
+        # Fallback standar
+        return parser.format_help()
+
+    sub_action = subparsers_actions[0]
+
+    # Peta nama -> subparser
+    choices = sub_action.choices  # preserves insertion order in modern Python
+
+    # Peta nama -> short help (mengambil dari help subparser)
+    # short_help_map = {n: (choices[n].description or choices[n].prog.split()[0]) for n in choices.keys()}
+    short_help_map = {
+        choice: (sub_action.choices[choice].description or act.help or "")
+        for act in sub_action._get_subactions()
+        for choice in [act.dest]
+    }
+
+    # Urutan tampilan yang diinginkan; sisanya mengikuti urutan asli
+    desired_order = [
+        "check", "import", "update", "list", "status",
+        "remove", "inspect", "enable", "disable", "up", "down",
+    ]
+    names_in_choice = list(choices.keys())
+    ordered_names = [n for n in desired_order if n in names_in_choice] + [
+        n for n in names_in_choice if n not in desired_order
+    ]
+
+    # Bangun bagian Commands dengan alignment
+    name_width = max((len(n) for n in ordered_names), default=0)
+    cmd_lines = []
+    for name in ordered_names:
+        summary = short_help_map.get(name) or (choices[name].description or "")
+        cmd_lines.append(f"  {name.ljust(name_width)}  {summary}".rstrip())
+
+    # Examples section removed per request
+
+    # Helper: generate ringkas usage dan opsi per subparser
+    def format_detail_for(name: str) -> str:
+        sp = choices[name]
+        # Ringkas usage dari objek subparser
+        tokens = []
+        option_entries = []  # (label, help)
+        max_label_len = 0
+        for act in getattr(sp, "_actions", []):
+            # Skip builtin help action
+            if isinstance(act, argparse._HelpAction):
+                continue
+            label = None
+            help_text = (act.help or "").strip()
+            if getattr(act, "option_strings", None):
+                # Pilih long option jika ada, kalau tidak pakai yang pertama
+                longs = [opt for opt in act.option_strings if opt.startswith("--")]
+                label = longs[0] if longs else act.option_strings[0]
+                # Flag optional
+                token = f"[{label}]"
+                tokens.append(token)
+            else:
+                # Positional
+                metavar = act.metavar or act.dest
+                display = f"<{metavar}>"
+                # Optional jika nargs mengizinkan kosong
+                optional = str(getattr(act, "nargs", "")) in ("?", "*", None)
+                token = f"[{display}]" if optional else f"{display}"
+                tokens.append(token)
+                label = display
+            if label:
+                max_label_len = max(max_label_len, len(label))
+                if help_text:
+                    option_entries.append((label, help_text))
+
+        # Susun bagian detail
+        lines = []
+        if tokens:
+            # Hilangkan duplikasi token sambil mempertahankan urutan
+            seen = set()
+            uniq_tokens = []
+            for t in tokens:
+                if t in seen:
+                    continue
+                seen.add(t)
+                uniq_tokens.append(t)
+            lines.append(f"  {name} " + " ".join(uniq_tokens))
+        else:
+            lines.append(f"  {name}")
+
+        if not option_entries:
+            lines.append("    No options.")
+        else:
+            pad = max_label_len
+            for label, help_text in option_entries:
+                lines.append(f"    {label.ljust(pad)}  {help_text}")
+
+        return "\n".join(lines)
+
+    # Bangun bagian Detailed Commands
+    details_sections = [format_detail_for(n) for n in ordered_names]
+
+    # Rangkai semua bagian
+    out_lines = []
+    out_lines.append("Usage:\n  {} [COMMAND] [OPTIONS]".format(prog))
+    if desc:
+        out_lines.append("\n{}".format(desc))
+    out_lines.append("\nCommands:")
+    out_lines.extend(cmd_lines)
+    out_lines.append("\nDetailed Commands:")
+    out_lines.extend(details_sections)
+
+    return "\n".join(out_lines) + "\n"
+
 def main(argv: List[str]) -> int:
     """Main function untuk aplikasi."""
     parser = build_arg_parser()
+    # Jika hanya diminta -h/--help, tampilkan full help yang mencakup semua subcommands
+    if any(arg in ("-h", "--help") for arg in argv):
+        try:
+            print(_format_full_help(parser))
+        except Exception:
+            # fallback ke help standar jika terjadi error
+            parser.print_help()
+        return 0
+
     args = parser.parse_args(argv)
 
     # Check dependencies command
