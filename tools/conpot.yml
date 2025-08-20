@@ -3,8 +3,8 @@ description: Honeypot ICS/SCADA untuk mensimulasikan perangkat industri dengan b
 enabled: false
 service: conpot_default
 ports:
-- host: 8080
-  container: 80
+# - host: 8081
+#   container: 80
 - host: 102
   container: 102
 - host: 161
@@ -20,4 +20,3 @@ ports:
 env: {}
 volumes:
 - data/conpot/log:/var/log/conpot
-- data/conpot/test:/tmp

@@ -1,0 +1,19 @@
+name: ddospot
+description: Honeypot untuk mendeteksi, merekam, dan menganalisis serangan berbasis UDP yang umum digunakan dalam DDoS
+enabled: true
+ports:
+- host: 19
+  container: 19/udp
+- host: 1053
+  container: 53/udp
+- host: 123
+  container: 123/udp
+#- host: 161
+#  container: 161/udp
+- host: 1900
+  container: 1900/udp
+env: {}
+volumes:
+- data/ddospot/log:/opt/ddospot/ddospot/logs
+- data/ddospot/bl:/opt/ddospot/ddospot/bl
+- data/ddospot/db:/opt/ddospot/ddospot/db

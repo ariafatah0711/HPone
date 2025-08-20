@@ -1,0 +1,10 @@
+name: wordpot
+description: Honeypot WordPress untuk mendeteksi dan merekam percobaan serangan terhadap
+  CMS WordPress
+enabled: true
+ports:
+- host: 80
+  container: 80
+env: {}
+volumes:
+- data/wordpot/log:/opt/wordpot/logs

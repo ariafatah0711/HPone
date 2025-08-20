@@ -1,0 +1,9 @@
+name: honeyaml
+description: Honeypot berbasis YAML untuk mendeteksi interaksi HTTP dan mencatat aktivitas penyerang
+enabled: true
+ports:
+- host: 8085
+  container: 8080
+env: {}
+volumes:
+- data/honeyaml/log:/opt/honeyaml/log

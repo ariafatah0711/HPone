@@ -18,13 +18,13 @@ from core import (
     find_tool_yaml_path,
     set_tool_enabled,
     is_tool_enabled,
-    
+
     # Docker operations
     is_tool_running,
     run_compose_action,
     up_tool,
     down_tool,
-    
+
     # Configuration handling
     parse_ports,
     parse_volumes,
@@ -33,7 +33,7 @@ from core import (
     generate_env_file,
     ensure_volume_directories,
     rewrite_compose_with_env,
-    
+
     # Utility functions
     to_var_prefix,
     _format_table
@@ -46,19 +46,19 @@ from scripts import (
     list_all_enabled_tool_ids,
     list_imported_tool_ids,
     resolve_tool_dir_id,
-    
+
     # Display commands
     inspect_tool,
-    
+
     # Import commands
     import_tool,
-    
+
     # File operations
     ensure_destination_dir,
     find_template_dir,
     copy_template_to_destination,
     remove_tool,
-    
+
     # Dependency checker
     require_dependencies
 )
@@ -118,7 +118,7 @@ def main(argv: List[str]) -> int:
     """Main function untuk aplikasi."""
     parser = build_arg_parser()
     args = parser.parse_args(argv)
-    
+
     # Check dependencies command
     if args.command == "check":
         try:
@@ -128,7 +128,7 @@ def main(argv: List[str]) -> int:
             print(f"[ERROR] Gagal check dependencies: {exc}", file=sys.stderr)
             return 1
         return 0
-    
+
     # Check dependencies sebelum menjalankan command lain (kecuali check)
     try:
         require_dependencies()

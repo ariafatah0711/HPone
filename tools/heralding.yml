@@ -1,0 +1,40 @@
+name: heralding
+description: Honeypot multi-protokol untuk menangkap kredensial login dari berbagai
+  layanan
+enabled: false
+ports:
+- host: 21
+  container: 21
+- host: 2022
+  container: 22
+- host: 23
+  container: 23
+- host: 25
+  container: 25
+# - host: 80
+#   container: 80
+- host: 110
+  container: 110
+- host: 143
+  container: 143
+- host: 443
+  container: 443
+- host: 465
+  container: 465
+- host: 993
+  container: 993
+- host: 995
+  container: 995
+- host: 1080
+  container: 1080
+- host: 3306
+  container: 3306
+- host: 3389
+  container: 3389
+- host: 5432
+  container: 5432
+- host: 5900
+  container: 5900
+env: {}
+volumes:
+- data/heralding/log:/var/log/heralding

@@ -1,0 +1,10 @@
+name: hellpot
+description: Honeypot HTTP untuk memancing dan merekam aktivitas serangan berbasis
+  web
+enabled: false
+ports:
+- host: 8080
+  container: 8080
+env: {}
+volumes:
+- data/hellpot/log:/var/log/hellpot
