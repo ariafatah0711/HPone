@@ -1,5 +1,6 @@
 data/
 docker/
+__pycache__
 
 # tmp
 tmp/
