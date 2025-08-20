@@ -3,9 +3,11 @@
 HPone Docker template manager.
 
 Perintah:
-  - import <tool> [--force] : Import template ke folder `docker/<tool>/` dan generate file `.env` dari `tools/<tool>.yml`.
   - list                   : Tampilkan daftar tools berdasarkan YAML di `tools/` dan status imported.
+  - import <tool> [--force] : Import template ke folder `docker/<tool>/` dan generate file `.env` dari `tools/<tool>.yml`.
+  - import --all [--force] : Import semua tool yang enabled.
   - remove <tool>          : Hapus folder `docker/<tool>/`.
+  - remove --all           : Hapus semua tool yang sudah diimport.
   - enable <tool>          : Set `enabled: true` pada `tools/<tool>.yml`.
   - disable <tool>         : Set `enabled: false` pada `tools/<tool>.yml`.
   - up [<tool> | --all]    : Jalankan `docker compose up -d` untuk satu tool atau semua tool yang enabled.
@@ -13,8 +15,11 @@ Perintah:
 
 Contoh:
   python manage.py import cowrie
+  python manage.py import --all
   python manage.py list
+  python manage.py list -a
   python manage.py remove cowrie
+  python manage.py remove --all
 """
 
 from __future__ import annotations
@@ -155,6 +160,21 @@ def list_enabled_tool_ids() -> List[str]:
                 # Hanya anggap imported jika folder docker/<stem> ada
                 if (OUTPUT_DOCKER_DIR / p.stem).exists():
                     tool_ids.append(p.stem)
+        except Exception:
+            continue
+    return sorted(tool_ids)
+
+
+def list_all_enabled_tool_ids() -> List[str]:
+    """Dapatkan semua tool yang enabled (tidak perlu sudah diimport)."""
+    tool_ids: List[str] = []
+    for path_str in glob.glob(str(TOOLS_DIR / "*.yml")):
+        p = Path(path_str)
+        try:
+            with p.open("r", encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+            if data.get("enabled") is True:
+                tool_ids.append(p.stem)
         except Exception:
             continue
     return sorted(tool_ids)
@@ -584,13 +604,14 @@ def list_tools(detailed: bool = False) -> None:
             data = {}
 
         name = str(data.get("name") or p.stem)
+        description = str(data.get("description") or "")
         enabled_flag = bool(data.get("enabled") is True)
         running_flag = is_tool_running(p.stem)
 
         enabled_str = "True" if enabled_flag else "False"
         status_str = "UP" if running_flag else "DOWN"
 
-        rows_basic.append([enabled_str, status_str, name])
+        rows_basic.append([name, enabled_str, status_str, description])
 
         if detailed:
             # Ports
@@ -610,12 +631,12 @@ def list_tools(detailed: bool = False) -> None:
             except Exception:
                 volumes_info = "(error parsing)"
 
-            rows_detail.append([enabled_str, status_str, name, ports_info, volumes_info])
+            rows_detail.append([name, description, ports_info, volumes_info])
 
     if detailed:
-        table = _format_table(["ENABLED", "STATUS", "TOOL", "PORTS", "VOLUMES"], rows_detail)
+        table = _format_table(["TOOL", "DESCRIPTION", "PORTS", "VOLUMES"], rows_detail)
     else:
-        table = _format_table(["ENABLED", "STATUS", "TOOL"], rows_basic)
+        table = _format_table(["TOOL", "ENABLED", "STATUS", "DESCRIPTION"], rows_basic)
 
     print(table)
 
@@ -633,14 +654,16 @@ def build_arg_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_import = sub.add_parser("import", help="Import template dan generate .env untuk tool")
-    p_import.add_argument("tool", help="Nama tool (sesuai nama file YAML di folder tools/)")
+    p_import.add_argument("tool", nargs="?", help="Nama tool (sesuai nama file YAML di folder tools/)")
+    p_import.add_argument("--all", action="store_true", help="Import semua tool yang enabled")
     p_import.add_argument("--force", action="store_true", help="Overwrite folder docker/<tool> jika sudah ada")
 
     p_list = sub.add_parser("list", help="List tools berdasarkan YAML di folder tools/")
     p_list.add_argument("-a", action="store_true", help="Tampilkan detail lengkap (deskripsi dan ports)")
 
     p_remove = sub.add_parser("remove", help="Hapus folder docker/<tool>")
-    p_remove.add_argument("tool", help="Nama tool yang akan dihapus")
+    p_remove.add_argument("tool", nargs="?", help="Nama tool yang akan dihapus")
+    p_remove.add_argument("--all", action="store_true", help="Hapus semua tool yang sudah diimport")
 
     p_enable = sub.add_parser("enable", help="Enable tool pada tools/<tool>.yml (set enabled: true)")
     p_enable.add_argument("tool", help="Nama tool yang akan di-enable")
@@ -661,19 +684,36 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
     return parser
 
-
 def main(argv: List[str]) -> int:
     parser = build_arg_parser()
     args = parser.parse_args(argv)
 
     if args.command == "import":
         try:
-            dest = import_tool(args.tool, force=bool(args.force))
+            if getattr(args, "all", False):
+                # Import semua tool yang enabled
+                tool_ids = list_all_enabled_tool_ids()
+                if not tool_ids:
+                    print("Tidak ada tool yang enabled.")
+                    return 0
+                print(f"Importing {len(tool_ids)} enabled tools...")
+                for t in tool_ids:
+                    try:
+                        dest = import_tool(t, force=bool(args.force))
+                        print(f"OK: Template '{t}' diimport ke: {dest}")
+                    except Exception as exc:
+                        print(f"[ERROR] Gagal import '{t}': {exc}", file=sys.stderr)
+                        continue
+            else:
+                if not args.tool:
+                    print("Harus beri nama tool atau gunakan --all", file=sys.stderr)
+                    return 2
+                dest = import_tool(args.tool, force=bool(args.force))
+                print(f"OK: Template '{args.tool}' diimport ke: {dest}")
+                print(f"OK: File .env dibuat di: {dest / '.env'}")
         except Exception as exc:
-            print(f"[ERROR] Gagal import '{args.tool}': {exc}", file=sys.stderr)
+            print(f"[ERROR] Gagal import: {exc}", file=sys.stderr)
             return 1
-        print(f"OK: Template '{args.tool}' diimport ke: {dest}")
-        print(f"OK: File .env dibuat di: {dest / '.env'}")
         return 0
 
     if args.command == "list":
@@ -686,9 +726,26 @@ def main(argv: List[str]) -> int:
 
     if args.command == "remove":
         try:
-            remove_tool(args.tool)
+            if getattr(args, "all", False):
+                # Remove semua tool yang sudah diimport
+                tool_ids = list_imported_tool_ids()
+                if not tool_ids:
+                    print("Tidak ada tool yang diimport.")
+                    return 0
+                print(f"Removing {len(tool_ids)} imported tools...")
+                for t in tool_ids:
+                    try:
+                        remove_tool(t)
+                    except Exception as exc:
+                        print(f"[ERROR] Gagal remove '{t}': {exc}", file=sys.stderr)
+                        continue
+            else:
+                if not args.tool:
+                    print("Harus beri nama tool atau gunakan --all", file=sys.stderr)
+                    return 2
+                remove_tool(args.tool)
         except Exception as exc:
-            print(f"[ERROR] Gagal remove '{args.tool}': {exc}", file=sys.stderr)
+            print(f"[ERROR] Gagal remove: {exc}", file=sys.stderr)
             return 1
         return 0
 

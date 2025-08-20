@@ -1,6 +1,6 @@
 name: conpot
 description: ICS/SCADA honeypot (multi-templates)
-enabled: false
+enabled: true
 service: conpot_default
 ports:
   - host: 8080
