@@ -1,0 +1,9 @@
+name: ipphoney
+description: Honeypot IPP (Internet Printing Protocol) untuk memantau serta merekam aktivitas terhadap layanan printing
+enabled: false
+ports:
+- host: 631
+  container: 631
+env: {}
+volumes:
+- data/ipphoney/log:/opt/ipphoney/log

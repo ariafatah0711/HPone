@@ -1,0 +1,12 @@
+name: dicompot
+description: Honeypot DICOM untuk memantau dan merekam aktivitas terhadap layanan DICOM (Medical Imaging)
+enabled: false
+ports:
+- host: 104
+  container: 11112
+- host: 11112
+  container: 11112
+env: {}
+volumes:
+- data/dicompot/log:/var/log/dicompot
+#- data/dicompot/images:/opt/dicompot/images

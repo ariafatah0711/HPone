@@ -1,0 +1,9 @@
+name: elasticpot
+description: Honeypot Elasticsearch untuk memantau serta merekam eksploitasi dan query berbahaya
+enabled: false
+ports:
+- host: 9200
+  container: 9200
+env: {}
+volumes:
+- data/elasticpot/log:/opt/elasticpot/log

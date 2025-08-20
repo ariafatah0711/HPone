@@ -1,0 +1,9 @@
+name: medpot
+description: Honeypot HL7 untuk memantau serta merekam aktivitas terhadap protokol medis HL7
+enabled: false
+ports:
+- host: 2575
+  container: 2575
+env: {}
+volumes:
+- data/medpot/log:/var/log/medpot
