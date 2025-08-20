@@ -103,8 +103,8 @@ def list_tools(detailed: bool = False) -> None:
         running_flag = is_tool_running(p.stem)
 
         enabled_str = "True" if enabled_flag else "False"
-        imported_str = "IMPORTED" if imported_flag else "NOT IMPORTED"
-        status_str = "UP" if running_flag else "DOWN"
+        imported_str = "Yes" if imported_flag else "No"
+        status_str = "Up" if running_flag else "Down"
 
         rows_basic.append([name, enabled_str, imported_str, status_str, description])
 
@@ -132,9 +132,9 @@ def list_tools(detailed: bool = False) -> None:
 
     if detailed:
         from core.utils import _format_table
-        table = _format_table(["TOOL", "ENABLED", "IMPORTED", "STATUS", "DESCRIPTION", "PORTS", "VOLUMES"], rows_detail, max_width=50)
+        table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION", "PORTS", "VOLUMES"], rows_detail, max_width=100)
     else:
         from core.utils import _format_table
-        table = _format_table(["TOOL", "ENABLED", "IMPORTED", "STATUS", "DESCRIPTION"], rows_basic, max_width=50)
+        table = _format_table(["TOOl", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION"], rows_basic, max_width=60)
 
     print(table)

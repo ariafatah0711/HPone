@@ -224,7 +224,22 @@ def main(argv: List[str]) -> int:
                 if not args.tool:
                     print("Harus beri nama tool atau gunakan --all", file=sys.stderr)
                     return 2
-                up_tool(args.tool, force=bool(args.force))
+                try:
+                    up_tool(args.tool, force=bool(args.force))
+                except FileNotFoundError:
+                    reply = input(f"Tool '{args.tool}' belum diimport. Import sekarang? [y/N]: ").strip().lower()
+                    if reply in ("y", "ya", "yes"):
+                        try:
+                            dest = import_tool(args.tool, force=False)
+                            print(f"OK: Template '{args.tool}' diimport ke: {dest}")
+                            print(f"OK: File .env dibuat di: {dest / '.env'}")
+                            up_tool(args.tool, force=bool(args.force))
+                        except Exception as exc:
+                            print(f"[ERROR] Gagal Up '{args.tool}': {exc}", file=sys.stderr)
+                            return 1
+                    else:
+                        print("Dibatalkan.")
+                        return 0
         except Exception as exc:
             print(f"[ERROR] Gagal up: {exc}", file=sys.stderr)
             return 1
