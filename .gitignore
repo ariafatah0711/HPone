@@ -1,6 +1,7 @@
 data/
 docker/
 __pycache__
+.pytest_cache
 
 # tmp
 tmp/

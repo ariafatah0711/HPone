@@ -56,6 +56,23 @@ from .import_helpers import (
     import_tool
 )
 
+from .dependency_checker import (
+    check_all_dependencies,
+    check_python_dependencies,
+    check_system_dependencies,
+    print_dependency_status,
+    get_installation_instructions,
+    require_dependencies
+)
+
+from .error_handlers import (
+    handle_yaml_error,
+    handle_docker_error,
+    safe_execute,
+    print_error_with_suggestion,
+    check_file_permissions
+)
+
 __all__ = [
     # YAML helpers
     'load_tool_yaml_by_filename',
@@ -99,5 +116,20 @@ __all__ = [
     'inspect_tool',
     
     # Import helpers
-    'import_tool'
+    'import_tool',
+    
+    # Dependency checker
+    'check_all_dependencies',
+    'check_python_dependencies',
+    'check_system_dependencies',
+    'print_dependency_status',
+    'get_installation_instructions',
+    'require_dependencies',
+    
+    # Error handlers
+    'handle_yaml_error',
+    'handle_docker_error',
+    'safe_execute',
+    'print_error_with_suggestion',
+    'check_file_permissions'
 ]

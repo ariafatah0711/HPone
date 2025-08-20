@@ -55,7 +55,10 @@ from helpers import (
     inspect_tool,
     
     # Import helpers
-    import_tool
+    import_tool,
+    
+    # Dependency checker
+    require_dependencies
 )
 
 
@@ -104,13 +107,34 @@ def build_arg_parser() -> argparse.ArgumentParser:
     group_down.add_argument("tool", nargs="?", help="Nama tool. Jika tidak diberikan, gunakan --all")
     group_down.add_argument("--all", action="store_true", help="Jalankan untuk semua tool yang diimport")
 
-    return parser
+    # Check dependencies command
+    p_check = sub.add_parser("check", help="Check dependencies")
 
+    return parser
 
 def main(argv: List[str]) -> int:
     """Main function untuk aplikasi."""
     parser = build_arg_parser()
     args = parser.parse_args(argv)
+    
+    # Check dependencies command
+    if args.command == "check":
+        try:
+            from helpers import print_dependency_status
+            print_dependency_status()
+        except Exception as exc:
+            print(f"[ERROR] Gagal check dependencies: {exc}", file=sys.stderr)
+            return 1
+        return 0
+    
+    # Check dependencies sebelum menjalankan command lain (kecuali check)
+    try:
+        require_dependencies()
+    except SystemExit:
+        return 1
+    except Exception as exc:
+        print(f"[ERROR] Gagal check dependencies: {exc}", file=sys.stderr)
+        return 1
 
     # Import command
     if args.command == "import":
