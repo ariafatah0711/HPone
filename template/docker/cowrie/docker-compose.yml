@@ -18,7 +18,8 @@ services:
     ports:
      - "22:22"
      - "23:23"
-    image: "ghcr.io/telekom-security/cowrie:24.04.1"
+    # image: "ghcr.io/telekom-security/cowrie:24.04.1"
+    build: .
     read_only: true
     volumes:
      - $HOME/tpotce/data/cowrie/downloads:/home/cowrie/cowrie/dl

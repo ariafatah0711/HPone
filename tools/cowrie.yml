@@ -4,11 +4,11 @@ enabled: false
 ports:
 - host: 2222
   container: 22
-- host: 2223
-  container: 23
+# - host: 2223
+  # container: 23
 env: {}
 volumes:
 - data/cowrie/log:/home/cowrie/cowrie/log
-# - data/cowrie/downloads:/home/cowrie/cowrie/dl
-# - data/cowrie/keys:/home/cowrie/cowrie/etc
-# - data/cowrie/log/tty:/home/cowrie/cowrie/log/tty
+- data/cowrie/downloads:/home/cowrie/cowrie/dl
+- data/cowrie/keys:/home/cowrie/cowrie/etc
+- data/cowrie/log/tty:/home/cowrie/cowrie/log/tty

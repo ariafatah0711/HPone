@@ -115,7 +115,7 @@ python3 app.py -h
 ### check dep, and testing for import file
 ```bash
 python3 test_import.py
-python3 app.py --check
+python3 app.py check
 ```
 
 ## 🚀 Quick Start
