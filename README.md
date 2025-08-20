@@ -33,14 +33,14 @@ A powerful, modular Python application for managing Docker honeypot templates wi
 ### Project Structure
 ```
 HPone/
-├── 📁 core/                    # Core functionality modules
+├── 📁 core/                   # Core functionality modules
 │   ├── __init__.py            # Package initialization
 │   ├── config.py              # Configuration parsing utilities
 │   ├── constants.py           # Application constants
 │   ├── docker.py              # Docker operations
 │   ├── utils.py               # Utility functions
 │   └── yaml.py                # YAML file operations
-├── 📁 scripts/                 # Command implementations
+├── 📁 scripts/                # Command implementations
 │   ├── __init__.py            # Package initialization
 │   ├── check.py               # Dependency checking
 │   ├── error_handlers.py      # Error handling utilities
@@ -49,15 +49,16 @@ HPone/
 │   ├── inspect.py             # Inspection utilities
 │   ├── list.py                # Listing commands
 │   └── remove.py              # Removal operations
-├── 📁 tools/                   # Honeypot tool configurations
+├── 📁 tools/                  # Honeypot tool configurations
 │   ├── adbhoney.yml           # ADB honeypot config
 │   ├── ciscoasa.yml           # Cisco ASA honeypot config
 │   ├── conpot.yml             # Conpot honeypot config
 │   └── cowrie.yml             # Cowrie SSH honeypot config
-├── 📁 template/                # Docker template files
-├── 📁 docker/                  # Generated Docker configurations
-├── 🐍 app.py                   # Main application entry point
-├── 📋 requirements.txt         # Python dependencies
+├── 📁 template/               # Docker template files
+├── 📁 docker/                 # Generated Docker configurations
+├── 🐍 app.py                  # Main application entry point
+├── 🐍 test_import.py          # Testing Import
+├── 📋 requirements.txt        # Python dependencies
 └── 📖 README.md               # This file
 ```
 
@@ -95,52 +96,60 @@ cd hpone
 # Install Python dependencies
 pip install -r requirements.txt
 
-# Verify installation
-python app.py --help
 ```
 
-### Docker Installation
-```bash
-# Ensure Docker is running
-docker --version
-docker-compose --version
 
-# Test Docker access
-docker ps
+### use
+```bash
+./app.py -h
+```
+or
+```bash
+python app.py -h
+``` 
+or
+```bash
+python3 app.py -h
+````
+
+### check dep, and testing for import file
+```bash
+python3 test_import.py
+python3 app.py --check
 ```
 
 ## 🚀 Quick Start
 
 ### 1. List Available Tools
 ```bash
-python app.py list
+python3 app.py list
 ```
 
 ### 2. Import a Honeypot Tool
 ```bash
 # Import Cowrie SSH honeypot
-python app.py import cowrie
+python3 app.py import cowrie
 
 # Import all enabled tools
-python app.py import --all
+python3 app.py import --all
 ```
 
 ### 3. Start the Honeypot
 ```bash
 # Start specific tool
-python app.py up cowrie
+python3 app.py up cowrie
 
 # Start all imported tools
-python app.py up --all
+python3 app.py up --all
 ```
 
 ### 4. Monitor Status
 ```bash
 # Check tool status
-python app.py inspect cowrie
+python3 app.py inspect cowrie
 
 # List running tools
-python app.py list -a
+python3 app.py list -a
 ```
 
 ## 📚 Usage Guide
@@ -150,61 +159,61 @@ python app.py list -a
 #### 🔍 **List Commands**
 ```bash
 # Basic tool listing
-python app.py list
+python3 app.py list
 
 # Detailed listing with ports and descriptions
-python app.py list -a
+python3 app.py list -a
 ```
 
 #### 📥 **Import Commands**
 ```bash
 # Import specific tool
-python app.py import <tool_name>
+python3 app.py import <tool_name>
 
 # Import all enabled tools
-python app.py import --all
+python3 app.py import --all
 
 # Force overwrite existing import
-python app.py import <tool_name> --force
+python3 app.py import <tool_name> --force
 ```
 
 #### 🚀 **Control Commands**
 ```bash
 # Start tool
-python app.py up <tool_name>
+python3 app.py up <tool_name>
 
 # Start all imported tools
-python app.py up --all
+python3 app.py up --all
 
 # Stop tool
-python app.py down <tool_name>
+python3 app.py down <tool_name>
 
 # Stop all tools
-python app.py down --all
+python3 app.py down --all
 ```
 
 #### ⚙️ **Configuration Commands**
 ```bash
 # Enable tool
-python app.py enable <tool_name>
+python3 app.py enable <tool_name>
 
 # Disable tool
-python app.py disable <tool_name>
+python3 app.py disable <tool_name>
 
 # Inspect tool configuration
-python app.py inspect <tool_name>
+python3 app.py inspect <tool_name>
 ```
 
 #### 🗑️ **Management Commands**
 ```bash
 # Remove specific tool
-python app.py remove <tool_name>
+python3 app.py remove <tool_name>
 
 # Remove all imported tools
-python app.py remove --all
+python3 app.py remove --all
 
 # Check system dependencies
-python app.py check
+python3 app.py check
 ```
 
 ### Tool Configuration
@@ -233,7 +242,7 @@ git clone https://github.com/yourusername/hpone.git
 cd hpone
 
 # Create virtual environment
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install development dependencies
@@ -273,13 +282,13 @@ python test_import.py
 ### Manual Testing
 ```bash
 # Test basic functionality
-python app.py list
-python app.py check
+python3 app.py list
+python3 app.py check
 
 # Test tool operations
-python app.py import cowrie
-python app.py inspect cowrie
-python app.py remove cowrie
+python3 app.py import cowrie
+python3 app.py inspect cowrie
+python3 app.py remove cowrie
 ```
 
 ## 🤝 Contributing
