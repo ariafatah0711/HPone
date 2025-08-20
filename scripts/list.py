@@ -102,9 +102,13 @@ def list_tools(detailed: bool = False) -> None:
         from core.docker import is_tool_running
         running_flag = is_tool_running(p.stem)
 
-        enabled_str = "True" if enabled_flag else "False"
-        imported_str = "Yes" if imported_flag else "No"
-        status_str = "Up" if running_flag else "Down"
+        # Apply ANSI colors for readability
+        def color(text: str, code: str) -> str:
+            return f"\033[{code}m{text}\033[0m"
+
+        enabled_str = color("True", "32") if enabled_flag else color("False", "31")
+        imported_str = color("Yes", "36") if imported_flag else color("No", "90")
+        status_str = color("Up", "32") if running_flag else color("Down", "31")
 
         rows_basic.append([name, enabled_str, imported_str, status_str, description])
 

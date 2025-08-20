@@ -7,6 +7,7 @@ Helpers to handle errors more gracefully and user-friendly.
 import sys
 from typing import Any, Callable, TypeVar, Optional
 from functools import wraps
+from core.utils import PREFIX_ERROR
 
 T = TypeVar('T')
 
@@ -19,13 +20,13 @@ def handle_yaml_error(func: Callable[..., T]) -> Callable[..., T]:
             return func(*args, **kwargs)
         except ImportError as e:
             if "yaml" in str(e).lower():
-                print("❌ ERROR: PyYAML is not available!")
+                print(f"{PREFIX_ERROR} PyYAML is not available!")
                 print("💡 Install with: pip install PyYAML")
                 sys.exit(1)
             raise
         except Exception as e:
             if "yaml" in str(e).lower() or "yaml" in str(type(e).__name__).lower():
-                print(f"❌ ERROR: Failed to parse YAML: {e}")
+                print(f"{PREFIX_ERROR} Failed to parse YAML: {e}")
                 print("💡 Make sure the YAML file is valid and contains no syntax errors")
                 sys.exit(1)
             raise
@@ -40,7 +41,7 @@ def handle_docker_error(func: Callable[..., T]) -> Callable[..., T]:
             return func(*args, **kwargs)
         except FileNotFoundError as e:
             if "docker" in str(e).lower():
-                print("❌ ERROR: Docker not found!")
+                print(f"{PREFIX_ERROR} Docker not found!")
                 print("💡 Please install Docker first")
                 print("   Ubuntu/Debian: sudo apt install docker.io")
                 print("   CentOS/RHEL: sudo yum install docker")
@@ -50,7 +51,7 @@ def handle_docker_error(func: Callable[..., T]) -> Callable[..., T]:
             raise
         except Exception as e:
             if "docker" in str(e).lower():
-                print(f"❌ ERROR: Failed to run Docker command: {e}")
+                print(f"{PREFIX_ERROR} Failed to run Docker command: {e}")
                 print("💡 Ensure Docker service is running and the user has permissions")
                 print("   Try: sudo systemctl start docker")
                 print("   Try: sudo usermod -aG docker $USER")
@@ -76,7 +77,7 @@ def safe_execute(func: Callable[..., T],
     try:
         return func()
     except Exception as e:
-        print(f"❌ {error_msg}: {e}")
+        print(f"{PREFIX_ERROR} {error_msg}: {e}")
         if exit_on_error:
             sys.exit(1)
         return None
@@ -93,7 +94,7 @@ def print_error_with_suggestion(error: Exception,
         suggestion: Helpful suggestion for the user
         exit_code: Program exit code
     """
-    print(f"❌ ERROR: {error}")
+    print(f"{PREFIX_ERROR} {error}")
     if suggestion:
         print(f"💡 {suggestion}")
     

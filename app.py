@@ -64,6 +64,8 @@ from scripts import (
     require_dependencies
 )
 
+from core.utils import PREFIX_OK, PREFIX_ERROR, PREFIX_WARN
+
 def main(argv: List[str]) -> int:
     """Main entrypoint for the application."""
     parser = build_arg_parser()
@@ -84,7 +86,7 @@ def main(argv: List[str]) -> int:
             from scripts import print_dependency_status
             print_dependency_status()
         except Exception as exc:
-            print(f"[ERROR] Failed to check dependencies: {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to check dependencies: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -94,7 +96,7 @@ def main(argv: List[str]) -> int:
     except SystemExit:
         return 1
     except Exception as exc:
-        print(f"[ERROR] Failed to check dependencies: {exc}", file=sys.stderr)
+        print(f"{PREFIX_ERROR} Failed to check dependencies: {exc}", file=sys.stderr)
         return 1
 
     # Import command
@@ -110,19 +112,19 @@ def main(argv: List[str]) -> int:
                 for t in tool_ids:
                     try:
                         dest = import_tool(t, force=bool(args.force))
-                        print(f"OK: Template '{t}' imported to: {dest}")
+                        print(f"{PREFIX_OK}: Template '{t}' imported to: {dest}")
                     except Exception as exc:
-                        print(f"[ERROR] Failed to import '{t}': {exc}", file=sys.stderr)
+                        print(f"{PREFIX_ERROR} Failed to import '{t}': {exc}", file=sys.stderr)
                         continue
             else:
                 if not args.tool:
                     print("You must specify a tool or use --all", file=sys.stderr)
                     return 2
                 dest = import_tool(args.tool, force=bool(args.force))
-                print(f"OK: Template '{args.tool}' imported to: {dest}")
-                print(f"OK: .env file created at: {dest / '.env'}")
+                print(f"{PREFIX_OK}: Template '{args.tool}' imported to: {dest}")
+                print(f"{PREFIX_OK}: .env file created at: {dest / '.env'}")
         except Exception as exc:
-            print(f"[ERROR] Failed to import: {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to import: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -137,12 +139,12 @@ def main(argv: List[str]) -> int:
             for t in tool_ids:
                 try:
                     dest = import_tool(t, force=True)
-                    print(f"OK: Template '{t}' updated at: {dest}")
+                    print(f"{PREFIX_OK}: Template '{t}' updated at: {dest}")
                 except Exception as exc:
-                    print(f"[ERROR] Failed to update '{t}': {exc}", file=sys.stderr)
+                    print(f"{PREFIX_ERROR} Failed to update '{t}': {exc}", file=sys.stderr)
                     continue
         except Exception as exc:
-            print(f"[ERROR] Failed to update: {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to update: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -151,7 +153,7 @@ def main(argv: List[str]) -> int:
         try:
             list_tools(detailed=bool(args.a))
         except Exception as exc:
-            print(f"[ERROR] Failed to list tools: {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to list tools: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -169,7 +171,7 @@ def main(argv: List[str]) -> int:
                     try:
                         remove_tool(t)
                     except Exception as exc:
-                        print(f"[ERROR] Failed to remove '{t}': {exc}", file=sys.stderr)
+                        print(f"{PREFIX_ERROR} Failed to remove '{t}': {exc}", file=sys.stderr)
                         continue
             else:
                 if not args.tool:
@@ -177,7 +179,7 @@ def main(argv: List[str]) -> int:
                     return 2
                 remove_tool(args.tool)
         except Exception as exc:
-            print(f"[ERROR] Failed to remove: {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to remove: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -186,7 +188,7 @@ def main(argv: List[str]) -> int:
         try:
             inspect_tool(args.tool)
         except Exception as exc:
-            print(f"[ERROR] Failed to inspect '{args.tool}': {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to inspect '{args.tool}': {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -195,9 +197,9 @@ def main(argv: List[str]) -> int:
         try:
             set_tool_enabled(args.tool, True)
         except Exception as exc:
-            print(f"[ERROR] Failed to enable '{args.tool}': {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to enable '{args.tool}': {exc}", file=sys.stderr)
             return 1
-        print(f"OK: Tool '{args.tool}' enabled.")
+        print(f"{PREFIX_OK}: Tool '{args.tool}' enabled.")
         return 0
 
     # Disable command
@@ -205,9 +207,9 @@ def main(argv: List[str]) -> int:
         try:
             set_tool_enabled(args.tool, False)
         except Exception as exc:
-            print(f"[ERROR] Failed to disable '{args.tool}': {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to disable '{args.tool}': {exc}", file=sys.stderr)
             return 1
-        print(f"OK: Tool '{args.tool}' disabled.")
+        print(f"{PREFIX_OK}: Tool '{args.tool}' disabled.")
         return 0
 
     # Up command
@@ -223,9 +225,9 @@ def main(argv: List[str]) -> int:
                         for t in imported_ids:
                             try:
                                 dest = import_tool(t, force=True)
-                                print(f"OK: Template '{t}' updated at: {dest}")
+                                print(f"{PREFIX_OK}: Template '{t}' updated at: {dest}")
                             except Exception as exc:
-                                print(f"[WARN] Failed to update '{t}': {exc}")
+                                print(f"{PREFIX_WARN} Failed to update '{t}': {exc}")
                     else:
                         print("No imported tools to update.")
 
@@ -244,11 +246,11 @@ def main(argv: List[str]) -> int:
                         from core.constants import OUTPUT_DOCKER_DIR
                         if (OUTPUT_DOCKER_DIR / args.tool).exists():
                             dest = import_tool(args.tool, force=True)
-                            print(f"OK: Template '{args.tool}' updated at: {dest}")
+                            print(f"{PREFIX_OK}: Template '{args.tool}' updated at: {dest}")
                         else:
                             print(f"Skip update: tool '{args.tool}' is not imported.")
                     except Exception as exc:
-                        print(f"[ERROR] Failed to update '{args.tool}': {exc}", file=sys.stderr)
+                        print(f"{PREFIX_ERROR} Failed to update '{args.tool}': {exc}", file=sys.stderr)
                         return 1
                 try:
                     up_tool(args.tool, force=bool(args.force))
@@ -259,24 +261,24 @@ def main(argv: List[str]) -> int:
                         from core.yaml import find_tool_yaml_path
                         find_tool_yaml_path(args.tool)
                     except FileNotFoundError:
-                        print(f"[ERROR] Tool '{args.tool}' not found in '{TOOLS_DIR}'.", file=sys.stderr)
+                        print(f"{PREFIX_ERROR} Tool '{args.tool}' not found in '{TOOLS_DIR}'.", file=sys.stderr)
                         return 1
 
                     reply = input(f"Tool '{args.tool}' is not imported. Import now? [y/N]: ").strip().lower()
                     if reply in ("y", "yes", "ya"):
                         try:
                             dest = import_tool(args.tool, force=False)
-                            print(f"OK: Template '{args.tool}' imported to: {dest}")
-                            print(f"OK: .env file created at: {dest / '.env'}")
+                            print(f"{PREFIX_OK}: Template '{args.tool}' imported to: {dest}")
+                            print(f"{PREFIX_OK}: .env file created at: {dest / '.env'}")
                             up_tool(args.tool, force=bool(args.force))
                         except Exception as exc:
-                            print(f"[ERROR] Failed to start '{args.tool}': {exc}", file=sys.stderr)
+                            print(f"{PREFIX_ERROR} Failed to start '{args.tool}': {exc}", file=sys.stderr)
                             return 1
                     else:
                         print("Cancelled.")
                         return 0
         except Exception as exc:
-            print(f"[ERROR] Failed to start: {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to start: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -295,65 +297,17 @@ def main(argv: List[str]) -> int:
                     return 2
                 down_tool(args.tool)
         except Exception as exc:
-            print(f"[ERROR] Failed to stop: {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to stop: {exc}", file=sys.stderr)
             return 1
         return 0
 
-    # Status command (running only)
+    # Status command
     if args.command == "status":
         try:
-            # Get all imported tools
-            tool_ids = list_imported_tool_ids()
-            if not tool_ids:
-                print("No imported tools.")
-                return 0
-
-            # Filter only running ones
-            running_tools = []
-            for t in tool_ids:
-                try:
-                    if is_tool_running(t):
-                        running_tools.append(t)
-                except Exception:
-                    continue
-
-            if not running_tools:
-                print("No tools are running.")
-                return 0
-
-            # Collect port mappings
-            rows = []
-            for t in running_tools:
-                try:
-                    # Read tool YAML for port mapping
-                    _resolved_name, cfg = load_tool_yaml_by_filename(t)
-                    from core.config import parse_ports
-                    port_pairs = parse_ports(cfg)
-                except Exception:
-                    port_pairs = []
-
-                # Add row per mapping host->container
-                for host, container in port_pairs:
-                    # Normalize container column to only main number before "/udp" if any
-                    rows.append([str(host), str(container), t])
-
-            # Sort by HOST numerically if possible
-            def _key_host(row):
-                try:
-                    return int(str(row[0]).split("/")[0])
-                except Exception:
-                    return str(row[0])
-
-            rows.sort(key=_key_host)
-
-            # Render table
-            from core.utils import _format_table
-            table = _format_table(["HOST", "CONTAINER", "SERVICE"], rows, max_width=30)
-            if table:
-                print(table)
-            print(f"\n{len(running_tools)} tools running")
+            from scripts import show_status
+            show_status()
         except Exception as exc:
-            print(f"[ERROR] Failed to show status: {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to show status: {exc}", file=sys.stderr)
             return 1
         return 0
 

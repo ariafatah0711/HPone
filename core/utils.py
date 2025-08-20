@@ -9,6 +9,28 @@ from typing import List
 import textwrap
 
 
+# ANSI color handling
+ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+def _strip_ansi(text: str) -> str:
+    return ANSI_RE.sub("", text)
+
+def _pad_ansi_left(text: str, width: int) -> str:
+    visible = _strip_ansi(text)
+    pad = max(0, width - len(visible))
+    return f"{text}{' ' * pad}"
+
+# Common color codes and prefixed labels for CLI output
+COLOR_RESET = "\033[0m"
+COLOR_RED = "\033[31m"
+COLOR_GREEN = "\033[32m"
+COLOR_YELLOW = "\033[33m"
+
+PREFIX_OK = f"{COLOR_GREEN}OK{COLOR_RESET}"
+PREFIX_ERROR = f"{COLOR_RED}[ERROR]{COLOR_RESET}"
+PREFIX_WARN = f"{COLOR_YELLOW}[WARN]{COLOR_RESET}"
+
+
 def to_var_prefix(name: str) -> str:
     """Convert tool name to environment variable prefix."""
     # Replace non-alphanumeric chars with underscore, convert to uppercase
@@ -34,15 +56,15 @@ def _format_table(headers: List[str], rows: List[List[str]], max_width: int = 50
     if not headers or not rows:
         return ""
     
-    # Calculate column widths
+    # Calculate column widths (ignore ANSI sequences)
     col_widths = []
     for i, header in enumerate(headers):
         # Start with header width
-        max_width_col = len(header)
+        max_width_col = len(_strip_ansi(header))
         # Check all rows for this column
         for row in rows:
             if i < len(row):
-                max_width_col = max(max_width_col, len(str(row[i])))
+                max_width_col = max(max_width_col, len(_strip_ansi(str(row[i]))))
         # Apply max_width limit
         max_width_col = min(max_width_col, max_width)
         col_widths.append(max_width_col)
@@ -53,7 +75,7 @@ def _format_table(headers: List[str], rows: List[List[str]], max_width: int = 50
     # Build header row
     header_row = "|"
     for header, width in zip(headers, col_widths):
-        header_row += f" {header:<{width}} |"
+        header_row += f" {_pad_ansi_left(header, width)} |"
     
     # Build data rows with word-wrapping per cell
     data_rows = []
@@ -65,7 +87,11 @@ def _format_table(headers: List[str], rows: List[List[str]], max_width: int = 50
             cell_value = str(row[i]) if i < len(row) else ""
             width = col_widths[i]
             # Wrap by words; ensure at least one empty line when value is empty
-            wrapped_lines = textwrap.wrap(cell_value, width=width) if cell_value else [""]
+            # Avoid wrapping ANSI content (keep as single line) to preserve sequences
+            if ANSI_RE.search(cell_value):
+                wrapped_lines = [cell_value]
+            else:
+                wrapped_lines = textwrap.wrap(cell_value, width=width) if cell_value else [""]
             if not wrapped_lines:
                 wrapped_lines = [""]
             wrapped_per_cell.append(wrapped_lines)
@@ -78,7 +104,7 @@ def _format_table(headers: List[str], rows: List[List[str]], max_width: int = 50
             for i, width in enumerate(col_widths):
                 lines = wrapped_per_cell[i]
                 part = lines[line_idx] if line_idx < len(lines) else ""
-                line_str += f" {part:<{width}} |"
+                line_str += f" {_pad_ansi_left(part, width)} |"
             data_rows.append(line_str)
     
     # Combine all parts

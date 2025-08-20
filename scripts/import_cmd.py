@@ -12,6 +12,7 @@ from core.constants import OUTPUT_DOCKER_DIR
 from core.yaml import load_tool_yaml_by_filename
 from .file_ops import ensure_destination_dir, find_template_dir, copy_template_to_destination
 from core.config import ensure_volume_directories, generate_env_file, rewrite_compose_with_env
+from core.utils import PREFIX_WARN
 
 
 def import_tool(tool_id: str, force: bool = False) -> Path:
@@ -28,6 +29,6 @@ def import_tool(tool_id: str, force: bool = False) -> Path:
         rewrite_compose_with_env(dest_dir, tool_id, resolved_name, cfg)
     except Exception as exc:
         # Non-fatal: continue even if rewrite fails
-        print(f"[WARN] Failed to adjust docker-compose.yml for env: {exc}")
+        print(f"{PREFIX_WARN} Failed to adjust docker-compose.yml for env: {exc}")
 
     return dest_dir

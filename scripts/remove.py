@@ -7,6 +7,7 @@ Functions to remove an imported tool.
 import shutil
 from pathlib import Path
 from core.constants import OUTPUT_DOCKER_DIR
+from core.utils import PREFIX_OK, PREFIX_ERROR
 
 
 def remove_tool(tool_id: str) -> bool:
@@ -23,14 +24,14 @@ def remove_tool(tool_id: str) -> bool:
         tool_dir = OUTPUT_DOCKER_DIR / tool_id
         
         if not tool_dir.exists():
-            print(f"[ERROR] Tool {tool_id} not found in {OUTPUT_DOCKER_DIR}")
+            print(f"{PREFIX_ERROR} Tool {tool_id} not found in {OUTPUT_DOCKER_DIR}")
             return False
             
         # Remove tool directory
         shutil.rmtree(tool_dir)
-        print(f"OK: Removed tool {tool_id}")
+        print(f"{PREFIX_OK}: Removed tool {tool_id}")
         return True
         
     except Exception as exc:
-        print(f"[ERROR] Failed to remove tool {tool_id}: {exc}")
+        print(f"{PREFIX_ERROR} Failed to remove tool {tool_id}: {exc}")
         return False

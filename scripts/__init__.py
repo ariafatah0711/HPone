@@ -47,6 +47,10 @@ from .error_handlers import (
     check_file_permissions
 )
 
+from .status import (
+    show_status,
+)
+
 __all__ = [
     # List commands
     'list_tools',
@@ -83,4 +87,7 @@ __all__ = [
     'safe_execute',
     'print_error_with_suggestion',
     'check_file_permissions'
+    ,
+    # Status helpers
+    'show_status'
 ]
