@@ -1,201 +1,341 @@
-# HPone Docker Template Manager - Modular Version
+# 🍯 HPone Honey Pot One
 
-Aplikasi modular yang menggunakan helpers package untuk mengelola Docker templates dengan struktur kode yang lebih terorganisir.
+> **Advanced Docker Template Manager for Honeypot Deployment**
 
-## 🏗️ Struktur Modular
+A powerful, modular Python application for managing Docker honeypot templates with an organized codebase structure. HPone simplifies the deployment, configuration, and management of various honeypot tools through a clean command-line interface.
 
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
+
+## 📋 Table of Contents
+
+- [✨ Features](#-features)
+- [🏗️ Architecture](#️-architecture)
+- [📦 Installation](#-installation)
+- [🚀 Quick Start](#-quick-start)
+- [📚 Usage Guide](#-usage-guide)
+- [🔧 Development](#-development)
+- [🧪 Testing](#-testing)
+- [🤝 Contributing](#-contributing)
+
+## ✨ Features
+
+- 🐳 **Docker Integration** - Seamless Docker Compose management
+- 📁 **Template Management** - Import, configure, and deploy honeypot templates
+- ⚙️ **Configuration Parsing** - Automatic YAML parsing and environment generation
+- 🔄 **Lifecycle Management** - Start, stop, and monitor honeypot containers
+- 📊 **Status Monitoring** - Real-time container status and health checks
+- 🎯 **Modular Design** - Clean, maintainable codebase structure
+
+## 🏗️ Architecture
+
+### Project Structure
 ```
 HPone/
-├── manage.py              # File original (tidak dihapus)
-├── app.py                 # File baru yang modular
-├── helpers/               # Package helpers
-│   ├── __init__.py        # Package initialization
-│   ├── yaml_helpers.py    # YAML file management
-│   ├── docker_helpers.py  # Docker container operations
-│   ├── file_helpers.py    # File and directory operations
-│   ├── config_helpers.py  # Configuration parsing
-│   ├── list_helpers.py    # Tool listing functions
-│   ├── utils.py           # Utility functions
-│   ├── display_helpers.py # Output display functions
-│   └── import_helpers.py  # Tool import functions
-├── tools/                 # Tool configurations
-├── template/              # Docker templates
-└── docker/                # Generated Docker files
+├── 📁 core/                    # Core functionality modules
+│   ├── __init__.py            # Package initialization
+│   ├── config.py              # Configuration parsing utilities
+│   ├── constants.py           # Application constants
+│   ├── docker.py              # Docker operations
+│   ├── utils.py               # Utility functions
+│   └── yaml.py                # YAML file operations
+├── 📁 scripts/                 # Command implementations
+│   ├── __init__.py            # Package initialization
+│   ├── check.py               # Dependency checking
+│   ├── error_handlers.py      # Error handling utilities
+│   ├── file_ops.py            # File operations
+│   ├── import_cmd.py          # Import command logic
+│   ├── inspect.py             # Inspection utilities
+│   ├── list.py                # Listing commands
+│   └── remove.py              # Removal operations
+├── 📁 tools/                   # Honeypot tool configurations
+│   ├── adbhoney.yml           # ADB honeypot config
+│   ├── ciscoasa.yml           # Cisco ASA honeypot config
+│   ├── conpot.yml             # Conpot honeypot config
+│   └── cowrie.yml             # Cowrie SSH honeypot config
+├── 📁 template/                # Docker template files
+├── 📁 docker/                  # Generated Docker configurations
+├── 🐍 app.py                   # Main application entry point
+├── 📋 requirements.txt         # Python dependencies
+└── 📖 README.md               # This file
 ```
 
-## 📦 Helpers Package
+### Core Modules
 
-### `yaml_helpers.py`
-- **`load_tool_yaml_by_filename()`** - Load YAML config berdasarkan nama file atau field `name`
-- **`find_tool_yaml_path()`** - Temukan path YAML untuk tool ID
-- **`set_tool_enabled()`** - Set field `enabled` pada YAML
-- **`is_tool_enabled()`** - Check apakah tool enabled
+#### `core/` Package
+- **`config.py`** - Configuration parsing and validation
+- **`constants.py`** - Application-wide constants and paths
+- **`docker.py`** - Docker container operations and management
+- **`utils.py`** - General utility functions and helpers
+- **`yaml.py`** - YAML file loading and manipulation
 
-### `docker_helpers.py`
-- **`is_tool_running()`** - Check status Docker container
-- **`run_compose_action()`** - Jalankan docker compose command
-- **`up_tool()`** - Start tool container
-- **`down_tool()`** - Stop tool container
+#### `scripts/` Package
+- **`check.py`** - Dependency verification and system checks
+- **`error_handlers.py`** - Centralized error handling
+- **`file_ops.py`** - File and directory operations
+- **`import_cmd.py`** - Template import functionality
+- **`inspect.py`** - Tool inspection and information display
+- **`list.py`** - Tool listing and status display
+- **`remove.py`** - Tool removal and cleanup
 
-### `file_helpers.py`
-- **`ensure_destination_dir()`** - Buat direktori tujuan
-- **`find_template_dir()`** - Temukan direktori template
-- **`copy_template_to_destination()`** - Copy template ke direktori tujuan
-- **`remove_tool()`** - Hapus direktori tool
+## 📦 Installation
 
-### `config_helpers.py`
-- **`parse_ports()`** - Parse konfigurasi ports
-- **`parse_volumes()`** - Parse konfigurasi volumes
-- **`parse_env()`** - Parse environment variables
-- **`normalize_host_path()`** - Normalisasi path host
-- **`generate_env_file()`** - Generate file .env
-- **`ensure_volume_directories()`** - Buat direktori volume
-- **`rewrite_compose_with_env()`** - Rewrite docker-compose.yml
+### Prerequisites
+- Python 3.8 or higher
+- Docker and Docker Compose
+- Git
 
-### `list_helpers.py`
-- **`list_enabled_tool_ids()`** - List tool yang enabled dan imported
-- **`list_all_enabled_tool_ids()`** - List semua tool yang enabled
-- **`list_imported_tool_ids()`** - List tool yang sudah diimport
-- **`resolve_tool_dir_id()`** - Resolve tool directory ID
-
-### `utils.py`
-- **`to_var_prefix()`** - Konversi nama tool ke prefix ENV
-- **`_format_table()`** - Format output table
-
-### `display_helpers.py`
-- **`list_tools()`** - Tampilkan daftar tools
-- **`inspect_tool()`** - Tampilkan detail tool
-
-### `import_helpers.py`
-- **`import_tool()`** - Import template tool
-
-## 🚀 Cara Penggunaan
-
-### 1. Menggunakan `app.py` (Modular)
+### Quick Install
 ```bash
-# Import tool
-python app.py import cowrie
-python app.py import --all
+# Clone the repository
+git clone https://github.com/ariafatah0711/hpone.git
+cd hpone
 
-# List tools
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Verify installation
+python app.py --help
+```
+
+### Docker Installation
+```bash
+# Ensure Docker is running
+docker --version
+docker-compose --version
+
+# Test Docker access
+docker ps
+```
+
+## 🚀 Quick Start
+
+### 1. List Available Tools
+```bash
 python app.py list
-python app.py list -a
+```
 
-# Inspect tool
+### 2. Import a Honeypot Tool
+```bash
+# Import Cowrie SSH honeypot
+python app.py import cowrie
+
+# Import all enabled tools
+python app.py import --all
+```
+
+### 3. Start the Honeypot
+```bash
+# Start specific tool
+python app.py up cowrie
+
+# Start all imported tools
+python app.py up --all
+```
+
+### 4. Monitor Status
+```bash
+# Check tool status
 python app.py inspect cowrie
 
-# Remove tool
-python app.py remove cowrie
-python app.py remove --all
+# List running tools
+python app.py list -a
+```
 
-# Enable/Disable tool
-python app.py enable cowrie
-python app.py disable cowrie
+## 📚 Usage Guide
 
-# Start/Stop tool
-python app.py up cowrie
+### Command Reference
+
+#### 🔍 **List Commands**
+```bash
+# Basic tool listing
+python app.py list
+
+# Detailed listing with ports and descriptions
+python app.py list -a
+```
+
+#### 📥 **Import Commands**
+```bash
+# Import specific tool
+python app.py import <tool_name>
+
+# Import all enabled tools
+python app.py import --all
+
+# Force overwrite existing import
+python app.py import <tool_name> --force
+```
+
+#### 🚀 **Control Commands**
+```bash
+# Start tool
+python app.py up <tool_name>
+
+# Start all imported tools
 python app.py up --all
-python app.py down cowrie
+
+# Stop tool
+python app.py down <tool_name>
+
+# Stop all tools
 python app.py down --all
 ```
 
-### 2. Menggunakan `manage.py` (Original)
+#### ⚙️ **Configuration Commands**
 ```bash
-# Semua command yang sama seperti sebelumnya
-python manage.py import cowrie
-python manage.py list -a
-python manage.py inspect cowrie
-# dst...
+# Enable tool
+python app.py enable <tool_name>
+
+# Disable tool
+python app.py disable <tool_name>
+
+# Inspect tool configuration
+python app.py inspect <tool_name>
 ```
 
-## 🔧 Keuntungan Struktur Modular
+#### 🗑️ **Management Commands**
+```bash
+# Remove specific tool
+python app.py remove <tool_name>
 
-### ✅ **Maintainability**
-- Kode terorganisir dalam modul yang spesifik
-- Mudah menemukan dan memperbaiki bug
-- Fungsi-fungsi yang terkait dikelompokkan bersama
+# Remove all imported tools
+python app.py remove --all
 
-### ✅ **Reusability**
-- Helper functions bisa digunakan di file lain
-- Tidak ada duplikasi kode
-- Mudah untuk testing individual modules
+# Check system dependencies
+python app.py check
+```
 
-### ✅ **Scalability**
-- Mudah menambah fitur baru
-- Mudah memodifikasi existing functionality
-- Struktur yang jelas untuk development team
+### Tool Configuration
 
-### ✅ **Testing**
-- Bisa test individual modules
-- Mock dependencies dengan mudah
-- Unit testing yang lebih efektif
+Each honeypot tool has a YAML configuration file in the `tools/` directory:
+
+```yaml
+# Example: tools/cowrie.yml
+name: "Cowrie SSH Honeypot"
+description: "Medium interaction SSH honeypot"
+enabled: true
+ports:
+  - "2222:2222"
+volumes:
+  - "./logs:/cowrie/log"
+environment:
+  - COWRIE_LOG_LEVEL=INFO
+```
+
+## 🔧 Development
+
+### Setting Up Development Environment
+```bash
+# Clone and setup
+git clone https://github.com/yourusername/hpone.git
+cd hpone
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install development dependencies
+pip install -r requirements.txt
+pip install -e .
+```
+
+### Code Structure Guidelines
+
+#### 1. **Adding New Features**
+- Place core functionality in `core/` package
+- Place command implementations in `scripts/` package
+- Update `__init__.py` files for proper exports
+- Add comprehensive error handling
+
+#### 2. **Modifying Existing Features**
+- Maintain backward compatibility
+- Update related tests and documentation
+- Follow existing code style and patterns
+
+#### 3. **Code Organization**
+- Keep related functions together
+- Use descriptive module and function names
+- Maintain clear separation of concerns
+- Document complex functions with docstrings
 
 ## 🧪 Testing
 
+### Test Import Script
+Use the included test script to verify all imports work correctly:
+
 ```bash
-# Test individual modules
-python -m pytest helpers/yaml_helpers.py
-python -m pytest helpers/docker_helpers.py
-
-# Test specific functions
-python -c "from helpers.yaml_helpers import is_tool_enabled; print(is_tool_enabled('cowrie'))"
+# Run comprehensive import test
+python test_import.py
 ```
 
-## 🔄 Migration
+### Manual Testing
+```bash
+# Test basic functionality
+python app.py list
+python app.py check
 
-### Dari `manage.py` ke `app.py`
-1. **Kedua file bisa digunakan bersamaan**
-2. **Fungsi yang sama persis**
-3. **Tidak ada breaking changes**
-4. **Bisa migrate secara bertahap**
-
-### Contoh Migration
-```python
-# Sebelum (manage.py)
-from manage import list_tools, import_tool
-
-# Sesudah (app.py)
-from helpers import list_tools, import_tool
-# atau
-from app import list_tools, import_tool
+# Test tool operations
+python app.py import cowrie
+python app.py inspect cowrie
+python app.py remove cowrie
 ```
-
-## 📝 Development Guidelines
-
-### 1. **Adding New Features**
-- Buat helper function di module yang sesuai
-- Update `__init__.py` untuk export function
-- Test function secara individual
-- Integrate ke `app.py`
-
-### 2. **Modifying Existing Features**
-- Edit helper function yang sesuai
-- Update tests jika ada
-- Test integration dengan `app.py`
-
-### 3. **Code Organization**
-- Keep related functions together
-- Use descriptive module names
-- Maintain clear separation of concerns
-- Document complex functions
-
-## 🎯 Next Steps
-
-1. **Add Unit Tests** untuk setiap helper module
-2. **Add Type Hints** yang lebih comprehensive
-3. **Add Logging** untuk debugging
-4. **Add Configuration Management** untuk settings
-5. **Add Plugin System** untuk extensibility
 
 ## 🤝 Contributing
 
-1. Fork repository
-2. Create feature branch
-3. Add/modify helpers sesuai kebutuhan
-4. Update `__init__.py` exports
-5. Test dengan `app.py`
-6. Submit pull request
+We welcome contributions! Here's how you can help:
+
+### 1. **Fork & Clone**
+```bash
+git clone https://github.com/yourusername/hpone.git
+cd hpone
+```
+
+### 2. **Create Feature Branch**
+```bash
+git checkout -b feature/amazing-feature
+```
+
+### 3. **Make Changes**
+- Follow existing code style
+- Add tests for new functionality
+- Update documentation
+
+### 4. **Submit Pull Request**
+- Describe your changes clearly
+- Include test results
+- Reference any related issues
+
+### Development Workflow
+1. **Plan** - Discuss changes in issues
+2. **Code** - Implement with tests
+3. **Test** - Ensure all tests pass
+4. **Document** - Update README and docs
+5. **Submit** - Create pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Honeypot Community** - For inspiration and feedback
+- **Docker Team** - For excellent containerization tools
+- **Python Community** - For amazing ecosystem and libraries
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/yourusername/hpone/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/hpone/discussions)
+- **Wiki**: [Project Wiki](https://github.com/yourusername/hpone/wiki)
 
 ---
 
-**Note**: File `manage.py` original tetap dipertahankan untuk backward compatibility. Semua fitur yang ada di `manage.py` tersedia di `app.py` dengan struktur yang lebih modular.
+<div align="center">
+
+**Made with ❤️ by ariafatah0711**
+
+*Advanced Honeypot Management Made Simple*
+
+</div>

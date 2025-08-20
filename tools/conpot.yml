@@ -1,5 +1,5 @@
 name: conpot
-description: ICS/SCADA honeypot (multi-templates)
+description: Honeypot ICS/SCADA untuk mensimulasikan perangkat industri dengan berbagai protokol
 enabled: false
 service: conpot_default
 ports:

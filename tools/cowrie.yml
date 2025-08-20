@@ -1,5 +1,5 @@
 name: cowrie
-description: deskripsi tools nya
+description: Honeypot SSH dan Telnet untuk memantau serta merekam aktivitas login brute-force
 enabled: false
 ports:
 - host: 2222

@@ -1,5 +1,5 @@
 name: adbhoney
-description: adb honey
+description: Honeypot untuk layanan Android Debug Bridge (ADB) pada port 5555
 enabled: true
 ports:
 - host: 5555
