@@ -49,6 +49,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	group_up = p_up.add_mutually_exclusive_group(required=True)
 	group_up.add_argument("tool", nargs="?", help="Nama tool. Jika tidak diberikan, gunakan --all")
 	group_up.add_argument("--all", action="store_true", help="Jalankan untuk semua tool yang enabled dan sudah diimport")
+	p_up.add_argument("--update", action="store_true", help="Update template dulu sebelum up")
 	p_up.add_argument("--force", action="store_true", help="Force up tool meskipun tidak enabled (hanya untuk single tool)")
 
 	# Down command
@@ -58,7 +59,6 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	group_down.add_argument("--all", action="store_true", help="Jalankan untuk semua tool yang diimport")
 
 	return parser
-
 
 def format_full_help(parser: argparse.ArgumentParser) -> str:
 	"""Cetak help komprehensif dengan layout ringkas. Menghindari copy panjang."""

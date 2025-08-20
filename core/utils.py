@@ -6,6 +6,7 @@ Fungsi-fungsi utility yang dibutuhkan oleh core modules.
 
 import re
 from typing import List
+import textwrap
 
 
 def to_var_prefix(name: str) -> str:
@@ -54,17 +55,31 @@ def _format_table(headers: List[str], rows: List[List[str]], max_width: int = 50
     for header, width in zip(headers, col_widths):
         header_row += f" {header:<{width}} |"
     
-    # Build data rows
+    # Build data rows with word-wrapping per cell
     data_rows = []
     for row in rows:
-        row_str = "|"
-        for i, (cell, width) in enumerate(zip(row, col_widths)):
-            cell_str = str(cell)
-            # Truncate if too long
-            if len(cell_str) > width:
-                cell_str = "..." + cell_str[-(width-3):]
-            row_str += f" {cell_str:<{width}} |"
-        data_rows.append(row_str)
+        # Prepare wrapped lines for each cell in the row
+        wrapped_per_cell = []
+        max_lines = 1
+        for i in range(len(headers)):
+            cell_value = str(row[i]) if i < len(row) else ""
+            width = col_widths[i]
+            # Wrap by words; ensure at least one empty line when value is empty
+            wrapped_lines = textwrap.wrap(cell_value, width=width) if cell_value else [""]
+            if not wrapped_lines:
+                wrapped_lines = [""]
+            wrapped_per_cell.append(wrapped_lines)
+            if len(wrapped_lines) > max_lines:
+                max_lines = len(wrapped_lines)
+
+        # Emit visual lines for this logical row
+        for line_idx in range(max_lines):
+            line_str = "|"
+            for i, width in enumerate(col_widths):
+                lines = wrapped_per_cell[i]
+                part = lines[line_idx] if line_idx < len(lines) else ""
+                line_str += f" {part:<{width}} |"
+            data_rows.append(line_str)
     
     # Combine all parts
     table = separator + "\n"

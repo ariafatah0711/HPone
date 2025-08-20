@@ -215,6 +215,20 @@ def main(argv: List[str]) -> int:
         try:
             if getattr(args, "all", False):
                 # For --all, ignore force flag and only up enabled tools
+                # Jika --update, update semua yang sudah diimport terlebih dahulu
+                if getattr(args, "update", False):
+                    imported_ids = list_imported_tool_ids()
+                    if imported_ids:
+                        print(f"Updating {len(imported_ids)} imported tools before up...")
+                        for t in imported_ids:
+                            try:
+                                dest = import_tool(t, force=True)
+                                print(f"OK: Template '{t}' diupdate di: {dest}")
+                            except Exception as exc:
+                                print(f"[WARN] Gagal update '{t}': {exc}")
+                    else:
+                        print("Tidak ada tool yang diimport untuk diupdate.")
+
                 tool_ids = list_enabled_tool_ids()
                 if not tool_ids:
                     print("Tidak ada tool enabled yang sudah diimport.")
@@ -224,6 +238,18 @@ def main(argv: List[str]) -> int:
                 if not args.tool:
                     print("Harus beri nama tool atau gunakan --all", file=sys.stderr)
                     return 2
+                # Jika --update untuk single tool, lakukan update dulu hanya jika sudah diimport
+                if getattr(args, "update", False):
+                    try:
+                        from core.constants import OUTPUT_DOCKER_DIR
+                        if (OUTPUT_DOCKER_DIR / args.tool).exists():
+                            dest = import_tool(args.tool, force=True)
+                            print(f"OK: Template '{args.tool}' diupdate di: {dest}")
+                        else:
+                            print(f"Lewati update: tool '{args.tool}' belum diimport.")
+                    except Exception as exc:
+                        print(f"[ERROR] Gagal update '{args.tool}': {exc}", file=sys.stderr)
+                        return 1
                 try:
                     up_tool(args.tool, force=bool(args.force))
                 except FileNotFoundError:

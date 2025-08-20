@@ -132,7 +132,7 @@ def list_tools(detailed: bool = False) -> None:
 
     if detailed:
         from core.utils import _format_table
-        table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION", "PORTS", "VOLUMES"], rows_detail, max_width=100)
+        table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION", "PORTS", "VOLUMES"], rows_detail, max_width=30)
     else:
         from core.utils import _format_table
         table = _format_table(["TOOl", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION"], rows_basic, max_width=60)

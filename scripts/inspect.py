@@ -57,7 +57,22 @@ def inspect_tool(tool_id: str) -> None:
     print(f"\n📋 BASIC INFORMATION")
     print("   ┌─────────────────────────────────────────────────────────────────────────┐")
     print(f"   │ Name        : {resolved_name:<57} │")
-    print(f"   │ Description : {config.get('description', 'Tidak ada deskripsi'):<57} │")
+    # Description dibungkus ke 2 baris dengan alignment kolom ':'
+    try:
+        import textwrap
+        desc = str(config.get("description", "Tidak ada deskripsi"))
+        content_width = 57
+        wrapped_desc = textwrap.wrap(desc, width=content_width) or [""]
+        if len(wrapped_desc) < 2:
+            wrapped_desc += [""]
+        wrapped_desc = wrapped_desc[:2]
+        desc_label = "Description"
+        first_prefix = "   │ " + f"{desc_label} : "
+        second_prefix = "   │ " + " " * (len(desc_label) + 1) + ": "
+        print(f"{first_prefix}{wrapped_desc[0]:<{content_width}} │")
+        print(f"{second_prefix}{wrapped_desc[1]:<{content_width}} │")
+    except Exception:
+        print(f"   │ Description : {str(config.get('description', 'Tidak ada deskripsi')):<57} │")
     print(f"   │ Status      : {status_icon} {status_str:<54} │")
     print(f"   │ Enabled     : {enabled_icon} {enabled_str:<54} │")
     print(f"   │ Imported    : {imported_icon} {imported_str:<54} │")
