@@ -1,7 +1,7 @@
 """
-Docker Helpers untuk HPone
+Docker helpers for HPone.
 
-Fungsi-fungsi untuk menjalankan dan menghentikan Docker containers.
+Functions to start and stop Docker containers.
 """
 
 import subprocess
@@ -46,7 +46,7 @@ def is_tool_running(tool_id: str) -> bool:
 
 def run_compose_action(tool_dir: Path, action: str) -> None:
     if not (tool_dir / "docker-compose.yml").exists():
-        raise FileNotFoundError(f"docker-compose.yml tidak ditemukan di {tool_dir}")
+        raise FileNotFoundError(f"docker-compose.yml not found in {tool_dir}")
 
     cmd_dc = ["docker", "compose", action]
     if action == "up":
@@ -69,13 +69,13 @@ def up_tool(tool_id: str, force: bool = False) -> None:
     dir_id = resolve_tool_dir_id(tool_id)
     dest_dir = OUTPUT_DOCKER_DIR / dir_id
     if not dest_dir.exists():
-        raise FileNotFoundError(f"Folder docker untuk tool '{tool_id}' tidak ditemukan: {dest_dir}. Jalankan 'import' terlebih dahulu.")
+        raise FileNotFoundError(f"Docker folder for tool '{tool_id}' not found: {dest_dir}. Run 'import' first.")
 
     # Check if tool is enabled (unless force is used)
     if not force:
         from .yaml import is_tool_enabled
         if not is_tool_enabled(tool_id):
-            raise ValueError(f"Tool '{tool_id}' tidak enabled. Jalankan 'enable {tool_id}' terlebih dahulu atau gunakan --force.")
+            raise ValueError(f"Tool '{tool_id}' is not enabled. Run 'enable {tool_id}' first or use --force.")
 
     print(f"[UP] {dir_id} ...", flush=True)
     run_compose_action(dest_dir, "up")
@@ -88,7 +88,7 @@ def down_tool(tool_id: str) -> None:
     dir_id = resolve_tool_dir_id(tool_id)
     dest_dir = OUTPUT_DOCKER_DIR / dir_id
     if not dest_dir.exists():
-        print(f"[DOWN] Skip {dir_id}: folder tidak ada.")
+        print(f"[DOWN] Skip {dir_id}: folder not found.")
         return
     print(f"[DOWN] {dir_id} ...", flush=True)
     run_compose_action(dest_dir, "down")

@@ -1,7 +1,7 @@
 """
-Dependency Checker untuk HPone
+Dependency checker for HPone.
 
-Fungsi-fungsi untuk mengecek apakah semua dependencies yang dibutuhkan tersedia.
+Functions to verify that required dependencies are available.
 """
 
 import subprocess
@@ -14,8 +14,8 @@ def check_python_dependencies() -> Dict[str, bool]:
     """Check Python package dependencies."""
     dependencies = {
         'PyYAML': False,
-        'pathlib': True,  # Built-in di Python 3.4+
-        'typing': True,   # Built-in di Python 3.5+
+        'pathlib': True,  # Built-in in Python 3.4+
+        'typing': True,   # Built-in in Python 3.5+
     }
     
     # Check PyYAML
@@ -67,7 +67,7 @@ def check_system_dependencies() -> Dict[str, bool]:
 
 
 def check_all_dependencies() -> Tuple[bool, Dict[str, Dict[str, bool]]]:
-    """Check semua dependencies dan return status dan detail."""
+    """Check all dependencies and return status and details."""
     python_deps = check_python_dependencies()
     system_deps = check_system_dependencies()
     
@@ -86,7 +86,7 @@ def check_all_dependencies() -> Tuple[bool, Dict[str, Dict[str, bool]]]:
 
 
 def print_dependency_status() -> None:
-    """Print status dependencies dengan format yang rapi."""
+    """Print dependency status in a clean format."""
     print("╔══════════════════════════════════════════════════════════════════════════════╗")
     print("║                           🔍 CHECKING DEPENDENCIES                           ║")
     print("╚══════════════════════════════════════════════════════════════════════════════╝")
@@ -120,7 +120,7 @@ def print_dependency_status() -> None:
 
 
 def get_installation_instructions() -> str:
-    """Return installation instructions untuk dependencies yang kurang."""
+    """Return installation instructions for missing dependencies."""
     instructions = []
     
     ok, deps = check_all_dependencies()
@@ -142,7 +142,7 @@ def get_installation_instructions() -> str:
 
 
 def require_dependencies() -> None:
-    """Check dependencies dan exit jika ada yang kurang."""
+    """Check dependencies and exit if any are missing."""
     ok, deps = check_all_dependencies()
     
     if not ok:

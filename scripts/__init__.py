@@ -1,7 +1,7 @@
 """
-HPone Scripts Package
+HPone scripts package.
 
-Package ini berisi script commands untuk HPone Docker template manager.
+This package contains command scripts for the HPone Docker template manager.
 """
 
 from .list import (

@@ -1,7 +1,7 @@
 """
-File Helpers untuk HPone
+File helpers for HPone.
 
-Fungsi-fungsi untuk mengelola file, direktori, dan template.
+Functions to manage files, directories, and templates.
 """
 
 import shutil
@@ -16,15 +16,15 @@ def ensure_destination_dir(dest: Path, force: bool = False) -> None:
         if force:
             shutil.rmtree(dest)
         else:
-            raise FileExistsError(f"Folder tujuan sudah ada: {dest}. Gunakan --force untuk overwrite.")
+            raise FileExistsError(f"Destination directory already exists: {dest}. Use --force to overwrite.")
     dest.mkdir(parents=True, exist_ok=True)
 
 
 def find_template_dir(tool_id: str) -> Path:
     """
-    Cari template:
+    Locate template directory:
       1) template/docker/<tool_id>/
-      2) Jika tidak ada, dan template/docker/ berisi langsung file 'Dockerfile' dan 'docker-compose.yml', gunakan itu.
+      2) If not present, and template/docker/ contains 'Dockerfile' and 'docker-compose.yml' directly, use that.
     """
     tool_dir = TEMPLATE_DOCKER_DIR / tool_id
     if tool_dir.exists() and tool_dir.is_dir():
@@ -35,17 +35,17 @@ def find_template_dir(tool_id: str) -> Path:
     if dockerfile.exists() and compose.exists():
         return TEMPLATE_DOCKER_DIR
 
-    # Info bantuan
+    # Helpful info
     available = sorted([p.name for p in TEMPLATE_DOCKER_DIR.glob("*/") if p.is_dir()])
     raise FileNotFoundError(
-        "Template tidak ditemukan. Harus ada 'template/docker/<tool>/' atau file umum 'template/docker/Dockerfile' dan 'docker-compose.yml'. "
-        f"Tool dicari: '{tool_id}'. Template tersedia: {', '.join(available) if available else '-'}"
+        "Template not found. Expected 'template/docker/<tool>/' or common files 'template/docker/Dockerfile' and 'docker-compose.yml'. "
+        f"Requested tool: '{tool_id}'. Available templates: {', '.join(available) if available else '-'}"
     )
 
 
 def copy_template_to_destination(template_dir: Path, dest_dir: Path) -> None:
-    """Salin seluruh isi template ke folder tujuan."""
-    # Jika template_dir == TEMPLATE_DOCKER_DIR (mode umum), salin hanya Dockerfile dan docker-compose.yml
+    """Copy template contents to the destination directory."""
+    # If using TEMPLATE_DOCKER_DIR as a generic template, copy only Dockerfile and docker-compose.yml
     if template_dir == TEMPLATE_DOCKER_DIR:
         for fname in ("Dockerfile", "docker-compose.yml"):
             src = template_dir / fname
@@ -53,7 +53,7 @@ def copy_template_to_destination(template_dir: Path, dest_dir: Path) -> None:
                 shutil.copy2(src, dest_dir / fname)
         return
 
-    # Jika template spesifik tool (berisi dist/, dsb), copy tree
+    # If tool-specific template (contains dist/, etc.), copy the tree
     for item in template_dir.iterdir():
         src = item
         dst = dest_dir / item.name
@@ -66,7 +66,7 @@ def copy_template_to_destination(template_dir: Path, dest_dir: Path) -> None:
 def remove_tool(tool_id: str) -> None:
     dest_dir = OUTPUT_DOCKER_DIR / tool_id
     if not dest_dir.exists():
-        print(f"Folder tidak ditemukan: {dest_dir}")
+        print(f"Folder not found: {dest_dir}")
         return
     shutil.rmtree(dest_dir)
     print(f"Removed: {dest_dir}")

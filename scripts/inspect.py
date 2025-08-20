@@ -1,7 +1,7 @@
 """
-Display Helpers untuk HPone
+Display helpers for HPone.
 
-Fungsi-fungsi untuk menampilkan output yang rapi dan informatif.
+Functions to render clean and informative output.
 """
 
 import glob
@@ -21,17 +21,16 @@ from core.docker import is_tool_running
 
 # Fungsi list_tools dipindah ke scripts/list.py untuk avoid duplication
 
-
 def inspect_tool(tool_id: str) -> None:
-    """Tampilkan informasi detail dari satu tool."""
+    """Show detailed information about a tool."""
     try:
         from core.yaml import load_tool_yaml_by_filename, find_tool_yaml_path
         resolved_name, config = load_tool_yaml_by_filename(tool_id)
     except FileNotFoundError as exc:
-        print(f"[ERROR] Tool '{tool_id}' tidak ditemukan: {exc}")
+        print(f"[ERROR] Tool '{tool_id}' not found: {exc}")
         return
     except Exception as exc:
-        print(f"[ERROR] Gagal load config untuk tool '{tool_id}': {exc}")
+        print(f"[ERROR] Failed to load config for tool '{tool_id}': {exc}")
         return
 
     # Status info
@@ -39,7 +38,7 @@ def inspect_tool(tool_id: str) -> None:
     imported_flag = (OUTPUT_DOCKER_DIR / tool_id).exists()
     running_flag = is_tool_running(tool_id)
 
-    # Status indicators dengan emoji untuk visual yang lebih baik
+    # Status indicators with emoji for better visuals
     enabled_icon = "✅" if enabled_flag else "❌"
     imported_icon = "📦" if imported_flag else "📭"
     status_icon = "🟢" if running_flag else "🔴"
@@ -48,7 +47,7 @@ def inspect_tool(tool_id: str) -> None:
     imported_str = "Imported" if imported_flag else "Not Imported"
     status_str = "Running" if running_flag else "Stopped"
 
-    # Header yang lebih menarik
+    # Nicer header
     print("╔══════════════════════════════════════════════════════════════════════════════╗")
     print(f"║                           🔍 INSPECT TOOL: {resolved_name:<33} ║")
     print("╚══════════════════════════════════════════════════════════════════════════════╝")
@@ -57,10 +56,10 @@ def inspect_tool(tool_id: str) -> None:
     print(f"\n📋 BASIC INFORMATION")
     print("   ┌─────────────────────────────────────────────────────────────────────────┐")
     print(f"   │ Name        : {resolved_name:<57} │")
-    # Description dibungkus ke 2 baris dengan alignment kolom ':'
+    # Wrap description into two lines with ':' alignment
     try:
         import textwrap
-        desc = str(config.get("description", "Tidak ada deskripsi"))
+        desc = str(config.get("description", "No description"))
         content_width = 57
         wrapped_desc = textwrap.wrap(desc, width=content_width) or [""]
         if len(wrapped_desc) < 2:
@@ -72,13 +71,13 @@ def inspect_tool(tool_id: str) -> None:
         print(f"{first_prefix}{wrapped_desc[0]:<{content_width}} │")
         print(f"{second_prefix}{wrapped_desc[1]:<{content_width}} │")
     except Exception:
-        print(f"   │ Description : {str(config.get('description', 'Tidak ada deskripsi')):<57} │")
+        print(f"   │ Description : {str(config.get('description', 'No description')):<57} │")
     print(f"   │ Status      : {status_icon} {status_str:<54} │")
     print(f"   │ Enabled     : {enabled_icon} {enabled_str:<54} │")
     print(f"   │ Imported    : {imported_icon} {imported_str:<54} │")
     print("   └─────────────────────────────────────────────────────────────────────────┘")
     
-    # Ports dengan format yang rapi
+    # Ports section
     try:
         ports = parse_ports(config)
         if ports:
@@ -101,7 +100,7 @@ def inspect_tool(tool_id: str) -> None:
         print(f"   │ Error parsing ports: {error_str:<55} │")
         print("   └─────────────────────────────────────────────────────────────────────────┘")
 
-    # Volumes dengan format yang rapi
+    # Volumes section
     try:
         volumes = parse_volumes(config)
         if volumes:
@@ -119,12 +118,12 @@ def inspect_tool(tool_id: str) -> None:
                 norm_display = str(normalized_src)
                 if len(norm_display) > 50:
                     norm_display = "..." + norm_display[-47:]
-                print(f"   │           normalized: {norm_display:<49} │")
+                print(f"   │            normalized: {norm_display:<48} │")
             print("   └─────────────────────────────────────────────────────────────────────────┘")
         else:
             print(f"\n💾 VOLUMES")
             print("   ┌─────────────────────────────────────────────────────────────────────────┐")
-            print("   │ No volumes configured                                               │")
+            print("   │ No volumes configured                                                   │")
             print("   └─────────────────────────────────────────────────────────────────────────┘")
     except Exception as exc:
         print(f"\n💾 VOLUMES")
@@ -151,7 +150,7 @@ def inspect_tool(tool_id: str) -> None:
         print("   │ No environment variables configured                                     │")
         print("   └─────────────────────────────────────────────────────────────────────────┘")
 
-    # Service selection (jika ada)
+    # Service selection (if present)
     service = config.get("service")
     services = config.get("services")
     if service or services:
@@ -192,9 +191,9 @@ def inspect_tool(tool_id: str) -> None:
                     env_file_str = "..." + env_file_str[-47:]
                 print(f"   │ .env file       : {env_file_str:<53} │")
             else:
-                print(f"   │ .env file       : Tidak ada{'':<44} │")
+                print(f"   │ .env file       : None{'':<47} │")
         else:
-            print(f"   │ Docker directory: Belum diimport{'':<39} │")
+            print(f"   │ Docker directory: Not imported{'':<41} │")
         
         print("   └─────────────────────────────────────────────────────────────────────────┘")
     except Exception as exc:

@@ -1,7 +1,7 @@
 """
-Config Helpers untuk HPone
+Config helpers for HPone.
 
-Fungsi-fungsi untuk parsing ports, volumes, environment variables, dan generate file konfigurasi.
+Functions to parse ports, volumes, environment variables, and generate config files.
 """
 
 import os
@@ -12,7 +12,7 @@ from typing import Dict, Any, List, Tuple
 try:
     import yaml  # type: ignore
 except ImportError:
-    raise ImportError("PyYAML diperlukan untuk modul ini")
+    raise ImportError("PyYAML is required for this module")
 
 # Import constants dan functions dari helpers
 from .constants import PROJECT_ROOT
@@ -20,29 +20,29 @@ from .utils import to_var_prefix
 
 
 def parse_ports(config: Dict[str, Any]) -> List[Tuple[str, str]]:
-    """Kembalikan list tuple (host_src, container_dst). Mendukung format dict atau string 'host:container'."""
+    """Return list of (host_src, container_dst). Supports dict or 'host:container' string."""
     result: List[Tuple[str, str]] = []
     ports = config.get("ports") or []
     for entry in ports:
         if isinstance(entry, dict):
-            # Mendukung kunci 'host'/'container' atau 'src'/'dst'
+            # Support keys 'host'/'container' or 'src'/'dst'
             host = entry.get("host") or entry.get("src") or entry.get("source")
             container = entry.get("container") or entry.get("dst") or entry.get("destination")
             if host is not None and container is not None:
                 result.append((str(host), str(container)))
                 continue
         if isinstance(entry, str):
-            # Format "2222:22" → ambil bagian kiri dan kanan pertama
+            # Format "2222:22" → take the first left and right parts
             if ":" in entry:
                 left, right = entry.split(":", 1)
                 result.append((left.strip(), right.strip()))
                 continue
-        raise ValueError(f"Format port tidak dikenali: {entry!r}")
+        raise ValueError(f"Unrecognized port format: {entry!r}")
     return result
 
 
 def parse_volumes(config: Dict[str, Any]) -> List[Tuple[str, str]]:
-    """Kembalikan list tuple (src, dst). Mendukung string 'src:dst' atau dict {'src'/'dst'} atau {'host'/'container'}."""
+    """Return list of (src, dst). Supports 'src:dst' string or dict {'src'/'dst'} or {'host'/'container'}."""
     result: List[Tuple[str, str]] = []
     volumes = config.get("volumes") or []
     for entry in volumes:
@@ -54,16 +54,16 @@ def parse_volumes(config: Dict[str, Any]) -> List[Tuple[str, str]]:
                 continue
         if isinstance(entry, str):
             if ":" in entry:
-                # Ambil dua bagian pertama sebagai src dan dst (abaikan mode tambahan seperti :ro jika ada)
+                # Take the first two parts as src and dst (ignore extra modes like :ro)
                 left, right = entry.split(":", 1)
-                # Jika masih ada ":" di kanan (mis. dst:ro), ambil hanya path tujuan sebelum mode
+                # If there is another ":" on the right (e.g. dst:ro), take only the destination path before the mode
                 if ":" in right:
                     dst_path, _mode = right.split(":", 1)
                     result.append((left.strip(), dst_path.strip()))
                 else:
                     result.append((left.strip(), right.strip()))
                 continue
-        raise ValueError(f"Format volume tidak dikenali: {entry!r}")
+        raise ValueError(f"Unrecognized volume format: {entry!r}")
     return result
 
 
@@ -74,20 +74,20 @@ def parse_env(config: Dict[str, Any]) -> Dict[str, str]:
         for k, v in env.items():
             env_mapping[str(k)] = "" if v is None else str(v)
     else:
-        raise ValueError("Field 'env' harus berupa mapping/dict jika ada.")
+        raise ValueError("Field 'env' must be a mapping/dict if present.")
     return env_mapping
 
 
 def normalize_host_path(path_str: str) -> str:
-    """Normalisasi path host untuk volumes:
-    - Ekspansi env var (mis. $HOME) dan ~
-    - Jika relatif, jadikan absolut relatif ke root proyek
+    """Normalize host path for volumes:
+    - Expand env vars (e.g., $HOME) and ~
+    - If relative, make it absolute relative to the project root
     """
     if not isinstance(path_str, str) or not path_str:
         return path_str
-    # Expand env vars dan ~
+    # Expand env vars and ~
     expanded = os.path.expandvars(os.path.expanduser(path_str))
-    # Jika masih relatif, buat absolut relatif ke root project
+    # If still relative, make absolute relative to the project root
     if not os.path.isabs(expanded):
         try:
             absolute = str((PROJECT_ROOT / expanded).resolve())
@@ -98,7 +98,7 @@ def normalize_host_path(path_str: str) -> str:
 
 
 def generate_env_file(dest_dir: Path, tool_name: str, config: Dict[str, Any]) -> None:
-    """Buat file `.env` di folder tujuan berdasarkan config YAML."""
+    """Create a `.env` file in the destination directory based on YAML config."""
     prefix = to_var_prefix(tool_name)
 
     lines: List[str] = []
@@ -108,7 +108,7 @@ def generate_env_file(dest_dir: Path, tool_name: str, config: Dict[str, Any]) ->
     try:
         port_mappings = parse_ports(config)
     except Exception as exc:
-        raise ValueError(f"Gagal parsing 'ports': {exc}")
+        raise ValueError(f"Failed parsing 'ports': {exc}")
 
     for idx, (host_src, container_dst) in enumerate(port_mappings, start=1):
         lines.append(f"{prefix}_PORT{idx}_SRC={host_src}")
@@ -118,7 +118,7 @@ def generate_env_file(dest_dir: Path, tool_name: str, config: Dict[str, Any]) ->
     try:
         volume_mappings = parse_volumes(config)
     except Exception as exc:
-        raise ValueError(f"Gagal parsing 'volumes': {exc}")
+        raise ValueError(f"Failed parsing 'volumes': {exc}")
 
     for idx, (src, dst) in enumerate(volume_mappings, start=1):
         normalized_src = normalize_host_path(src)
@@ -137,29 +137,29 @@ def generate_env_file(dest_dir: Path, tool_name: str, config: Dict[str, Any]) ->
 
 
 def ensure_volume_directories(config: Dict[str, Any]) -> None:
-    """Buat direktori untuk setiap host path volume jika belum ada (best-effort)."""
+    """Create directories for each host path volume if not present (best-effort)."""
     try:
         volume_mappings = parse_volumes(config)
     except Exception:
         return
     for src, _dst in volume_mappings:
         normalized_src = normalize_host_path(src)
-        # Abaikan jika ini kemungkinan named volume (tanpa path separator)
+        # Ignore when this seems like a named volume (no path separator)
         if os.path.isabs(normalized_src) or os.sep in normalized_src:
             try:
                 os.makedirs(normalized_src, exist_ok=True)
             except Exception:
-                # Best-effort, jika gagal biarkan compose yang mengelola
+                # Best-effort; if it fails, let compose handle it
                 pass
 
 
 def rewrite_compose_with_env(dest_dir: Path, tool_id: str, tool_name: str, config: Dict[str, Any]) -> None:
     """
-    Modifikasi docker-compose.yml agar:
-      - ports: menggunakan "${PREFIX_PORTn_SRC}:${PREFIX_PORTn_DST}"
-      - volumes: menggunakan "${PREFIX_VOLn_SRC}:${PREFIX_VOLn_DST}"
-      - environment: jika ada `env` di YAML tools, set KEY: "${PREFIX_KEY}"
-      - image: jika ada `image` di YAML tools, set image service -> value tsb
+    Modify docker-compose.yml so that:
+      - ports: uses "${PREFIX_PORTn_SRC}:${PREFIX_PORTn_DST}"
+      - volumes: uses "${PREFIX_VOLn_SRC}:${PREFIX_VOLn_DST}"
+      - environment: if `env` exists in tools YAML, set KEY: "${PREFIX_KEY}"
+      - image: if `image` exists in tools YAML, set service image accordingly
     """
     compose_path = dest_dir / "docker-compose.yml"
     if not compose_path.exists():
@@ -177,7 +177,7 @@ def rewrite_compose_with_env(dest_dir: Path, tool_id: str, tool_name: str, confi
 
     prefix = to_var_prefix(tool_name)
 
-    # Optional: pilih subset service berdasarkan config (kunci 'service' atau 'services')
+    # Optional: pick subset of services based on config ('service' or 'services' keys)
     selected_service_names: List[str] = []
     if isinstance(config.get("service"), str) and config.get("service"):
         selected_service_names = [str(config.get("service"))]
@@ -190,12 +190,12 @@ def rewrite_compose_with_env(dest_dir: Path, tool_id: str, tool_name: str, confi
             if name in services and isinstance(services[name], dict):
                 filtered[name] = services[name]
         if not filtered:
-            # Jika nama tidak cocok, jangan lakukan apa-apa agar tidak memecah compose
+            # If names do not match, do nothing to avoid breaking compose
             pass
         else:
             compose_data["services"] = services = filtered
 
-    # Siapkan daftar string untuk ports/volumes
+    # Prepare string lists for ports/volumes
     ports_pairs: List[Tuple[str, str]] = []
     volumes_pairs: List[Tuple[str, str]] = []
 
@@ -220,7 +220,7 @@ def rewrite_compose_with_env(dest_dir: Path, tool_id: str, tool_name: str, confi
 
     cfg_image = config.get("image")
 
-    # Terapkan ke semua services yang ada
+    # Apply to all services
     for svc_name, svc in services.items():
         if not isinstance(svc, dict):
             continue

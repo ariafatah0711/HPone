@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Test Import Script untuk HPone
+Test import script for HPone.
 
-Script ini untuk test semua import dan identify issues.
-Menggunakan struktur yang sama dengan app.py untuk konsistensi.
+This script tests all imports and identifies issues.
+It uses the same structure as app.py for consistency.
 """
 
 import sys
@@ -13,7 +13,7 @@ from typing import List, Dict, Any
 print("🔍 TESTING IMPORTS...")
 print("=" * 50)
 
-# Test configuration - menggunakan struktur yang sama dengan app.py
+# Test configuration - uses the same structure as app.py
 TEST_CONFIG = {
     "basic_imports": [
         ("yaml", "PyYAML"),
@@ -56,7 +56,7 @@ TEST_CONFIG = {
 }
 
 def test_imports(test_name: str, import_list: List[tuple]) -> None:
-    """Test imports berdasarkan list yang diberikan."""
+    """Test imports based on the provided list."""
     print(f"\n📦 {test_name}")
     print("-" * 30)
     
@@ -94,14 +94,14 @@ def test_imports(test_name: str, import_list: List[tuple]) -> None:
     # Summary
     success_count = sum(1 for status, _, _ in results if status == "✅")
     total_count = len(results)
-    print(f"\n📊 {success_count}/{total_count} imports berhasil")
+    print(f"\n📊 {success_count}/{total_count} imports succeeded")
 
 def test_app_style_imports() -> None:
-    """Test imports dengan cara yang sama seperti app.py."""
-    print("\n🚀 TEST: App.py Style Imports (Cara yang Benar)")
+    """Test imports in the same way as app.py."""
+    print("\n🚀 TEST: App.py Style Imports (Correct Way)")
     print("-" * 50)
     
-    # Test core imports seperti di app.py
+    # Test core imports like in app.py
     print("\n📦 Core Package Imports (app.py style):")
     print("-" * 40)
     
@@ -128,7 +128,7 @@ def test_app_style_imports() -> None:
     core_success = 0
     for func_name in core_functions:
         try:
-            # Gunakan exec untuk dynamic import
+            # Use exec for dynamic import
             exec(f"from core import {func_name}")
             print(f"✅ {func_name}: OK")
             core_success += 1
@@ -137,9 +137,9 @@ def test_app_style_imports() -> None:
         except Exception as e:
             print(f"❌ {func_name}: Error - {e}")
     
-    print(f"\n📊 Core: {core_success}/{len(core_functions)} functions berhasil")
+    print(f"\n📊 Core: {core_success}/{len(core_functions)} functions succeeded")
     
-    # Test scripts imports seperti di app.py
+    # Test scripts imports like in app.py
     print("\n📦 Scripts Package Imports (app.py style):")
     print("-" * 40)
     
@@ -161,7 +161,7 @@ def test_app_style_imports() -> None:
     scripts_success = 0
     for func_name in scripts_functions:
         try:
-            # Gunakan exec untuk dynamic import
+            # Use exec for dynamic import
             exec(f"from scripts import {func_name}")
             print(f"✅ {func_name}: OK")
             scripts_success += 1
@@ -170,15 +170,15 @@ def test_app_style_imports() -> None:
         except Exception as e:
             print(f"❌ {func_name}: Error - {e}")
     
-    print(f"\n📊 Scripts: {scripts_success}/{len(scripts_functions)} functions berhasil")
+    print(f"\n📊 Scripts: {scripts_success}/{len(scripts_functions)} functions succeeded")
     
     # Overall summary
     total_success = core_success + scripts_success
     total_functions = len(core_functions) + len(scripts_functions)
-    print(f"\n🎯 TOTAL: {total_success}/{total_functions} functions berhasil")
+    print(f"\n🎯 TOTAL: {total_success}/{total_functions} functions succeeded")
 
 def main() -> None:
-    """Main function untuk menjalankan semua tests."""
+    """Main function to run all tests."""
     # Test 1: Basic imports
     test_imports("Basic Python Imports", TEST_CONFIG["basic_imports"])
     
@@ -194,15 +194,15 @@ def main() -> None:
     # Test 5: Constants
     test_imports("Constants", TEST_CONFIG["constants"])
     
-    # Test 6: App.py style imports (yang seharusnya berhasil semua)
+    # Test 6: App.py style imports (should all succeed)
     test_app_style_imports()
     
     print("\n" + "=" * 50)
-    print("🏁 IMPORT TEST SELESAI!")
-    print("\n💡 KESIMPULAN:")
-    print("   • Test 1-5: Import module individual ✅")
-    print("   • Test 6: Import functions dari package (seperti app.py) ✅")
-    print("   • Semua imports berhasil! 🎉")
+    print("🏁 IMPORT TEST FINISHED!")
+    print("\n💡 SUMMARY:")
+    print("   • Tests 1-5: Individual module imports ✅")
+    print("   • Test 6: Import functions from package (like app.py) ✅")
+    print("   • All imports succeeded! 🎉")
 
 if __name__ == "__main__":
     main()

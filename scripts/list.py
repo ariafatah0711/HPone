@@ -1,7 +1,7 @@
 """
-List Helpers untuk HPone
+List helpers for HPone.
 
-Fungsi-fungsi untuk listing tools dan resolving tool directory IDs.
+Functions to list tools and resolve tool directory IDs.
 """
 
 import glob
@@ -11,7 +11,7 @@ from typing import List
 try:
     import yaml  # type: ignore
 except ImportError:
-    raise ImportError("PyYAML diperlukan untuk modul ini")
+    raise ImportError("PyYAML is required for this module")
 
 # Import constants dari helpers
 from core.constants import TOOLS_DIR, OUTPUT_DOCKER_DIR
@@ -33,7 +33,7 @@ def list_enabled_tool_ids() -> List[str]:
 
 
 def list_all_enabled_tool_ids() -> List[str]:
-    """Dapatkan semua tool yang enabled (tidak perlu sudah diimport)."""
+    """Return all enabled tool IDs (imported or not)."""
     tool_ids: List[str] = []
     for path_str in glob.glob(str(TOOLS_DIR / "*.yml")):
         p = Path(path_str)
@@ -76,10 +76,10 @@ def resolve_tool_dir_id(tool_id: str) -> str:
 
 
 def list_tools(detailed: bool = False) -> None:
-    """Tampilkan list tools dengan format yang rapi."""
+    """Print the list of tools in a clean table format."""
     yaml_files = sorted(glob.glob(str(TOOLS_DIR / "*.yml")))
     if not yaml_files:
-        print("Tidak ada file YAML di folder 'tools/'.")
+        print("No YAML files in the 'tools/' directory.")
         return
 
     rows_basic: List[List[str]] = []
@@ -135,6 +135,6 @@ def list_tools(detailed: bool = False) -> None:
         table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION", "PORTS", "VOLUMES"], rows_detail, max_width=30)
     else:
         from core.utils import _format_table
-        table = _format_table(["TOOl", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION"], rows_basic, max_width=60)
+        table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION"], rows_basic, max_width=60)
 
     print(table)

@@ -2,7 +2,7 @@
 """
 HPone Docker Template Manager - Modular Version
 
-Aplikasi modular yang menggunakan helpers package untuk mengelola Docker templates.
+Modular application using the helpers package to manage Docker templates.
 """
 
 from __future__ import annotations
@@ -65,14 +65,14 @@ from scripts import (
 )
 
 def main(argv: List[str]) -> int:
-    """Main function untuk aplikasi."""
+    """Main entrypoint for the application."""
     parser = build_arg_parser()
-    # Jika hanya diminta -h/--help, tampilkan full help yang mencakup semua subcommands
+    # If only -h/--help is requested, print the full help that includes all subcommands
     if any(arg in ("-h", "--help") for arg in argv):
         try:
             print(format_full_help(parser))
         except Exception:
-            # fallback ke help standar jika terjadi error
+            # Fallback to standard help if something goes wrong
             parser.print_help()
         return 0
 
@@ -84,45 +84,45 @@ def main(argv: List[str]) -> int:
             from scripts import print_dependency_status
             print_dependency_status()
         except Exception as exc:
-            print(f"[ERROR] Gagal check dependencies: {exc}", file=sys.stderr)
+            print(f"[ERROR] Failed to check dependencies: {exc}", file=sys.stderr)
             return 1
         return 0
 
-    # Check dependencies sebelum menjalankan command lain (kecuali check)
+    # Check dependencies before running other commands (except 'check')
     try:
         require_dependencies()
     except SystemExit:
         return 1
     except Exception as exc:
-        print(f"[ERROR] Gagal check dependencies: {exc}", file=sys.stderr)
+        print(f"[ERROR] Failed to check dependencies: {exc}", file=sys.stderr)
         return 1
 
     # Import command
     if args.command == "import":
         try:
             if getattr(args, "all", False):
-                # Import semua tool yang enabled
+                # Import all enabled tools
                 tool_ids = list_all_enabled_tool_ids()
                 if not tool_ids:
-                    print("Tidak ada tool yang enabled.")
+                    print("No enabled tools.")
                     return 0
                 print(f"Importing {len(tool_ids)} enabled tools...")
                 for t in tool_ids:
                     try:
                         dest = import_tool(t, force=bool(args.force))
-                        print(f"OK: Template '{t}' diimport ke: {dest}")
+                        print(f"OK: Template '{t}' imported to: {dest}")
                     except Exception as exc:
-                        print(f"[ERROR] Gagal import '{t}': {exc}", file=sys.stderr)
+                        print(f"[ERROR] Failed to import '{t}': {exc}", file=sys.stderr)
                         continue
             else:
                 if not args.tool:
-                    print("Harus beri nama tool atau gunakan --all", file=sys.stderr)
+                    print("You must specify a tool or use --all", file=sys.stderr)
                     return 2
                 dest = import_tool(args.tool, force=bool(args.force))
-                print(f"OK: Template '{args.tool}' diimport ke: {dest}")
-                print(f"OK: File .env dibuat di: {dest / '.env'}")
+                print(f"OK: Template '{args.tool}' imported to: {dest}")
+                print(f"OK: .env file created at: {dest / '.env'}")
         except Exception as exc:
-            print(f"[ERROR] Gagal import: {exc}", file=sys.stderr)
+            print(f"[ERROR] Failed to import: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -131,18 +131,18 @@ def main(argv: List[str]) -> int:
         try:
             tool_ids = list_imported_tool_ids()
             if not tool_ids:
-                print("Tidak ada tool yang diimport.")
+                print("No imported tools.")
                 return 0
             print(f"Updating {len(tool_ids)} imported tools...")
             for t in tool_ids:
                 try:
                     dest = import_tool(t, force=True)
-                    print(f"OK: Template '{t}' diupdate di: {dest}")
+                    print(f"OK: Template '{t}' updated at: {dest}")
                 except Exception as exc:
-                    print(f"[ERROR] Gagal update '{t}': {exc}", file=sys.stderr)
+                    print(f"[ERROR] Failed to update '{t}': {exc}", file=sys.stderr)
                     continue
         except Exception as exc:
-            print(f"[ERROR] Gagal update: {exc}", file=sys.stderr)
+            print(f"[ERROR] Failed to update: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -151,7 +151,7 @@ def main(argv: List[str]) -> int:
         try:
             list_tools(detailed=bool(args.a))
         except Exception as exc:
-            print(f"[ERROR] Gagal list tools: {exc}", file=sys.stderr)
+            print(f"[ERROR] Failed to list tools: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -159,25 +159,25 @@ def main(argv: List[str]) -> int:
     if args.command == "remove":
         try:
             if getattr(args, "all", False):
-                # Remove semua tool yang sudah diimport
+                # Remove all imported tools
                 tool_ids = list_imported_tool_ids()
                 if not tool_ids:
-                    print("Tidak ada tool yang diimport.")
+                    print("No imported tools.")
                     return 0
                 print(f"Removing {len(tool_ids)} imported tools...")
                 for t in tool_ids:
                     try:
                         remove_tool(t)
                     except Exception as exc:
-                        print(f"[ERROR] Gagal remove '{t}': {exc}", file=sys.stderr)
+                        print(f"[ERROR] Failed to remove '{t}': {exc}", file=sys.stderr)
                         continue
             else:
                 if not args.tool:
-                    print("Harus beri nama tool atau gunakan --all", file=sys.stderr)
+                    print("You must specify a tool or use --all", file=sys.stderr)
                     return 2
                 remove_tool(args.tool)
         except Exception as exc:
-            print(f"[ERROR] Gagal remove: {exc}", file=sys.stderr)
+            print(f"[ERROR] Failed to remove: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -186,7 +186,7 @@ def main(argv: List[str]) -> int:
         try:
             inspect_tool(args.tool)
         except Exception as exc:
-            print(f"[ERROR] Gagal inspect '{args.tool}': {exc}", file=sys.stderr)
+            print(f"[ERROR] Failed to inspect '{args.tool}': {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -195,7 +195,7 @@ def main(argv: List[str]) -> int:
         try:
             set_tool_enabled(args.tool, True)
         except Exception as exc:
-            print(f"[ERROR] Gagal enable '{args.tool}': {exc}", file=sys.stderr)
+            print(f"[ERROR] Failed to enable '{args.tool}': {exc}", file=sys.stderr)
             return 1
         print(f"OK: Tool '{args.tool}' enabled.")
         return 0
@@ -205,7 +205,7 @@ def main(argv: List[str]) -> int:
         try:
             set_tool_enabled(args.tool, False)
         except Exception as exc:
-            print(f"[ERROR] Gagal disable '{args.tool}': {exc}", file=sys.stderr)
+            print(f"[ERROR] Failed to disable '{args.tool}': {exc}", file=sys.stderr)
             return 1
         print(f"OK: Tool '{args.tool}' disabled.")
         return 0
@@ -215,7 +215,7 @@ def main(argv: List[str]) -> int:
         try:
             if getattr(args, "all", False):
                 # For --all, ignore force flag and only up enabled tools
-                # Jika --update, update semua yang sudah diimport terlebih dahulu
+                # If --update, update all imported tools first
                 if getattr(args, "update", False):
                     imported_ids = list_imported_tool_ids()
                     if imported_ids:
@@ -223,51 +223,60 @@ def main(argv: List[str]) -> int:
                         for t in imported_ids:
                             try:
                                 dest = import_tool(t, force=True)
-                                print(f"OK: Template '{t}' diupdate di: {dest}")
+                                print(f"OK: Template '{t}' updated at: {dest}")
                             except Exception as exc:
-                                print(f"[WARN] Gagal update '{t}': {exc}")
+                                print(f"[WARN] Failed to update '{t}': {exc}")
                     else:
-                        print("Tidak ada tool yang diimport untuk diupdate.")
+                        print("No imported tools to update.")
 
                 tool_ids = list_enabled_tool_ids()
                 if not tool_ids:
-                    print("Tidak ada tool enabled yang sudah diimport.")
+                    print("No enabled and imported tools.")
                 for t in tool_ids:
                     up_tool(t, force=False)
             else:
                 if not args.tool:
-                    print("Harus beri nama tool atau gunakan --all", file=sys.stderr)
+                    print("You must specify a tool or use --all", file=sys.stderr)
                     return 2
-                # Jika --update untuk single tool, lakukan update dulu hanya jika sudah diimport
+                # If --update for a single tool, update first only if already imported
                 if getattr(args, "update", False):
                     try:
                         from core.constants import OUTPUT_DOCKER_DIR
                         if (OUTPUT_DOCKER_DIR / args.tool).exists():
                             dest = import_tool(args.tool, force=True)
-                            print(f"OK: Template '{args.tool}' diupdate di: {dest}")
+                            print(f"OK: Template '{args.tool}' updated at: {dest}")
                         else:
-                            print(f"Lewati update: tool '{args.tool}' belum diimport.")
+                            print(f"Skip update: tool '{args.tool}' is not imported.")
                     except Exception as exc:
-                        print(f"[ERROR] Gagal update '{args.tool}': {exc}", file=sys.stderr)
+                        print(f"[ERROR] Failed to update '{args.tool}': {exc}", file=sys.stderr)
                         return 1
                 try:
                     up_tool(args.tool, force=bool(args.force))
                 except FileNotFoundError:
-                    reply = input(f"Tool '{args.tool}' belum diimport. Import sekarang? [y/N]: ").strip().lower()
-                    if reply in ("y", "ya", "yes"):
+                    # Verify the tool exists in tools/ before offering import
+                    try:
+                        from core.constants import TOOLS_DIR
+                        from core.yaml import find_tool_yaml_path
+                        find_tool_yaml_path(args.tool)
+                    except FileNotFoundError:
+                        print(f"[ERROR] Tool '{args.tool}' not found in '{TOOLS_DIR}'.", file=sys.stderr)
+                        return 1
+
+                    reply = input(f"Tool '{args.tool}' is not imported. Import now? [y/N]: ").strip().lower()
+                    if reply in ("y", "yes", "ya"):
                         try:
                             dest = import_tool(args.tool, force=False)
-                            print(f"OK: Template '{args.tool}' diimport ke: {dest}")
-                            print(f"OK: File .env dibuat di: {dest / '.env'}")
+                            print(f"OK: Template '{args.tool}' imported to: {dest}")
+                            print(f"OK: .env file created at: {dest / '.env'}")
                             up_tool(args.tool, force=bool(args.force))
                         except Exception as exc:
-                            print(f"[ERROR] Gagal Up '{args.tool}': {exc}", file=sys.stderr)
+                            print(f"[ERROR] Failed to start '{args.tool}': {exc}", file=sys.stderr)
                             return 1
                     else:
-                        print("Dibatalkan.")
+                        print("Cancelled.")
                         return 0
         except Exception as exc:
-            print(f"[ERROR] Gagal up: {exc}", file=sys.stderr)
+            print(f"[ERROR] Failed to start: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -277,29 +286,29 @@ def main(argv: List[str]) -> int:
             if getattr(args, "all", False):
                 tool_ids = list_imported_tool_ids()
                 if not tool_ids:
-                    print("Tidak ada tool yang diimport.")
+                    print("No imported tools.")
                 for t in tool_ids:
                     down_tool(t)
             else:
                 if not args.tool:
-                    print("Harus beri nama tool atau gunakan --all", file=sys.stderr)
+                    print("You must specify a tool or use --all", file=sys.stderr)
                     return 2
                 down_tool(args.tool)
         except Exception as exc:
-            print(f"[ERROR] Gagal down: {exc}", file=sys.stderr)
+            print(f"[ERROR] Failed to stop: {exc}", file=sys.stderr)
             return 1
         return 0
 
     # Status command (running only)
     if args.command == "status":
         try:
-            # Ambil semua tool yang sudah diimport
+            # Get all imported tools
             tool_ids = list_imported_tool_ids()
             if not tool_ids:
-                print("Tidak ada tool yang diimport.")
+                print("No imported tools.")
                 return 0
 
-            # Filter yang running saja
+            # Filter only running ones
             running_tools = []
             for t in tool_ids:
                 try:
@@ -309,26 +318,26 @@ def main(argv: List[str]) -> int:
                     continue
 
             if not running_tools:
-                print("Tidak ada tool yang sedang running.")
+                print("No tools are running.")
                 return 0
 
-            # Kumpulkan port mappings
+            # Collect port mappings
             rows = []
             for t in running_tools:
                 try:
-                    # Baca YAML tool untuk port mapping
+                    # Read tool YAML for port mapping
                     _resolved_name, cfg = load_tool_yaml_by_filename(t)
                     from core.config import parse_ports
                     port_pairs = parse_ports(cfg)
                 except Exception:
                     port_pairs = []
 
-                # Tambahkan baris per mapping host->container
+                # Add row per mapping host->container
                 for host, container in port_pairs:
-                    # Normalisasi agar hanya angka utama sebelum "/udp" jika ada untuk kolom container
+                    # Normalize container column to only main number before "/udp" if any
                     rows.append([str(host), str(container), t])
 
-            # Urutkan berdasarkan HOST numerik jika bisa
+            # Sort by HOST numerically if possible
             def _key_host(row):
                 try:
                     return int(str(row[0]).split("/")[0])
@@ -337,14 +346,14 @@ def main(argv: List[str]) -> int:
 
             rows.sort(key=_key_host)
 
-            # Render tabel
+            # Render table
             from core.utils import _format_table
             table = _format_table(["HOST", "CONTAINER", "SERVICE"], rows, max_width=30)
             if table:
                 print(table)
             print(f"\n{len(running_tools)} tools running")
         except Exception as exc:
-            print(f"[ERROR] Gagal menampilkan status: {exc}", file=sys.stderr)
+            print(f"[ERROR] Failed to show status: {exc}", file=sys.stderr)
             return 1
         return 0
 

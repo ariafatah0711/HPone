@@ -1,7 +1,7 @@
 import argparse
 
 def build_arg_parser() -> argparse.ArgumentParser:
-	"""Buat argument parser untuk aplikasi."""
+	"""Build the argument parser for the application."""
 	parser = argparse.ArgumentParser(
 		description="HPone Docker template manager - Modular Version",
 		formatter_class=argparse.RawTextHelpFormatter,
@@ -12,56 +12,56 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	p_check = sub.add_parser("check", help="Check dependencies")
 
 	# Import command
-	p_import = sub.add_parser("import", help="Import template dan generate .env untuk tool")
-	p_import.add_argument("tool", nargs="?", help="Nama tool (sesuai nama file YAML di folder tools/)")
-	p_import.add_argument("--all", action="store_true", help="Import semua tool yang enabled")
-	p_import.add_argument("--force", action="store_true", help="Overwrite folder docker/<tool> jika sudah ada")
+	p_import = sub.add_parser("import", help="Import template and generate .env for the tool")
+	p_import.add_argument("tool", nargs="?", help="Tool name (matches YAML filename in tools/)")
+	p_import.add_argument("--all", action="store_true", help="Import all enabled tools")
+	p_import.add_argument("--force", action="store_true", help="Overwrite docker/<tool> if it already exists")
 	
 	# Update command
-	p_update = sub.add_parser("update", help="Update semua tool yang sudah diimport (setara import --force)")
+	p_update = sub.add_parser("update", help="Update all imported tools (equivalent to import --force)")
 
 	# List command
-	p_list = sub.add_parser("list", help="List tools berdasarkan YAML di folder tools/")
-	p_list.add_argument("-a", action="store_true", help="Tampilkan detail lengkap (deskripsi dan ports)")
+	p_list = sub.add_parser("list", help="List tools based on YAML files in tools/")
+	p_list.add_argument("-a", action="store_true", help="Show full details (description and ports)")
 
 	# Status command (running only)
-	p_status = sub.add_parser("status", help="Tampilkan port mapping tools yang sedang running (HOST -> CONTAINER)")
+	p_status = sub.add_parser("status", help="Show port mappings of running tools (HOST -> CONTAINER)")
 	
 	# Remove command
-	p_remove = sub.add_parser("remove", help="Hapus folder docker/<tool>")
-	p_remove.add_argument("tool", nargs="?", help="Nama tool yang akan dihapus")
-	p_remove.add_argument("--all", action="store_true", help="Hapus semua tool yang sudah diimport")
+	p_remove = sub.add_parser("remove", help="Delete directory docker/<tool>")
+	p_remove.add_argument("tool", nargs="?", help="Tool name to remove")
+	p_remove.add_argument("--all", action="store_true", help="Remove all imported tools")
 
 	# Inspect command
-	p_inspect = sub.add_parser("inspect", help="Tampilkan informasi detail config dari satu tool")
-	p_inspect.add_argument("tool", help="Nama tool yang akan diinspect")
+	p_inspect = sub.add_parser("inspect", help="Show detailed configuration information for one tool")
+	p_inspect.add_argument("tool", help="Tool name to inspect")
 
 	# Enable command
-	p_enable = sub.add_parser("enable", help="Enable tool pada tools/<tool>.yml (set enabled: true)")
-	p_enable.add_argument("tool", help="Nama tool yang akan di-enable")
+	p_enable = sub.add_parser("enable", help="Enable tool in tools/<tool>.yml (set enabled: true)")
+	p_enable.add_argument("tool", help="Tool name to enable")
 
 	# Disable command
-	p_disable = sub.add_parser("disable", help="Disable tool pada tools/<tool>.yml (set enabled: false)")
-	p_disable.add_argument("tool", help="Nama tool yang akan di-disable")
+	p_disable = sub.add_parser("disable", help="Disable tool in tools/<tool>.yml (set enabled: false)")
+	p_disable.add_argument("tool", help="Tool name to disable")
 
 	# Up command
-	p_up = sub.add_parser("up", help="docker compose up -d untuk satu tool atau semua tool yang enabled")
+	p_up = sub.add_parser("up", help="docker compose up -d for one tool or all enabled tools")
 	group_up = p_up.add_mutually_exclusive_group(required=True)
-	group_up.add_argument("tool", nargs="?", help="Nama tool. Jika tidak diberikan, gunakan --all")
-	group_up.add_argument("--all", action="store_true", help="Jalankan untuk semua tool yang enabled dan sudah diimport")
-	p_up.add_argument("--update", action="store_true", help="Update template dulu sebelum up")
-	p_up.add_argument("--force", action="store_true", help="Force up tool meskipun tidak enabled (hanya untuk single tool)")
+	group_up.add_argument("tool", nargs="?", help="Tool name. If omitted, use --all")
+	group_up.add_argument("--all", action="store_true", help="Run for all enabled and imported tools")
+	p_up.add_argument("--update", action="store_true", help="Update templates before starting")
+	p_up.add_argument("--force", action="store_true", help="Force start even if not enabled (single tool only)")
 
 	# Down command
-	p_down = sub.add_parser("down", help="docker compose down untuk satu tool atau semua tool yang diimport")
+	p_down = sub.add_parser("down", help="docker compose down for one tool or all imported tools")
 	group_down = p_down.add_mutually_exclusive_group(required=True)
-	group_down.add_argument("tool", nargs="?", help="Nama tool. Jika tidak diberikan, gunakan --all")
-	group_down.add_argument("--all", action="store_true", help="Jalankan untuk semua tool yang diimport")
+	group_down.add_argument("tool", nargs="?", help="Tool name. If omitted, use --all")
+	group_down.add_argument("--all", action="store_true", help="Run for all imported tools")
 
 	return parser
 
 def format_full_help(parser: argparse.ArgumentParser) -> str:
-	"""Cetak help komprehensif dengan layout ringkas. Menghindari copy panjang."""
+	"""Generate comprehensive help output with a compact layout."""
 	prog = parser.prog
 	desc = parser.description or ""
 
