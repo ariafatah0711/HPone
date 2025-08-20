@@ -63,22 +63,42 @@ from scripts import (
     require_dependencies
 )
 
-
 def build_arg_parser() -> argparse.ArgumentParser:
     """Buat argument parser untuk aplikasi."""
-    parser = argparse.ArgumentParser(description="HPone Docker template manager - Modular Version")
-    sub = parser.add_subparsers(dest="command", required=True)
+    parser = argparse.ArgumentParser(
+        description="HPone Docker template manager - Modular Version",
+        epilog=(
+            "Examples:\n"
+            "  app.py list\n"
+            "  app.py status\n"
+            "  app.py import cowrie\n"
+            "  app.py update\n"
+            "  app.py up --all\n"
+            "  app.py down cowrie\n"
+        ),
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+    sub = parser.add_subparsers(dest="command", required=True, title="Commands", metavar="COMMAND")
+
+    # Check dependencies command
+    p_check = sub.add_parser("check", help="Check dependencies")
 
     # Import command
     p_import = sub.add_parser("import", help="Import template dan generate .env untuk tool")
     p_import.add_argument("tool", nargs="?", help="Nama tool (sesuai nama file YAML di folder tools/)")
     p_import.add_argument("--all", action="store_true", help="Import semua tool yang enabled")
     p_import.add_argument("--force", action="store_true", help="Overwrite folder docker/<tool> jika sudah ada")
+        
+    # Update command
+    p_update = sub.add_parser("update", help="Update semua tool yang sudah diimport (setara import --force)")
 
     # List command
     p_list = sub.add_parser("list", help="List tools berdasarkan YAML di folder tools/")
     p_list.add_argument("-a", action="store_true", help="Tampilkan detail lengkap (deskripsi dan ports)")
 
+    # Status command (running only)
+    p_status = sub.add_parser("status", help="Tampilkan port mapping tools yang sedang running (HOST -> CONTAINER)")
+    
     # Remove command
     p_remove = sub.add_parser("remove", help="Hapus folder docker/<tool>")
     p_remove.add_argument("tool", nargs="?", help="Nama tool yang akan dihapus")
@@ -108,9 +128,6 @@ def build_arg_parser() -> argparse.ArgumentParser:
     group_down = p_down.add_mutually_exclusive_group(required=True)
     group_down.add_argument("tool", nargs="?", help="Nama tool. Jika tidak diberikan, gunakan --all")
     group_down.add_argument("--all", action="store_true", help="Jalankan untuk semua tool yang diimport")
-
-    # Check dependencies command
-    p_check = sub.add_parser("check", help="Check dependencies")
 
     return parser
 
@@ -164,6 +181,26 @@ def main(argv: List[str]) -> int:
                 print(f"OK: File .env dibuat di: {dest / '.env'}")
         except Exception as exc:
             print(f"[ERROR] Gagal import: {exc}", file=sys.stderr)
+            return 1
+        return 0
+
+    # Update command
+    if args.command == "update":
+        try:
+            tool_ids = list_imported_tool_ids()
+            if not tool_ids:
+                print("Tidak ada tool yang diimport.")
+                return 0
+            print(f"Updating {len(tool_ids)} imported tools...")
+            for t in tool_ids:
+                try:
+                    dest = import_tool(t, force=True)
+                    print(f"OK: Template '{t}' diupdate di: {dest}")
+                except Exception as exc:
+                    print(f"[ERROR] Gagal update '{t}': {exc}", file=sys.stderr)
+                    continue
+        except Exception as exc:
+            print(f"[ERROR] Gagal update: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -267,6 +304,64 @@ def main(argv: List[str]) -> int:
                 down_tool(args.tool)
         except Exception as exc:
             print(f"[ERROR] Gagal down: {exc}", file=sys.stderr)
+            return 1
+        return 0
+
+    # Status command (running only)
+    if args.command == "status":
+        try:
+            # Ambil semua tool yang sudah diimport
+            tool_ids = list_imported_tool_ids()
+            if not tool_ids:
+                print("Tidak ada tool yang diimport.")
+                return 0
+
+            # Filter yang running saja
+            running_tools = []
+            for t in tool_ids:
+                try:
+                    if is_tool_running(t):
+                        running_tools.append(t)
+                except Exception:
+                    continue
+
+            if not running_tools:
+                print("Tidak ada tool yang sedang running.")
+                return 0
+
+            # Kumpulkan port mappings
+            rows = []
+            for t in running_tools:
+                try:
+                    # Baca YAML tool untuk port mapping
+                    _resolved_name, cfg = load_tool_yaml_by_filename(t)
+                    from core.config import parse_ports
+                    port_pairs = parse_ports(cfg)
+                except Exception:
+                    port_pairs = []
+
+                # Tambahkan baris per mapping host->container
+                for host, container in port_pairs:
+                    # Normalisasi agar hanya angka utama sebelum "/udp" jika ada untuk kolom container
+                    rows.append([str(host), str(container), t])
+
+            # Urutkan berdasarkan HOST numerik jika bisa
+            def _key_host(row):
+                try:
+                    return int(str(row[0]).split("/")[0])
+                except Exception:
+                    return str(row[0])
+
+            rows.sort(key=_key_host)
+
+            # Render tabel
+            from core.utils import _format_table
+            table = _format_table(["HOST", "CONTAINER", "SERVICE"], rows, max_width=30)
+            if table:
+                print(table)
+            print(f"\n{len(running_tools)} tools running")
+        except Exception as exc:
+            print(f"[ERROR] Gagal menampilkan status: {exc}", file=sys.stderr)
             return 1
         return 0
 
