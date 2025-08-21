@@ -6,13 +6,13 @@
 
 ### **Mode Otomatis (ALWAYS_IMPORT=true)**
 - ✅ **Auto-import** tools saat startup
-- ✅ **Command simplified** - tidak ada import/remove manual
+- ✅ **Command simplified** - tidak ada import/update manual
 - ✅ **Production ready** - minimal human intervention
 - ✅ **Smart management** - tools dikelola otomatis
 - ✅ **Ephemeral logging** - tampilan log real-time yang bersih
 
 ### **Mode Manual (ALWAYS_IMPORT=false)**
-- 🔧 **Full control** - import/remove/update manual
+- 🔧 **Full control** - import/update manual
 - 🔧 **Development friendly** - debugging dan testing
 - 🔧 **Template management** - update dan maintenance
 

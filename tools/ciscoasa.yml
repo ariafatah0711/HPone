@@ -1,6 +1,6 @@
 name: ciscoasa
 description: Honeypot emulasi Cisco ASA (Adaptive Security Appliance) firewall
-enabled: true
+enabled: false
 ports:
 - host: 5000
   container: 5000
