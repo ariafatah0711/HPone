@@ -8,7 +8,7 @@ File ini berisi konfigurasi path yang bisa diubah oleh user.
 from pathlib import Path
 
 # Lokasi direktori root project (folder tempat file ini berada)
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Lokasi direktori tools (berisi file YAML honeypot)
 TOOLS_DIR = PROJECT_ROOT / "tools"
