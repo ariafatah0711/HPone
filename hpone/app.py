@@ -108,9 +108,7 @@ def main(argv: List[str]) -> int:
     # Import command
     if args.command == "import":
         if ALWAYS_IMPORT:
-            print(f"{PREFIX_ERROR} Import command is disabled when ALWAYS_IMPORT=true", file=sys.stderr)
-            print(f"{PREFIX_ERROR} Tools are automatically imported when using 'up' command", file=sys.stderr)
-            return 1
+            pass; return 1
             
         try:
             if getattr(args, "all", False):
@@ -123,7 +121,7 @@ def main(argv: List[str]) -> int:
                 for t in tool_ids:
                     try:
                         dest = import_tool(t, force=bool(args.force))
-                        print(f"{PREFIX_OK}: Template '{t}' imported to: {dest}")
+                        print(f"{PREFIX_OK}: Imported '{t}'")
                     except Exception as exc:
                         print(f"{PREFIX_ERROR} Failed to import '{t}': {exc}", file=sys.stderr)
                         continue
@@ -132,8 +130,7 @@ def main(argv: List[str]) -> int:
                     print("You must specify a tool or use --all", file=sys.stderr)
                     return 2
                 dest = import_tool(args.tool, force=bool(args.force))
-                print(f"{PREFIX_OK}: Template '{args.tool}' imported to: {dest}")
-                print(f"{PREFIX_OK}: .env file created at: {dest / '.env'}")
+                print(f"{PREFIX_OK}: Imported '{args.tool}'")
         except Exception as exc:
             print(f"{PREFIX_ERROR} Failed to import: {exc}", file=sys.stderr)
             return 1
@@ -142,9 +139,7 @@ def main(argv: List[str]) -> int:
     # Update command
     if args.command == "update":
         if ALWAYS_IMPORT:
-            print(f"{PREFIX_ERROR} Update command is disabled when ALWAYS_IMPORT=true", file=sys.stderr)
-            print(f"{PREFIX_ERROR} Tools are automatically updated when using 'up' command", file=sys.stderr)
-            return 1
+            pass; return 1
             
         try:
             tool_ids = list_imported_tool_ids()
@@ -155,7 +150,7 @@ def main(argv: List[str]) -> int:
             for t in tool_ids:
                 try:
                     dest = import_tool(t, force=True)
-                    print(f"{PREFIX_OK}: Template '{t}' updated at: {dest}")
+                    print(f"{PREFIX_OK}: Updated '{t}'")
                 except Exception as exc:
                     print(f"{PREFIX_ERROR} Failed to update '{t}': {exc}", file=sys.stderr)
                     continue
@@ -173,34 +168,33 @@ def main(argv: List[str]) -> int:
             return 1
         return 0
 
-    # Remove command
-    if args.command == "remove":
-        if ALWAYS_IMPORT:
-            print(f"{PREFIX_ERROR} Remove command is disabled when ALWAYS_IMPORT=true", file=sys.stderr)
-            print(f"{PREFIX_ERROR} Tools are managed automatically", file=sys.stderr)
-            return 1
-            
+    # Clean command
+    if args.command == "clean":
         try:
             if getattr(args, "all", False):
-                # Remove all imported tools
+                # Clean all imported tools
                 tool_ids = list_imported_tool_ids()
                 if not tool_ids:
                     print("No imported tools.")
                     return 0
-                print(f"Removing {len(tool_ids)} imported tools...")
+                print(f"Cleaning {len(tool_ids)} imported tools (down + remove)...")
                 for t in tool_ids:
                     try:
+                        # Down first, then remove
+                        down_tool(t)
                         remove_tool(t)
                     except Exception as exc:
-                        print(f"{PREFIX_ERROR} Failed to remove '{t}': {exc}", file=sys.stderr)
+                        print(f"{PREFIX_ERROR} Failed to clean '{t}': {exc}", file=sys.stderr)
                         continue
             else:
                 if not args.tool:
                     print("You must specify a tool or use --all", file=sys.stderr)
                     return 2
+                # Down first, then remove
+                down_tool(args.tool)
                 remove_tool(args.tool)
         except Exception as exc:
-            print(f"{PREFIX_ERROR} Failed to remove: {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to clean: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -249,7 +243,7 @@ def main(argv: List[str]) -> int:
                     for t in tool_ids:
                         try:
                             dest = import_tool(t, force=True)
-                            print(f"{PREFIX_OK}: Template '{t}' auto-imported to: {dest}")
+                            print(f"{PREFIX_OK}: Auto-imported '{t}'")
                         except Exception as exc:
                             print(f"{PREFIX_ERROR} Failed to auto-import '{t}': {exc}", file=sys.stderr)
                             continue
@@ -299,8 +293,7 @@ def main(argv: List[str]) -> int:
                         
                         # Auto-import the tool
                         dest = import_tool(args.tool, force=True)
-                        print(f"{PREFIX_OK}: Template '{args.tool}' auto-imported to: {dest}")
-                        print(f"{PREFIX_OK}: .env file created at: {dest / '.env'}")
+                        print(f"{PREFIX_OK}: Auto-imported '{args.tool}'")
                         
                         # Start the tool
                         up_tool(args.tool, force=bool(args.force))
@@ -317,7 +310,7 @@ def main(argv: List[str]) -> int:
                         from core.constants import OUTPUT_DOCKER_DIR
                         if (OUTPUT_DOCKER_DIR / args.tool).exists():
                             dest = import_tool(args.tool, force=True)
-                            print(f"{PREFIX_OK}: Template '{args.tool}' updated at: {dest}")
+                            print(f"{PREFIX_OK}: Updated '{args.tool}'")
                         else:
                             print(f"Skip update: tool '{args.tool}' is not imported.")
                     except Exception as exc:
@@ -339,8 +332,7 @@ def main(argv: List[str]) -> int:
                     if reply in ("y", "yes", "ya"):
                         try:
                             dest = import_tool(args.tool, force=False)
-                            print(f"{PREFIX_OK}: Template '{args.tool}' imported to: {dest}")
-                            print(f"{PREFIX_OK}: .env file created at: {dest / '.env'}")
+                            print(f"{PREFIX_OK}: Imported '{args.tool}'")
                             up_tool(args.tool, force=bool(args.force))
                         except Exception as exc:
                             print(f"{PREFIX_ERROR} Failed to start '{args.tool}': {exc}", file=sys.stderr)

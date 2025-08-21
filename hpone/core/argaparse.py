@@ -27,11 +27,6 @@ def build_arg_parser() -> argparse.ArgumentParser:
 		
 		# Update command
 		p_update = sub.add_parser("update", help="Update all imported tools (equivalent to import --force)")
-		
-		# Remove command
-		p_remove = sub.add_parser("remove", help="Delete directory docker/<tool>")
-		p_remove.add_argument("tool", nargs="?", help="Tool name to remove")
-		p_remove.add_argument("--all", action="store_true", help="Remove all imported tools")
 
 	# List command
 	p_list = sub.add_parser("list", help="List tools based on YAML files in tools/")
@@ -70,7 +65,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	group_down.add_argument("tool", nargs="?", help="Tool name. If omitted, use --all")
 	group_down.add_argument("--all", action="store_true", help="Run for all imported tools")
 
+	# Clean command
+	p_clean = sub.add_parser("clean", help="Stop (down) then delete directory docker/<tool>")
+	p_clean.add_argument("tool", nargs="?", help="Tool name to clean")
+	p_clean.add_argument("--all", action="store_true", help="Clean all imported tools")
+
 	return parser
+
 
 def format_full_help(parser: argparse.ArgumentParser) -> str:
 	"""Generate comprehensive help output with a compact layout."""
@@ -101,7 +102,7 @@ def format_full_help(parser: argparse.ArgumentParser) -> str:
 	# Urutan tampilan yang diinginkan; sisanya mengikuti urutan asli
 	desired_order = [
 		"check", "import", "update", "list", "status",
-		"remove", "inspect", "enable", "disable", "up", "down",
+		"inspect", "enable", "disable", "up", "down", "clean"
 	]
 	names_in_choice = list(choices.keys())
 	ordered_names = [n for n in desired_order if n in names_in_choice] + [

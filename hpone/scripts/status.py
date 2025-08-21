@@ -16,14 +16,20 @@ except ImportError:
     yaml = None
 
 from core.constants import TOOLS_DIR, OUTPUT_DOCKER_DIR
-from core.utils import _format_table
+from core.utils import _format_table, COLOR_GREEN, COLOR_RED, COLOR_CYAN
 from core.docker import is_tool_running
 from core.yaml import load_tool_yaml_by_filename
 from core.config import parse_ports
 
-
 def _color(text: str, code: str) -> str:
-    return f"\033[{code}m{text}\033[0m"
+    # Backward-compatible wrapper if other parts still pass numeric codes
+    if code == "32":
+        return f"{COLOR_GREEN}{text}\033[0m"
+    if code == "31":
+        return f"{COLOR_RED}{text}\033[0m"
+    if code == "36":
+        return f"{COLOR_CYAN}{text}\033[0m"
+    return text
 
 def _gather_services_status() -> List[List[str]]:
     rows: List[List[str]] = []

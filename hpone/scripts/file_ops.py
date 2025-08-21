@@ -10,6 +10,7 @@ from typing import Dict, Any
 
 # Import constants dari helpers
 from core.constants import TEMPLATE_DOCKER_DIR, OUTPUT_DOCKER_DIR
+from core.utils import PREFIX_OK, PREFIX_WARN, PREFIX_ERROR
 
 def ensure_destination_dir(dest: Path, force: bool = False) -> None:
     if dest.exists():
@@ -66,7 +67,7 @@ def copy_template_to_destination(template_dir: Path, dest_dir: Path) -> None:
 def remove_tool(tool_id: str) -> None:
     dest_dir = OUTPUT_DOCKER_DIR / tool_id
     if not dest_dir.exists():
-        print(f"Folder not found: {dest_dir}")
+        print(f"{PREFIX_WARN} Folder not found: {dest_dir}")
         return
     shutil.rmtree(dest_dir)
-    print(f"Removed: {dest_dir}")
+    print(f"{PREFIX_OK}: Removed tool {tool_id}")

@@ -25,10 +25,16 @@ COLOR_RESET = "\033[0m"
 COLOR_RED = "\033[31m"
 COLOR_GREEN = "\033[32m"
 COLOR_YELLOW = "\033[33m"
+COLOR_CYAN = "\033[36m"
+COLOR_GRAY = "\033[90m"
 
 PREFIX_OK = f"{COLOR_GREEN}OK{COLOR_RESET}"
 PREFIX_ERROR = f"{COLOR_RED}[ERROR]{COLOR_RESET}"
 PREFIX_WARN = f"{COLOR_YELLOW}[WARN]{COLOR_RESET}"
+
+def color_text(text: str, color_code: str) -> str:
+    """Apply ANSI color to text using one of the COLOR_* constants."""
+    return f"{color_code}{text}{COLOR_RESET}"
 
 
 def to_var_prefix(name: str) -> str:

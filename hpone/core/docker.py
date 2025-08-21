@@ -10,6 +10,7 @@ from typing import List
 
 # Import constants dan functions dari helpers
 from .constants import OUTPUT_DOCKER_DIR
+from .utils import PREFIX_OK, PREFIX_WARN, COLOR_YELLOW, COLOR_RESET
 # Import di dalam function untuk avoid circular import
 
 def is_tool_running(tool_id: str) -> bool:
@@ -43,7 +44,6 @@ def is_tool_running(tool_id: str) -> bool:
     except Exception:
         return False
 
-
 def run_compose_action(tool_dir: Path, action: str) -> None:
     if not (tool_dir / "docker-compose.yml").exists():
         raise FileNotFoundError(f"docker-compose.yml not found in {tool_dir}")
@@ -53,14 +53,28 @@ def run_compose_action(tool_dir: Path, action: str) -> None:
         cmd_dc.append("-d")
 
     try:
-        subprocess.run(cmd_dc, cwd=str(tool_dir), check=True)
+        subprocess.run(
+            cmd_dc,
+            cwd=str(tool_dir),
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
         return
     except FileNotFoundError:
         # Fallback ke docker-compose v1
         cmd_legacy = ["docker-compose", action]
         if action == "up":
             cmd_legacy.append("-d")
-        subprocess.run(cmd_legacy, cwd=str(tool_dir), check=True)
+        subprocess.run(
+            cmd_legacy,
+            cwd=str(tool_dir),
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
 
 
 def up_tool(tool_id: str, force: bool = False) -> None:
@@ -77,9 +91,8 @@ def up_tool(tool_id: str, force: bool = False) -> None:
         if not is_tool_enabled(tool_id):
             raise ValueError(f"Tool '{tool_id}' is not enabled. Run 'enable {tool_id}' first or use --force.")
 
-    print(f"[UP] {dir_id} ...", flush=True)
     run_compose_action(dest_dir, "up")
-    print(f"[UP] {dir_id} OK")
+    print(f"{COLOR_YELLOW}[UP]{COLOR_RESET} {dir_id} {PREFIX_OK}")
 
 
 def down_tool(tool_id: str) -> None:
@@ -88,8 +101,7 @@ def down_tool(tool_id: str) -> None:
     dir_id = resolve_tool_dir_id(tool_id)
     dest_dir = OUTPUT_DOCKER_DIR / dir_id
     if not dest_dir.exists():
-        print(f"[DOWN] Skip {dir_id}: folder not found.")
+        print(f"{PREFIX_WARN} Skip {dir_id}: folder not found.")
         return
-    print(f"[DOWN] {dir_id} ...", flush=True)
     run_compose_action(dest_dir, "down")
-    print(f"[DOWN] {dir_id} OK")
+    print(f"{COLOR_YELLOW}[DOWN]{COLOR_RESET} {dir_id} {PREFIX_OK}")

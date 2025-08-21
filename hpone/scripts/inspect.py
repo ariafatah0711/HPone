@@ -15,7 +15,7 @@ except ImportError:
 
 # Import constants dan functions dari helpers
 from core.constants import TOOLS_DIR, OUTPUT_DOCKER_DIR
-from core.utils import _format_table
+from core.utils import _format_table, PREFIX_ERROR
 from core.config import parse_ports, parse_volumes
 from core.docker import is_tool_running
 
@@ -27,10 +27,10 @@ def inspect_tool(tool_id: str) -> None:
         from core.yaml import load_tool_yaml_by_filename, find_tool_yaml_path
         resolved_name, config = load_tool_yaml_by_filename(tool_id)
     except FileNotFoundError as exc:
-        print(f"[ERROR] Tool '{tool_id}' not found: {exc}")
+        print(f"{PREFIX_ERROR} Tool '{tool_id}' not found: {exc}")
         return
     except Exception as exc:
-        print(f"[ERROR] Failed to load config for tool '{tool_id}': {exc}")
+        print(f"{PREFIX_ERROR} Failed to load config for tool '{tool_id}': {exc}")
         return
 
     # Status info

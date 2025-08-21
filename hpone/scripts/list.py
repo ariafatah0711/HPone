@@ -15,6 +15,7 @@ except ImportError:
 
 # Import constants dari helpers
 from core.constants import TOOLS_DIR, OUTPUT_DOCKER_DIR
+from core.utils import COLOR_GREEN, COLOR_RED, COLOR_CYAN, COLOR_GRAY, _format_table
 
 # Import konfigurasi dari config.py
 try:
@@ -111,13 +112,10 @@ def list_tools(detailed: bool = False) -> None:
         from core.docker import is_tool_running
         running_flag = is_tool_running(p.stem)
 
-        # Apply ANSI colors for readability
-        def color(text: str, code: str) -> str:
-            return f"\033[{code}m{text}\033[0m"
-
-        enabled_str = color("True", "32") if enabled_flag else color("False", "31")
-        imported_str = color("Yes", "36") if imported_flag else color("No", "90")
-        status_str = color("Up", "32") if running_flag else color("Down", "31")
+        # Apply ANSI colors using utils constants
+        enabled_str = f"{COLOR_GREEN}True\033[0m" if enabled_flag else f"{COLOR_RED}False\033[0m"
+        imported_str = f"{COLOR_CYAN}Yes\033[0m" if imported_flag else f"{COLOR_GRAY}No\033[0m"
+        status_str = f"{COLOR_GREEN}Up\033[0m" if running_flag else f"{COLOR_RED}Down\033[0m"
 
         rows_basic.append([name, enabled_str, imported_str, status_str, description])
 
@@ -145,22 +143,18 @@ def list_tools(detailed: bool = False) -> None:
     if detailed:
         if ALWAYS_IMPORT:
             # Hide IMPORT column when ALWAYS_IMPORT=true
-            from core.utils import _format_table
             table = _format_table(["TOOL", "ENABLE", "STATUS", "DESCRIPTION", "PORTS", "VOLUMES"], 
                                 [[row[0], row[1], row[3], row[4], row[5], row[6]] for row in rows_detail], 
                                 max_width=LIST_DETAILED_MAX_WIDTH)
         else:
-            from core.utils import _format_table
             table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION", "PORTS", "VOLUMES"], rows_detail, max_width=LIST_DETAILED_MAX_WIDTH)
     else:
         if ALWAYS_IMPORT:
             # Hide IMPORT column when ALWAYS_IMPORT=true
-            from core.utils import _format_table
             table = _format_table(["TOOL", "ENABLE", "STATUS", "DESCRIPTION"], 
                                 [[row[0], row[1], row[3], row[4]] for row in rows_basic], 
                                 max_width=LIST_BASIC_MAX_WIDTH)
         else:
-            from core.utils import _format_table
             table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION"], rows_basic, max_width=LIST_BASIC_MAX_WIDTH)
 
     print(table)
