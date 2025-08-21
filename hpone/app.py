@@ -65,12 +65,15 @@ from scripts import (
 )
 
 from core.utils import PREFIX_OK, PREFIX_ERROR, PREFIX_WARN
+from test import run_import_self_test
 
 # Import konfigurasi ALWAYS_IMPORT
 try:
     from config import ALWAYS_IMPORT
 except ImportError:
     ALWAYS_IMPORT = True
+
+## Self-test moved to test.run_import_self_test
 
 def main(argv: List[str]) -> int:
     """Main entrypoint for the application."""
@@ -89,6 +92,9 @@ def main(argv: List[str]) -> int:
     # Check dependencies command
     if args.command == "check":
         try:
+            # Run import self-tests first
+            if not run_import_self_test():
+                return 1
             from scripts import print_dependency_status
             print_dependency_status()
         except Exception as exc:
@@ -172,16 +178,51 @@ def main(argv: List[str]) -> int:
     if args.command == "clean":
         try:
             if getattr(args, "all", False):
-                # Clean all imported tools
-                tool_ids = list_imported_tool_ids()
-                if not tool_ids:
-                    print("No imported tools.")
-                    return 0
-                print(f"Cleaning {len(tool_ids)} imported tools (down + remove)...")
-                for t in tool_ids:
+                # Clean all imported tools; if none but --data specified, still remove data directories
+                imported_ids = list_imported_tool_ids()
+                # Optional data removal confirmation for --all
+                remove_data_all = False
+                if getattr(args, "data", False):
+                    reply = input("This will remove mounted data under data/<tool> for ALL tools. Continue? [y/N]: ").strip().lower()
+                    remove_data_all = reply in ("y", "yes", "ya")
+
+                if not imported_ids:
+                    if remove_data_all:
+                        try:
+                            # Remove all data directories under DATA_DIR even if nothing is imported
+                            from core.constants import DATA_DIR
+                            from scripts import remove_tool_data
+                            # Iterate over immediate subdirectories in DATA_DIR
+                            if DATA_DIR.exists():
+                                print("No imported tools. Removing data directories under data/...")
+                                for d in sorted([p for p in DATA_DIR.iterdir() if p.is_dir()]):
+                                    try:
+                                        remove_tool_data(d.name)
+                                    except Exception as exc_data:
+                                        print(f"{PREFIX_WARN} Failed to remove data for '{d.name}': {exc_data}")
+                            else:
+                                print("No data directory found.")
+                        except Exception as exc:
+                            print(f"{PREFIX_ERROR} Failed to remove data: {exc}", file=sys.stderr)
+                            return 1
+                        return 0
+                    else:
+                        print("No imported tools.")
+                        return 0
+
+                print(f"Cleaning {len(imported_ids)} imported tools (down + remove{' + data' if remove_data_all else ''})...")
+                for t in imported_ids:
                     try:
-                        # Down first, then remove
+                        # Down first
                         down_tool(t)
+                        # Remove data if confirmed
+                        if remove_data_all:
+                            try:
+                                from scripts import remove_tool_data
+                                remove_tool_data(t)
+                            except Exception as exc_data:
+                                print(f"{PREFIX_WARN} Failed to remove data for '{t}': {exc_data}")
+                        # Then remove docker directory
                         remove_tool(t)
                     except Exception as exc:
                         print(f"{PREFIX_ERROR} Failed to clean '{t}': {exc}", file=sys.stderr)
@@ -190,8 +231,16 @@ def main(argv: List[str]) -> int:
                 if not args.tool:
                     print("You must specify a tool or use --all", file=sys.stderr)
                     return 2
-                # Down first, then remove
+                # Down first
                 down_tool(args.tool)
+                # Optionally remove data for single tool
+                if getattr(args, "data", False):
+                    try:
+                        from scripts import remove_tool_data
+                        remove_tool_data(args.tool)
+                    except Exception as exc_data:
+                        print(f"{PREFIX_WARN} Failed to remove data for '{args.tool}': {exc_data}")
+                # Then remove docker directory
                 remove_tool(args.tool)
         except Exception as exc:
             print(f"{PREFIX_ERROR} Failed to clean: {exc}", file=sys.stderr)
@@ -243,7 +292,7 @@ def main(argv: List[str]) -> int:
                     for t in tool_ids:
                         try:
                             dest = import_tool(t, force=True)
-                            print(f"{PREFIX_OK}: Auto-imported '{t}'")
+                            # print(f"{PREFIX_OK}: Auto-imported '{t}'")
                         except Exception as exc:
                             print(f"{PREFIX_ERROR} Failed to auto-import '{t}': {exc}", file=sys.stderr)
                             continue
@@ -293,7 +342,7 @@ def main(argv: List[str]) -> int:
                         
                         # Auto-import the tool
                         dest = import_tool(args.tool, force=True)
-                        print(f"{PREFIX_OK}: Auto-imported '{args.tool}'")
+                        # print(f"{PREFIX_OK}: Auto-imported '{args.tool}'")
                         
                         # Start the tool
                         up_tool(args.tool, force=bool(args.force))

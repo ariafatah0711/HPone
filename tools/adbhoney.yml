@@ -7,3 +7,4 @@ ports:
 env: {}
 volumes:
 - data/adbhoney/log:/opt/adbhoney/log
+- conf/adbhoney/responses.py:/opt/adbhoney/adbhoney/responses.py # custom response

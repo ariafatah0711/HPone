@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 # Import constants dari helpers
-from core.constants import TEMPLATE_DOCKER_DIR, OUTPUT_DOCKER_DIR
+from core.constants import TEMPLATE_DOCKER_DIR, OUTPUT_DOCKER_DIR, DATA_DIR
 from core.utils import PREFIX_OK, PREFIX_WARN, PREFIX_ERROR
 
 def ensure_destination_dir(dest: Path, force: bool = False) -> None:
@@ -71,3 +71,40 @@ def remove_tool(tool_id: str) -> None:
         return
     shutil.rmtree(dest_dir)
     print(f"{PREFIX_OK}: Removed tool {tool_id}")
+
+
+def remove_tool_data(tool_id: str) -> bool:
+    """
+    Remove mounted data directory for a tool inside DATA_DIR.
+    Only deletes if path is strictly within DATA_DIR and equals DATA_DIR/tool_id.
+
+    Returns True if data was removed, False if nothing removed.
+    """
+    try:
+        base = DATA_DIR.resolve()
+    except Exception:
+        base = DATA_DIR
+    target = (DATA_DIR / tool_id)
+    try:
+        target_resolved = target.resolve()
+    except Exception:
+        target_resolved = target
+
+    # Safety checks: target exists, is a directory, and under base, and exactly base/tool_id
+    if not target.exists() or not target.is_dir():
+        print(f"{PREFIX_WARN} Data folder not found: {target}")
+        return False
+    try:
+        # Ensure target_resolved is under base
+        target_resolved.relative_to(base)
+    except Exception:
+        print(f"{PREFIX_ERROR} Refuse to remove data outside DATA_DIR: {target_resolved}")
+        return False
+    # Ensure the immediate path matches DATA_DIR/tool_id (not deeper arbitrary)
+    if target_resolved != (base / tool_id):
+        print(f"{PREFIX_ERROR} Refuse to remove unexpected path: {target_resolved}")
+        return False
+
+    shutil.rmtree(target_resolved)
+    print(f"{PREFIX_OK}: Removed data for {tool_id}")
+    return True

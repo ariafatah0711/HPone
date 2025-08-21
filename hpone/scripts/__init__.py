@@ -27,7 +27,8 @@ from .remove import (
 from .file_ops import (
     ensure_destination_dir,
     find_template_dir,
-    copy_template_to_destination
+    copy_template_to_destination,
+    remove_tool_data
 )
 
 from .check import (
@@ -72,6 +73,7 @@ __all__ = [
     'ensure_destination_dir',
     'find_template_dir',
     'copy_template_to_destination',
+    'remove_tool_data',
     
     # Check dependencies
     'check_all_dependencies',

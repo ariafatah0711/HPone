@@ -14,6 +14,7 @@ try:
         TOOLS_DIR,
         TEMPLATE_DOCKER_DIR,
         OUTPUT_DOCKER_DIR,
+        DATA_DIR,
     )
 except ImportError:
     # Fallback ke default values jika config.py tidak ditemukan
@@ -21,3 +22,4 @@ except ImportError:
     TOOLS_DIR = PROJECT_ROOT / "tools"
     TEMPLATE_DOCKER_DIR = PROJECT_ROOT / "template" / "docker"
     OUTPUT_DOCKER_DIR = PROJECT_ROOT / "docker"
+    DATA_DIR = PROJECT_ROOT / "data"

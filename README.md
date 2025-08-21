@@ -29,6 +29,7 @@ HPone/
 ├── template/docker/       # Docker templates
 └── docker/               # Output Docker files
 └── data/                 # folder for volume container
+└── conf/                 # folder for config container custom (persistent)
 ```
 
 ## ⚙️ Konfigurasi
@@ -37,17 +38,22 @@ Edit `hpone/config.py`:
 
 ```python
 # Behavior mode
-ALWAYS_IMPORT = True          # True: auto-import, False: manual control
+ALWAYS_IMPORT = True          # True: auto-import (hide import/update), False: manual control
 
 # Path configuration
 TOOLS_DIR = PROJECT_ROOT / "tools"
 TEMPLATE_DOCKER_DIR = PROJECT_ROOT / "template" / "docker"
 OUTPUT_DOCKER_DIR = PROJECT_ROOT / "docker"
+DATA_DIR = PROJECT_ROOT / "data"   # lokasi mount data container (dipakai clean --data)
 
 # List display settings
 LIST_BASIC_MAX_WIDTH = 80
 LIST_DETAILED_MAX_WIDTH = 30
 ```
+
+Catatan:
+- Jika `ALWAYS_IMPORT = True`, perintah `import`/`update` disembunyikan dan proses `up` akan auto-import.
+- `DATA_DIR` dipakai oleh perintah `clean`; `clean --all --data` akan menghapus semua subfolder di `data/` meski tidak ada imported tools.
 
 ## 🎯 Cara Pakai
 
@@ -94,24 +100,24 @@ LIST_DETAILED_MAX_WIDTH = 30
 # Stop tools
 ./app.py down --all
 
-# Remove tools
-./app.py remove cowrie
-./app.py remove --all
+# Stop tools, remove imported, & remove folder mounting (only in folder data)
+./app.py clean --all --data
 ```
 
 ## 🔧 Command Reference
 
 ### **Available Commands (ALWAYS_IMPORT=true)**
-- `check` - Check dependencies
+- `check` - Run import self-tests + check dependencies
 - `list` - List tools
 - `status` - Show running status
 - `inspect` - Show tool details
 - `enable/disable` - Enable/disable tools
-- `up/down` - Start/stop tools (auto-import)
+- `up/down` - Start/Stop tools (auto-import)
+- `clean` - Stop tools, remove imported, & remove folder mounting (only in folder data)
+  - Catatan: `clean --all --data` akan tetap menghapus semua subfolder di `data/` meski tidak ada imported tools.
 
 ### **Hidden Commands (ALWAYS_IMPORT=true)**
 - ❌ `import` - Disabled (auto-import)
-- ❌ `remove` - Disabled (auto-managed)
 - ❌ `update` - Disabled (auto-update)
 
 ### **All Commands (ALWAYS_IMPORT=false)**
@@ -145,9 +151,19 @@ LIST_DETAILED_MAX_WIDTH = 30
 
 ## 🔍 Troubleshooting
 
-### **Check Dependencies**
+### **Check Dependencies & Import Self-Test**
 ```bash
 ./app.py check
+```
+- Perintah ini akan menjalankan import self-tests terlebih dulu (menggunakan modul `hpone/test.py`).
+- Jika ada import yang gagal, proses berhenti (exit code 1) dan error ditampilkan.
+- Jika semua lolos, dilanjutkan dengan pengecekan dependencies seperti biasa.
+
+### **Self-Test Module**
+Lokasi fungsi self-test: `hpone/test.py` (`run_import_self_test()`).
+Anda bisa menjalankannya terpisah dari Python bila perlu:
+```bash
+python -c "from test import run_import_self_test as t; import sys; sys.exit(0 if t() else 1)"
 ```
 
 ### **Force Start Non-enabled Tool**
@@ -165,6 +181,17 @@ docker-compose -f docker/cowrie/docker-compose.yml ps
 
 cat data/cowrie/*
 ```
+
+### **Clean Data**
+- Hapus data semua tool meskipun tidak ada imported tools:
+```bash
+./app.py clean --all --data
+```
+- Hapus data untuk satu tool tertentu:
+```bash
+./app.py clean cowrie --data
+```
+- Saat menggunakan `--all --data`, akan ada prompt konfirmasi; jawab `y/yes/ya` untuk melanjutkan.
 
 ## 📝 Notes
 

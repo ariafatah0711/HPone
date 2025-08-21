@@ -19,6 +19,9 @@ TEMPLATE_DOCKER_DIR = PROJECT_ROOT / "template" / "docker"
 # Lokasi direktori output Docker (tempat hasil import)
 OUTPUT_DOCKER_DIR = PROJECT_ROOT / "docker"
 
+# Lokasi direktori data untuk mount (hanya dihapus ketika clean --data)
+DATA_DIR = PROJECT_ROOT / "data"
+
 # Konfigurasi untuk list command
 LIST_BASIC_MAX_WIDTH = 80      # Max width untuk list biasa
 LIST_DETAILED_MAX_WIDTH = 30   # Max width untuk list -a (detailed)
