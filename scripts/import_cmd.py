@@ -19,8 +19,11 @@ def import_tool(tool_id: str, force: bool = False) -> Path:
     resolved_name, cfg = load_tool_yaml_by_filename(tool_id)
     dest_dir = OUTPUT_DOCKER_DIR / tool_id
 
-    ensure_destination_dir(dest_dir, force=force)
+    # Check if template exists BEFORE creating destination directory
     template_dir = find_template_dir(tool_id)
+    
+    # Only create destination directory if template is found
+    ensure_destination_dir(dest_dir, force=force)
     copy_template_to_destination(template_dir, dest_dir)
     # Ensure host directories for volumes exist
     ensure_volume_directories(cfg)

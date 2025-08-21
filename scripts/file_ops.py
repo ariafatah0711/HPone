@@ -38,7 +38,7 @@ def find_template_dir(tool_id: str) -> Path:
     # Helpful info
     available = sorted([p.name for p in TEMPLATE_DOCKER_DIR.glob("*/") if p.is_dir()])
     raise FileNotFoundError(
-        "Template not found. Expected 'template/docker/<tool>/' or common files 'template/docker/Dockerfile' and 'docker-compose.yml'. "
+        f"Template not found. Expected '{TEMPLATE_DOCKER_DIR}/<tool>/' or common files 'Dockerfile' and 'docker-compose.yml'. "
         f"Requested tool: '{tool_id}'. Available templates: {', '.join(available) if available else '-'}"
     )
 

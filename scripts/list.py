@@ -16,6 +16,15 @@ except ImportError:
 # Import constants dari helpers
 from core.constants import TOOLS_DIR, OUTPUT_DOCKER_DIR
 
+# Import konfigurasi dari config.py
+try:
+    from config import LIST_BASIC_MAX_WIDTH, LIST_DETAILED_MAX_WIDTH
+except ImportError:
+    # Fallback ke default values jika config.py tidak ditemukan
+    LIST_BASIC_MAX_WIDTH = 60
+    LIST_DETAILED_MAX_WIDTH = 30
+
+
 def list_enabled_tool_ids() -> List[str]:
     tool_ids: List[str] = []
     for path_str in glob.glob(str(TOOLS_DIR / "*.yml")):
@@ -79,7 +88,7 @@ def list_tools(detailed: bool = False) -> None:
     """Print the list of tools in a clean table format."""
     yaml_files = sorted(glob.glob(str(TOOLS_DIR / "*.yml")))
     if not yaml_files:
-        print("No YAML files in the 'tools/' directory.")
+        print(f"No YAML files in the '{TOOLS_DIR}' directory.")
         return
 
     rows_basic: List[List[str]] = []
@@ -136,9 +145,9 @@ def list_tools(detailed: bool = False) -> None:
 
     if detailed:
         from core.utils import _format_table
-        table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION", "PORTS", "VOLUMES"], rows_detail, max_width=30)
+        table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION", "PORTS", "VOLUMES"], rows_detail, max_width=LIST_DETAILED_MAX_WIDTH)
     else:
         from core.utils import _format_table
-        table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION"], rows_basic, max_width=60)
+        table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION"], rows_basic, max_width=LIST_BASIC_MAX_WIDTH)
 
     print(table)
