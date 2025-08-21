@@ -51,14 +51,25 @@ DATA_DIR = PROJECT_ROOT / "data"   # lokasi mount data log container (ini buat f
 USE_EPHEMERAL_LOGGING = True  # True: real-time logs, False: simple output
 ```
 
-## ⚙️ Global Installation (Run Anywhere)
 
-Agar `hpone` bisa dijalankan dari mana saja tanpa `./app.py`:
-
+## ⌨️ Clone This Repsitory
 ```bash
 git clone https://github.com/ariafatah0711/HPone hpone
 cd hpone
 
+# install library
+pip3 install requirements.txt
+
+# setup Global Installation, and Bash Completion
+chmod +x setup.sh
+./setup.sh
+```
+
+## ⚙️ Global Installation (Run Anywhere)
+
+Agar `hpone` bisa dijalankan dari mana saja tanpa `./app.py`:
+ 
+```bash
 chmod +x app.py
 sudo ln -s $(pwd)/app.py /usr/local/bin/hpone
 

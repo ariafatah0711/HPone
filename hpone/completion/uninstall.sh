@@ -30,16 +30,21 @@ remove_bash_completion() {
         echo "✓ Removed user completion from ${HOME}/.bash_completion.d/hpone"
     fi
     
-    # Check .bashrc for completion lines
+   # Check .bashrc for completion lines
     if [[ -f "${HOME}/.bashrc" ]]; then
-        # Create backup
-        cp "${HOME}/.bashrc" "${HOME}/.bashrc.hpone.backup.$(date +%Y%m%d_%H%M%S)"
-        echo "✓ Created backup: ${HOME}/.bashrc.hpone.backup.$(date +%Y%m%d_%H%M%S)"
-        
+        BACKUP="${HOME}/.bashrc.hpone.backup-latest"
+
+        # Backup cuma sekali (atau replace biar selalu fresh)
+        if [[ ! -e "$BACKUP" ]]; then
+            cp "${HOME}/.bashrc" "$BACKUP"
+            echo "✓ Created backup: $BACKUP"
+        else
+            echo "✓ Backup already exists: $BACKUP (not creating new one)"
+        fi
+
         # Remove completion lines
-        local temp_file=$(mktemp)
-        local removed_lines=0
-        
+        temp_file=$(mktemp)
+        removed_lines=0
         while IFS= read -r line; do
             if [[ "$line" =~ hpone-completion ]] || [[ "$line" =~ "HPone bash completion" ]]; then
                 echo "  Removing line: $line"
@@ -48,7 +53,7 @@ remove_bash_completion() {
                 echo "$line" >> "$temp_file"
             fi
         done < "${HOME}/.bashrc"
-        
+
         if [[ $removed_lines -gt 0 ]]; then
             mv "$temp_file" "${HOME}/.bashrc"
             echo "✓ Removed $removed_lines completion lines from ${HOME}/.bashrc"
