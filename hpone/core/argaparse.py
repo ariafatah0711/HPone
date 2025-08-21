@@ -70,6 +70,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	p_clean.add_argument("tool", nargs="?", help="Tool name to clean")
 	p_clean.add_argument("--all", action="store_true", help="Clean all imported tools")
 	p_clean.add_argument("--data", action="store_true", help="Also remove mounted data under data/<tool>")
+	# Extra docker compose down options
+	p_clean.add_argument("--image", action="store_true", help="Also remove images (docker compose down --rmi local)")
+	p_clean.add_argument("--volume", action="store_true", help="Also remove volumes (docker compose down -v)")
 
 	return parser
 

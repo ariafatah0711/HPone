@@ -6,7 +6,7 @@ Functions to start and stop Docker containers.
 
 import subprocess
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 # Import constants dan functions dari helpers
 from .constants import OUTPUT_DOCKER_DIR
@@ -44,7 +44,7 @@ def is_tool_running(tool_id: str) -> bool:
     except Exception:
         return False
 
-def run_compose_action(tool_dir: Path, action: str) -> None:
+def run_compose_action(tool_dir: Path, action: str, extra_args: Optional[List[str]] = None) -> None:
     if not (tool_dir / "docker-compose.yml").exists():
         raise FileNotFoundError(f"docker-compose.yml not found in {tool_dir}")
 
@@ -54,7 +54,8 @@ def run_compose_action(tool_dir: Path, action: str) -> None:
     except ImportError:
         USE_EPHEMERAL_LOGGING = True  # Default to True if config not found
 
-    if USE_EPHEMERAL_LOGGING:
+    # If extra args are provided, prefer direct subprocess to ensure full flag support
+    if USE_EPHEMERAL_LOGGING and not extra_args:
         # Use ephemeral logging for better UX
         from .log_runner import run_docker_compose_action
         
@@ -70,6 +71,8 @@ def run_compose_action(tool_dir: Path, action: str) -> None:
         cmd_dc = ["docker", "compose", action]
         if action == "up":
             cmd_dc.append("-d")
+        if extra_args:
+            cmd_dc.extend(extra_args)
 
         try:
             subprocess.run(
@@ -86,6 +89,8 @@ def run_compose_action(tool_dir: Path, action: str) -> None:
             cmd_legacy = ["docker-compose", action]
             if action == "up":
                 cmd_legacy.append("-d")
+            if extra_args:
+                cmd_legacy.extend(extra_args)
             subprocess.run(
                 cmd_legacy,
                 cwd=str(tool_dir),
@@ -122,7 +127,7 @@ def up_tool(tool_id: str, force: bool = False) -> None:
         print(f"{COLOR_YELLOW}[UP]{COLOR_RESET} {dir_id} {PREFIX_OK}")
 
 
-def down_tool(tool_id: str) -> None:
+def down_tool(tool_id: str, remove_volumes: bool = False, remove_images: bool = False) -> None:
     # Import di dalam function untuk avoid circular import
     from scripts.list import resolve_tool_dir_id
     dir_id = resolve_tool_dir_id(tool_id)
@@ -130,7 +135,12 @@ def down_tool(tool_id: str) -> None:
     if not dest_dir.exists():
         print(f"{PREFIX_WARN} Skip {dir_id}: folder not found.")
         return
-    run_compose_action(dest_dir, "down")
+    extra_args: List[str] = []
+    if remove_volumes:
+        extra_args.append("-v")
+    if remove_images:
+        extra_args.extend(["--rmi", "local"])
+    run_compose_action(dest_dir, "down", extra_args=extra_args if extra_args else None)
     
     # Show output based on logging mode
     try:

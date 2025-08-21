@@ -214,7 +214,11 @@ def main(argv: List[str]) -> int:
                 for t in imported_ids:
                     try:
                         # Down first
-                        down_tool(t)
+                        down_tool(
+                            t,
+                            remove_volumes=bool(getattr(args, "volume", False)),
+                            remove_images=bool(getattr(args, "image", False)),
+                        )
                         # Remove data if confirmed
                         if remove_data_all:
                             try:
@@ -232,7 +236,11 @@ def main(argv: List[str]) -> int:
                     print("You must specify a tool or use --all", file=sys.stderr)
                     return 2
                 # Down first
-                down_tool(args.tool)
+                down_tool(
+                    args.tool,
+                    remove_volumes=bool(getattr(args, "volume", False)),
+                    remove_images=bool(getattr(args, "image", False)),
+                )
                 # Optionally remove data for single tool
                 if getattr(args, "data", False):
                     try:
