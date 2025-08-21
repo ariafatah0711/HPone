@@ -18,12 +18,12 @@ from core.constants import TOOLS_DIR, OUTPUT_DOCKER_DIR
 
 # Import konfigurasi dari config.py
 try:
-    from config import LIST_BASIC_MAX_WIDTH, LIST_DETAILED_MAX_WIDTH
+    from config import LIST_BASIC_MAX_WIDTH, LIST_DETAILED_MAX_WIDTH, ALWAYS_IMPORT
 except ImportError:
     # Fallback ke default values jika config.py tidak ditemukan
     LIST_BASIC_MAX_WIDTH = 60
     LIST_DETAILED_MAX_WIDTH = 30
-
+    ALWAYS_IMPORT = True
 
 def list_enabled_tool_ids() -> List[str]:
     tool_ids: List[str] = []
@@ -122,7 +122,6 @@ def list_tools(detailed: bool = False) -> None:
         rows_basic.append([name, enabled_str, imported_str, status_str, description])
 
         if detailed:
-            # Ports
             ports_info = ""
             try:
                 from core.config import parse_ports
@@ -144,10 +143,24 @@ def list_tools(detailed: bool = False) -> None:
             rows_detail.append([name, enabled_str, imported_str, status_str, description, ports_info, volumes_info])
 
     if detailed:
-        from core.utils import _format_table
-        table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION", "PORTS", "VOLUMES"], rows_detail, max_width=LIST_DETAILED_MAX_WIDTH)
+        if ALWAYS_IMPORT:
+            # Hide IMPORT column when ALWAYS_IMPORT=true
+            from core.utils import _format_table
+            table = _format_table(["TOOL", "ENABLE", "STATUS", "DESCRIPTION", "PORTS", "VOLUMES"], 
+                                [[row[0], row[1], row[3], row[4], row[5], row[6]] for row in rows_detail], 
+                                max_width=LIST_DETAILED_MAX_WIDTH)
+        else:
+            from core.utils import _format_table
+            table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION", "PORTS", "VOLUMES"], rows_detail, max_width=LIST_DETAILED_MAX_WIDTH)
     else:
-        from core.utils import _format_table
-        table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION"], rows_basic, max_width=LIST_BASIC_MAX_WIDTH)
+        if ALWAYS_IMPORT:
+            # Hide IMPORT column when ALWAYS_IMPORT=true
+            from core.utils import _format_table
+            table = _format_table(["TOOL", "ENABLE", "STATUS", "DESCRIPTION"], 
+                                [[row[0], row[1], row[3], row[4]] for row in rows_basic], 
+                                max_width=LIST_BASIC_MAX_WIDTH)
+        else:
+            from core.utils import _format_table
+            table = _format_table(["TOOL", "ENABLE", "IMPORT", "STATUS", "DESCRIPTION"], rows_basic, max_width=LIST_BASIC_MAX_WIDTH)
 
     print(table)

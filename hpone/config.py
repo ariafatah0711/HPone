@@ -21,4 +21,7 @@ OUTPUT_DOCKER_DIR = PROJECT_ROOT / "docker"
 
 # Konfigurasi untuk list command
 LIST_BASIC_MAX_WIDTH = 80      # Max width untuk list biasa
-LIST_DETAILED_MAX_WIDTH = 30   # Max width untuk list -a (detailed) 
+LIST_DETAILED_MAX_WIDTH = 30   # Max width untuk list -a (detailed)
+
+# Konfigurasi behavior
+ALWAYS_IMPORT = True          # True: hide import/remove commands, auto-import on up

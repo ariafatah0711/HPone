@@ -11,14 +11,27 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	# Check dependencies command
 	p_check = sub.add_parser("check", help="Check dependencies")
 
-	# Import command
-	p_import = sub.add_parser("import", help="Import template and generate .env for the tool")
-	p_import.add_argument("tool", nargs="?", help="Tool name (matches YAML filename in tools/)")
-	p_import.add_argument("--all", action="store_true", help="Import all enabled tools")
-	p_import.add_argument("--force", action="store_true", help="Overwrite docker/<tool> if it already exists")
+	# Import command (only show when ALWAYS_IMPORT=false)
+	try:
+		from config import ALWAYS_IMPORT
+		show_import_commands = not ALWAYS_IMPORT
+	except ImportError:
+		show_import_commands = False
 	
-	# Update command
-	p_update = sub.add_parser("update", help="Update all imported tools (equivalent to import --force)")
+	if show_import_commands:
+		# Import command
+		p_import = sub.add_parser("import", help="Import template and generate .env for the tool")
+		p_import.add_argument("tool", nargs="?", help="Tool name (matches YAML filename in tools/)")
+		p_import.add_argument("--all", action="store_true", help="Import all enabled tools")
+		p_import.add_argument("--force", action="store_true", help="Overwrite docker/<tool> if it already exists")
+		
+		# Update command
+		p_update = sub.add_parser("update", help="Update all imported tools (equivalent to import --force)")
+		
+		# Remove command
+		p_remove = sub.add_parser("remove", help="Delete directory docker/<tool>")
+		p_remove.add_argument("tool", nargs="?", help="Tool name to remove")
+		p_remove.add_argument("--all", action="store_true", help="Remove all imported tools")
 
 	# List command
 	p_list = sub.add_parser("list", help="List tools based on YAML files in tools/")
@@ -27,11 +40,6 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	# Status command (running only)
 	p_status = sub.add_parser("status", help="Show port mappings of running tools (HOST -> CONTAINER)")
 	
-	# Remove command
-	p_remove = sub.add_parser("remove", help="Delete directory docker/<tool>")
-	p_remove.add_argument("tool", nargs="?", help="Tool name to remove")
-	p_remove.add_argument("--all", action="store_true", help="Remove all imported tools")
-
 	# Inspect command
 	p_inspect = sub.add_parser("inspect", help="Show detailed configuration information for one tool")
 	p_inspect.add_argument("tool", help="Tool name to inspect")
@@ -49,7 +57,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	group_up = p_up.add_mutually_exclusive_group(required=True)
 	group_up.add_argument("tool", nargs="?", help="Tool name. If omitted, use --all")
 	group_up.add_argument("--all", action="store_true", help="Run for all enabled and imported tools")
-	p_up.add_argument("--update", action="store_true", help="Update templates before starting")
+	
+	# Only show --update option when ALWAYS_IMPORT=false
+	if show_import_commands:
+		p_up.add_argument("--update", action="store_true", help="Update templates before starting")
+	
 	p_up.add_argument("--force", action="store_true", help="Force start even if not enabled (single tool only)")
 
 	# Down command
