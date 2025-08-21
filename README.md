@@ -102,6 +102,48 @@ USE_EPHEMERAL_LOGGING = True  # True: real-time logs, False: simple output
 - `clean --image` - Also remove images
 - `clean --volume` - Also remove volumes
 
+## ⚙️ Global Installation (Run Anywhere)
+
+Agar `hpone` bisa dijalankan dari mana saja tanpa `./app.py`:
+
+```bash
+chmod +x app.py
+sudo ln -s $(pwd)/app.py /usr/local/bin/hpone
+
+hpone -h
+```
+
+## ⌨️ Bash Completion
+
+Untuk kemudahan penggunaan, HPone menyediakan bash completion.
+
+### **Instalasi**
+```bash
+chmod +x hpone/completion/install.sh
+./hpone/completion/install.sh # perlu restart shell
+
+# atau secara manual
+source hpone/completion/
+```
+
+### **Penggunaan**
+```bash
+./app.py <TAB>                    # Melengkapi command
+./app.py inspect <TAB>            # Melengkapi nama tool
+./app.py up <TAB>                 # Melengkapi tool atau --all
+
+hpone <TAB>                       # Melengkapi command
+hpone clean <TAB>              # Melengkapi nama tool
+hpone up <TAB>                 # Melengkapi tool atau --all
+```
+
+### **Uninstall**
+```bash
+./hpone/completion/uninstall.sh
+```
+
+Lihat `hpone/completion/README.md` untuk informasi lengkap.
+
 ### **Examples**
 
 ```bash
