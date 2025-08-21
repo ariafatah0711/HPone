@@ -184,4 +184,4 @@ cat data/cowrie/*
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+Proyek ini dilisensikan di bawah GNU General Public License v3.0 (GPL-3.0). Lihat berkas `LICENSE`.
