@@ -28,3 +28,6 @@ LIST_DETAILED_MAX_WIDTH = 30   # Max width untuk list -a (detailed)
 
 # Konfigurasi behavior
 ALWAYS_IMPORT = True          # True: hide import/remove commands, auto-import on up
+
+# Konfigurasi logging
+USE_EPHEMERAL_LOGGING = True  # True: use ephemeral logging for up/down commands, False: use simple output

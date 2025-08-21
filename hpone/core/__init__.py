@@ -33,6 +33,11 @@ from .utils import (
     _format_table
 )
 
+from .log_runner import (
+    run_with_ephemeral_logs,
+    run_docker_compose_action
+)
+
 __all__ = [
     # YAML operations
     'load_tool_yaml_by_filename',
@@ -57,5 +62,9 @@ __all__ = [
     
     # Utility functions
     'to_var_prefix',
-    '_format_table'
+    '_format_table',
+    
+    # Log runner functions
+    'run_with_ephemeral_logs',
+    'run_docker_compose_action'
 ]

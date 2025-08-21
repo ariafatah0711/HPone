@@ -48,33 +48,52 @@ def run_compose_action(tool_dir: Path, action: str) -> None:
     if not (tool_dir / "docker-compose.yml").exists():
         raise FileNotFoundError(f"docker-compose.yml not found in {tool_dir}")
 
-    cmd_dc = ["docker", "compose", action]
-    if action == "up":
-        cmd_dc.append("-d")
-
+    # Check if ephemeral logging is enabled
     try:
-        subprocess.run(
-            cmd_dc,
-            cwd=str(tool_dir),
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-        )
-        return
-    except FileNotFoundError:
-        # Fallback ke docker-compose v1
-        cmd_legacy = ["docker-compose", action]
+        from config import USE_EPHEMERAL_LOGGING
+    except ImportError:
+        USE_EPHEMERAL_LOGGING = True  # Default to True if config not found
+
+    if USE_EPHEMERAL_LOGGING:
+        # Use ephemeral logging for better UX
+        from .log_runner import run_docker_compose_action
+        
+        # Extract tool name from directory
+        tool_name = tool_dir.name
+        
+        success, duration = run_docker_compose_action(action, tool_name, tool_dir)
+        
+        if not success:
+            raise subprocess.CalledProcessError(1, f"docker compose {action}")
+    else:
+        # Use simple output (original behavior)
+        cmd_dc = ["docker", "compose", action]
         if action == "up":
-            cmd_legacy.append("-d")
-        subprocess.run(
-            cmd_legacy,
-            cwd=str(tool_dir),
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-        )
+            cmd_dc.append("-d")
+
+        try:
+            subprocess.run(
+                cmd_dc,
+                cwd=str(tool_dir),
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
+            return
+        except FileNotFoundError:
+            # Fallback ke docker-compose v1
+            cmd_legacy = ["docker-compose", action]
+            if action == "up":
+                cmd_legacy.append("-d")
+            subprocess.run(
+                cmd_legacy,
+                cwd=str(tool_dir),
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
 
 
 def up_tool(tool_id: str, force: bool = False) -> None:
@@ -92,7 +111,15 @@ def up_tool(tool_id: str, force: bool = False) -> None:
             raise ValueError(f"Tool '{tool_id}' is not enabled. Run 'enable {tool_id}' first or use --force.")
 
     run_compose_action(dest_dir, "up")
-    print(f"{COLOR_YELLOW}[UP]{COLOR_RESET} {dir_id} {PREFIX_OK}")
+    
+    # Show output based on logging mode
+    try:
+        from config import USE_EPHEMERAL_LOGGING
+    except ImportError:
+        USE_EPHEMERAL_LOGGING = True
+    
+    if not USE_EPHEMERAL_LOGGING:
+        print(f"{COLOR_YELLOW}[UP]{COLOR_RESET} {dir_id} {PREFIX_OK}")
 
 
 def down_tool(tool_id: str) -> None:
@@ -104,4 +131,12 @@ def down_tool(tool_id: str) -> None:
         print(f"{PREFIX_WARN} Skip {dir_id}: folder not found.")
         return
     run_compose_action(dest_dir, "down")
-    print(f"{COLOR_YELLOW}[DOWN]{COLOR_RESET} {dir_id} {PREFIX_OK}")
+    
+    # Show output based on logging mode
+    try:
+        from config import USE_EPHEMERAL_LOGGING
+    except ImportError:
+        USE_EPHEMERAL_LOGGING = True
+    
+    if not USE_EPHEMERAL_LOGGING:
+        print(f"{COLOR_YELLOW}[DOWN]{COLOR_RESET} {dir_id} {PREFIX_OK}")

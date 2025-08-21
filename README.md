@@ -9,6 +9,7 @@
 - ✅ **Command simplified** - tidak ada import/remove manual
 - ✅ **Production ready** - minimal human intervention
 - ✅ **Smart management** - tools dikelola otomatis
+- ✅ **Ephemeral logging** - tampilan log real-time yang bersih
 
 ### **Mode Manual (ALWAYS_IMPORT=false)**
 - 🔧 **Full control** - import/remove/update manual
@@ -49,11 +50,15 @@ DATA_DIR = PROJECT_ROOT / "data"   # lokasi mount data container (dipakai clean 
 # List display settings
 LIST_BASIC_MAX_WIDTH = 80
 LIST_DETAILED_MAX_WIDTH = 30
+
+# Logging configuration
+USE_EPHEMERAL_LOGGING = True  # True: use ephemeral logging for up/down, False: simple output
 ```
 
 Catatan:
 - Jika `ALWAYS_IMPORT = True`, perintah `import`/`update` disembunyikan dan proses `up` akan auto-import.
 - `DATA_DIR` dipakai oleh perintah `clean`; `clean --all --data` akan menghapus semua subfolder di `data/` meski tidak ada imported tools.
+- `USE_EPHEMERAL_LOGGING = True` memberikan tampilan log real-time yang bersih, `False` menggunakan output sederhana.
 
 ## 🎯 Cara Pakai
 
@@ -166,6 +171,25 @@ Anda bisa menjalankannya terpisah dari Python bila perlu:
 python -c "from test import run_import_self_test as t; import sys; sys.exit(0 if t() else 1)"
 ```
 
+### **Testing Ephemeral Logging**
+Test ephemeral logging functionality:
+```bash
+cd hpone
+python test_ephemeral.py
+```
+
+Test perbedaan mode logging:
+```bash
+cd hpone
+python test_logging_modes.py
+```
+
+Atau test individual command:
+```bash
+cd hpone
+python -c "from core.log_runner import run_with_ephemeral_logs; run_with_ephemeral_logs(['echo', 'test'], 'demo')"
+```
+
 ### **Force Start Non-enabled Tool**
 ```bash
 ./app.py up wordpot --force
@@ -180,6 +204,33 @@ docker logs cowrie
 docker-compose -f docker/cowrie/docker-compose.yml ps
 
 cat data/cowrie/*
+```
+
+### **Logging Configuration**
+Jika ephemeral logging bermasalah atau ingin output sederhana:
+```bash
+# Edit config.py
+USE_EPHEMERAL_LOGGING = False  # Switch to simple output
+```
+
+### **Ephemeral Logging**
+HPone menggunakan ephemeral logging untuk perintah `up` dan `down` (bisa dikontrol via `USE_EPHEMERAL_LOGGING`):
+- **Real-time output**: Log ditampilkan live dengan timestamp `[HH:MM:SS] [INFO]`
+- **Auto-clear**: Setelah selesai, log dihapus dan diganti dengan ringkasan
+- **Clean display**: Output bersih seperti `[UP] cowrie OK (2.3s)` atau `[FAIL] cowrie ERR (1.5s)`
+
+**Mode Ephemeral (USE_EPHEMERAL_LOGGING = True)**:
+```
+[22:48:02] [INFO] Starting cowrie containers ...
+[22:48:05] [INFO] Docker network created
+[22:48:06] [INFO] Building cowrie image
+[22:48:10] [INFO] Container cowrie started
+[UP] cowrie OK (2.3s)
+```
+
+**Mode Simple (USE_EPHEMERAL_LOGGING = False)**:
+```
+[UP] cowrie OK
 ```
 
 ### **Clean Data**
