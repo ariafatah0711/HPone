@@ -1,350 +1,187 @@
-# 🍯 HPone Honey Pot One
+# HPone - Docker Honeypot Manager
 
-> **Advanced Docker Template Manager for Honeypot Deployment**
+**HPone** adalah tool untuk mengelola Docker honeypot templates dengan fitur **auto-import** yang memudahkan deployment dan management.
 
-A powerful, modular Python application for managing Docker honeypot templates with an organized codebase structure. HPone simplifies the deployment, configuration, and management of various honeypot tools through a clean command-line interface.
+## 🚀 Fitur Utama: ALWAYS_IMPORT Mode
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
+### **Mode Otomatis (ALWAYS_IMPORT=true)**
+- ✅ **Auto-import** tools saat startup
+- ✅ **Command simplified** - tidak ada import/remove manual
+- ✅ **Production ready** - minimal human intervention
+- ✅ **Smart management** - tools dikelola otomatis
 
-## 📋 Table of Contents
+### **Mode Manual (ALWAYS_IMPORT=false)**
+- 🔧 **Full control** - import/remove/update manual
+- 🔧 **Development friendly** - debugging dan testing
+- 🔧 **Template management** - update dan maintenance
 
-- [✨ Features](#-features)
-- [🏗️ Architecture](#️-architecture)
-- [📦 Installation](#-installation)
-- [🚀 Quick Start](#-quick-start)
-- [📚 Usage Guide](#-usage-guide)
-- [🔧 Development](#-development)
-- [🧪 Testing](#-testing)
-- [🤝 Contributing](#-contributing)
+## 📁 Struktur Project
 
-## ✨ Features
-
-- 🐳 **Docker Integration** - Seamless Docker Compose management
-- 📁 **Template Management** - Import, configure, and deploy honeypot templates
-- ⚙️ **Configuration Parsing** - Automatic YAML parsing and environment generation
-- 🔄 **Lifecycle Management** - Start, stop, and monitor honeypot containers
-- 📊 **Status Monitoring** - Real-time container status and health checks
-- 🎯 **Modular Design** - Clean, maintainable codebase structure
-
-## 🏗️ Architecture
-
-### Project Structure
 ```
 HPone/
-├── 📁 core/                   # Core functionality modules
-│   ├── __init__.py            # Package initialization
-│   ├── config.py              # Configuration parsing utilities
-│   ├── constants.py           # Application constants
-│   ├── docker.py              # Docker operations
-│   ├── utils.py               # Utility functions
-│   └── yaml.py                # YAML file operations
-├── 📁 scripts/                # Command implementations
-│   ├── __init__.py            # Package initialization
-│   ├── check.py               # Dependency checking
-│   ├── error_handlers.py      # Error handling utilities
-│   ├── file_ops.py            # File operations
-│   ├── import_cmd.py          # Import command logic
-│   ├── inspect.py             # Inspection utilities
-│   ├── list.py                # Listing commands
-│   └── remove.py              # Removal operations
-├── 📁 tools/                  # Honeypot tool configurations
-│   ├── adbhoney.yml           # ADB honeypot config
-│   ├── ciscoasa.yml           # Cisco ASA honeypot config
-│   ├── conpot.yml             # Conpot honeypot config
-│   └── cowrie.yml             # Cowrie SSH honeypot config
-├── 📁 template/               # Docker template files
-├── 📁 docker/                 # Generated Docker configurations
-├── 🐍 app.py                  # Main application entry point
-├── 🐍 test_import.py          # Testing Import
-├── 📋 requirements.txt        # Python dependencies
-└── 📖 README.md               # This file
+├── app.py                 # Launcher script (dari folder lain)
+├── hpone/                 # Main application
+│   ├── app.py            # Main application
+│   ├── config.py         # Configuration file
+│   ├── core/             # Core modules
+│   └── scripts/          # Command scripts
+├── tools/                 # YAML honeypot files
+├── template/docker/       # Docker templates
+└── docker/               # Output Docker files
+└── data/                 # folder for volume container
 ```
 
-### Core Modules
+## ⚙️ Konfigurasi
 
-#### `core/` Package
-- **`config.py`** - Configuration parsing and validation
-- **`constants.py`** - Application-wide constants and paths
-- **`docker.py`** - Docker container operations and management
-- **`utils.py`** - General utility functions and helpers
-- **`yaml.py`** - YAML file loading and manipulation
+Edit `hpone/config.py`:
 
-#### `scripts/` Package
-- **`check.py`** - Dependency verification and system checks
-- **`error_handlers.py`** - Centralized error handling
-- **`file_ops.py`** - File and directory operations
-- **`import_cmd.py`** - Template import functionality
-- **`inspect.py`** - Tool inspection and information display
-- **`list.py`** - Tool listing and status display
-- **`remove.py`** - Tool removal and cleanup
+```python
+# Behavior mode
+ALWAYS_IMPORT = True          # True: auto-import, False: manual control
 
-## 📦 Installation
+# Path configuration
+TOOLS_DIR = PROJECT_ROOT / "tools"
+TEMPLATE_DOCKER_DIR = PROJECT_ROOT / "template" / "docker"
+OUTPUT_DOCKER_DIR = PROJECT_ROOT / "docker"
 
-### Prerequisites
-- Python 3.8 or higher
-- Docker and Docker Compose
-- Git
-
-### Quick Install
-```bash
-# Clone the repository
-git clone https://github.com/ariafatah0711/hpone.git
-cd hpone
-
-# Install Python dependencies
-pip install -r requirements.txt
-
+# List display settings
+LIST_BASIC_MAX_WIDTH = 80
+LIST_DETAILED_MAX_WIDTH = 30
 ```
 
+## 🎯 Cara Pakai
 
-### use
-```bash
-./app.py -h
-```
-or
-```bash
-python app.py -h
-``` 
-or
-```bash
-python3 app.py -h
-````
+### **1. Quick Start (ALWAYS_IMPORT=true)**
 
-### check dep, and testing for import file
 ```bash
-python3 test_import.py
-python3 app.py check
-```
+# Enable tools yang dibutuhkan
+./app.py enable cowrie
+./app.py enable medpot
 
-## 🚀 Quick Start
+# Start tools (auto-import + up)
+./app.py up cowrie
+./app.py up medpot
 
-### 1. List Available Tools
-```bash
-python3 app.py list
-```
+# Start semua enabled tools
+./app.py up --all
 
-### 2. Import a Honeypot Tool
-```bash
-# Import Cowrie SSH honeypot
-python3 app.py import cowrie
+# Check status
+./app.py list
+./app.py status
 
-# Import all enabled tools
-python3 app.py import --all
+# Stop tools
+./app.py down cowrie
+./app.py down --all
+
+# paksa up tool yang tidak enable
+./app.py up conpot --force
 ```
 
-### 3. Start the Honeypot
-```bash
-# Start specific tool
-python3 app.py up cowrie
+### **2. Manual Mode (ALWAYS_IMPORT=false)**
 
-# Start all imported tools
-python3 app.py up --all
+```bash
+# Import tools
+./app.py import cowrie
+./app.py import --all
+
+# Update templates
+./app.py update
+
+# Start tools
+./app.py up cowrie
+./app.py up --all --update
+
+# Stop tools
+./app.py down --all
+
+# Remove tools
+./app.py remove cowrie
+./app.py remove --all
 ```
 
-### 4. Monitor Status
-```bash
-# Check tool status
-python3 app.py inspect cowrie
+## 🔧 Command Reference
 
-# List running tools
-python3 app.py list -a
-```
+### **Available Commands (ALWAYS_IMPORT=true)**
+- `check` - Check dependencies
+- `list` - List tools
+- `status` - Show running status
+- `inspect` - Show tool details
+- `enable/disable` - Enable/disable tools
+- `up/down` - Start/stop tools (auto-import)
 
-## 📚 Usage Guide
+### **Hidden Commands (ALWAYS_IMPORT=true)**
+- ❌ `import` - Disabled (auto-import)
+- ❌ `remove` - Disabled (auto-managed)
+- ❌ `update` - Disabled (auto-update)
 
-### Command Reference
+### **All Commands (ALWAYS_IMPORT=false)**
+- Semua command tersedia seperti biasa
 
-#### 🔍 **List Commands**
-```bash
-# Basic tool listing
-python3 app.py list
+## 📊 Tool Management
 
-# Detailed listing with ports and descriptions
-python3 app.py list -a
-```
-
-#### 📥 **Import Commands**
-```bash
-# Import specific tool
-python3 app.py import <tool_name>
-
-# Import all enabled tools
-python3 app.py import --all
-
-# Force overwrite existing import
-python3 app.py import <tool_name> --force
-```
-
-#### 🚀 **Control Commands**
-```bash
-# Start tool
-python3 app.py up <tool_name>
-
-# Start all imported tools
-python3 app.py up --all
-
-# Stop tool
-python3 app.py down <tool_name>
-
-# Stop all tools
-python3 app.py down --all
-```
-
-#### ⚙️ **Configuration Commands**
+### **Enable/Disable Tools**
 ```bash
 # Enable tool
-python3 app.py enable <tool_name>
+./app.py enable cowrie
 
 # Disable tool
-python3 app.py disable <tool_name>
+./app.py disable wordpot
 
-# Inspect tool configuration
-python3 app.py inspect <tool_name>
+# Check status
+./app.py list
 ```
 
-#### 🗑️ **Management Commands**
+### **Tool Information**
 ```bash
-# Remove specific tool
-python3 app.py remove <tool_name>
+# Basic list
+./app.py list
 
-# Remove all imported tools
-python3 app.py remove --all
+# Detailed list
+./app.py list -a
 
-# Check system dependencies
-python3 app.py check
+# Tool details
+./app.py inspect cowrie
 ```
 
-### Tool Configuration
+## 🔍 Troubleshooting
 
-Each honeypot tool has a YAML configuration file in the `tools/` directory:
-
-```yaml
-# Example: tools/cowrie.yml
-name: "Cowrie SSH Honeypot"
-description: "Medium interaction SSH honeypot"
-enabled: true
-ports:
-  - "2222:2222"
-volumes:
-  - "./logs:/cowrie/log"
-environment:
-  - COWRIE_LOG_LEVEL=INFO
-```
-
-## 🔧 Development
-
-### Setting Up Development Environment
+### **Check Dependencies**
 ```bash
-# Clone and setup
-git clone https://github.com/yourusername/hpone.git
-cd hpone
-
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install development dependencies
-pip install -r requirements.txt
-pip install -e .
+./app.py check
 ```
 
-### Code Structure Guidelines
-
-#### 1. **Adding New Features**
-- Place core functionality in `core/` package
-- Place command implementations in `scripts/` package
-- Update `__init__.py` files for proper exports
-- Add comprehensive error handling
-
-#### 2. **Modifying Existing Features**
-- Maintain backward compatibility
-- Update related tests and documentation
-- Follow existing code style and patterns
-
-#### 3. **Code Organization**
-- Keep related functions together
-- Use descriptive module and function names
-- Maintain clear separation of concerns
-- Document complex functions with docstrings
-
-## 🧪 Testing
-
-### Test Import Script
-Use the included test script to verify all imports work correctly:
-
+### **Force Start Non-enabled Tool**
 ```bash
-# Run comprehensive import test
-python test_import.py
+./app.py up wordpot --force
 ```
 
-### Manual Testing
+### **View Logs**
 ```bash
-# Test basic functionality
-python3 app.py list
-python3 app.py check
+# Check Docker logs
+docker logs cowrie
 
-# Test tool operations
-python3 app.py import cowrie
-python3 app.py inspect cowrie
-python3 app.py remove cowrie
+# Check compose status
+docker-compose -f docker/cowrie/docker-compose.yml ps
+
+cat data/cowrie/*
 ```
+
+## 📝 Notes
+
+- **ALWAYS_IMPORT=true**: Mode production, minimal command, auto-management
+- **ALWAYS_IMPORT=false**: Mode development, full control, manual management
+- Tools yang **disabled** tidak akan auto-start
+- Gunakan `--force` untuk override enabled status
+- Semua path bisa dikustomisasi di `config.py`
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
-
-### 1. **Fork & Clone**
-```bash
-git clone https://github.com/yourusername/hpone.git
-cd hpone
-```
-
-### 2. **Create Feature Branch**
-```bash
-git checkout -b feature/amazing-feature
-```
-
-### 3. **Make Changes**
-- Follow existing code style
-- Add tests for new functionality
-- Update documentation
-
-### 4. **Submit Pull Request**
-- Describe your changes clearly
-- Include test results
-- Reference any related issues
-
-### Development Workflow
-1. **Plan** - Discuss changes in issues
-2. **Code** - Implement with tests
-3. **Test** - Ensure all tests pass
-4. **Document** - Update README and docs
-5. **Submit** - Create pull request
+1. Fork project
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Create Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **Honeypot Community** - For inspiration and feedback
-- **Docker Team** - For excellent containerization tools
-- **Python Community** - For amazing ecosystem and libraries
-
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/yourusername/hpone/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/hpone/discussions)
-- **Wiki**: [Project Wiki](https://github.com/yourusername/hpone/wiki)
-
----
-
-<div align="center">
-
-**Made with ❤️ by ariafatah0711**
-
-*Advanced Honeypot Management Made Simple*
-
-</div>
+This project is licensed under the MIT License.
