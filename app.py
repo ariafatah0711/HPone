@@ -1,48 +1,68 @@
 #!/usr/bin/env python3
 """
-HPone Launcher Script - Simple Version
+HPone Launcher Script - Locked Version
 
-Script ini bisa dijalankan dari lokasi manapun untuk menjalankan HPone.
+Program ini ngejalanin HPone tanpa bisa ditekan enter/ketik apapun,
+dan Ctrl+C ditangani dengan rapi.
 """
 
 import os
 import sys
 import subprocess
+import signal
+import termios
+import tty
 from pathlib import Path
 
-# =============================================================================
-# KONFIGURASI PATH PROJECT - UBAH SESUAI LOKASI PROJECT ANDA
-# =============================================================================
+PREFIX_INFO = f"\033[32mINFO\033[0m"
+PREFIX_ERROR = f"\033[31m[ERROR]\033[0m"
+PREFIX_WARN = f"\033[33m[WARN]\033[0m"
 
-# Path ke project HPone (absolute path atau relative path)
 PROJECT_PATH = Path(__file__).resolve().parent / "hpone"
 
-# =============================================================================
-# MAIN FUNCTION
-# =============================================================================
+def disable_input():
+    """Matikan input terminal sementara (disable enter/keyboard)."""
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    tty.setcbreak(fd)
+    return old_settings
+
+def flush_stdin():
+    try:
+        termios.tcflush(sys.stdin, termios.TCIFLUSH)
+    except Exception:
+        pass
+
+def restore_input(old_settings):
+    """Balikin input terminal seperti semula."""
+    fd = sys.stdin.fileno()
+    termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
 def main():
-    """Main function untuk menjalankan HPone"""
+    if not PROJECT_PATH.exists():
+        print(f"{PREFIX_ERROR}[ERROR] Project path tidak ditemukan: {PROJECT_PATH}")
+        return 1
+
+    os.chdir(PROJECT_PATH)
+    args = sys.argv[1:] if len(sys.argv) > 1 else ["--help"]
+
+    # Tangani Ctrl+C dengan rapi
+    def handle_sigint(sig, frame):
+        print(f"{PREFIX_INFO}[INFO] Dihentikan oleh user (Ctrl+C)")
+        sys.exit(130)
+
+    signal.signal(signal.SIGINT, handle_sigint)
+
+    # Disable input user
+    old_settings = disable_input()
     try:
-        # Check if project path exists
-        if not PROJECT_PATH.exists():
-            print(f"Error: Project path tidak ditemukan: {PROJECT_PATH}")
-            print("Ubah PROJECT_PATH di file ini sesuai lokasi project Anda")
-            return 1
-        
-        # Change directory ke project
-        os.chdir(PROJECT_PATH)
-        
-        # Jalankan app.py dengan semua argument
-        args = sys.argv[1:] if len(sys.argv) > 1 else ["--help"]
-        
-        # Jalankan app.py
+        # Jalanin app.py
         result = subprocess.run([sys.executable, "app.py"] + args)
         return result.returncode
-        
-    except Exception as e:
-        print(f"Error: {e}")
-        return 1
+    finally:
+        # Restore input terminal
+        flush_stdin()
+        restore_input(old_settings)
 
 if __name__ == "__main__":
     sys.exit(main())
