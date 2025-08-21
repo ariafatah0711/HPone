@@ -51,57 +51,6 @@ DATA_DIR = PROJECT_ROOT / "data"   # lokasi mount data log container (ini buat f
 USE_EPHEMERAL_LOGGING = True  # True: real-time logs, False: simple output
 ```
 
-## 🎯 Cara Pakai
-
-### **Quick Start (ALWAYS_IMPORT=true)**
-
-```bash
-# Enable tools yang dibutuhkan
-./app.py enable cowrie
-./app.py enable medpot
-
-# Start tools (auto-import + up)
-./app.py up cowrie
-./app.py up medpot
-
-# Start semua enabled tools
-./app.py up --all
-
-# Check status
-./app.py list
-./app.py status
-
-# Stop tools
-./app.py down cowrie
-./app.py down --all
-
-# Buka shell di container
-./app.py shell cowrie
-
-# Clean tools (stop + remove)
-./app.py clean cowrie
-./app.py clean --all --data
-```
-
-## 🔧 Command Reference
-
-### **Available Commands**
-- `check` - Check dependencies
-- `list` - List tools (`-a` untuk detail)
-- `status` - Show running status
-- `inspect <tool>` - Show tool details
-- `enable/disable <tool>` - Enable/disable tools
-- `up <tool>` - Start tool (auto-import)
-- `up --all` - Start all enabled tools
-- `down <tool>` - Stop tool
-- `down --all` - Stop all tools
-- `shell <tool>` - Open shell (bash/sh) in running container
-- `clean <tool>` - Stop + remove tool
-- `clean --all` - Stop + remove all tools
-- `clean --data` - Also remove data volumes
-- `clean --image` - Also remove images
-- `clean --volume` - Also remove volumes
-
 ## ⚙️ Global Installation (Run Anywhere)
 
 Agar `hpone` bisa dijalankan dari mana saja tanpa `./app.py`:
@@ -144,27 +93,78 @@ hpone up <TAB>                 # Melengkapi tool atau --all
 
 Lihat `hpone/completion/README.md` untuk informasi lengkap.
 
+## 🎯 Cara Pakai
+
+### **Quick Start (ALWAYS_IMPORT=true)**
+
+```bash
+# Enable tools yang dibutuhkan
+hpone enable cowrie
+hpone enable medpot
+
+# Start tools (auto-import + up)
+hpone up cowrie
+hpone up medpot
+
+# Start semua enabled tools
+hpone up --all
+
+# Check status
+hpone list
+hpone status
+
+# Stop tools
+hpone down cowrie
+hpone down --all
+
+# Buka shell di container
+hpone shell cowrie
+
+# Clean tools (stop + remove)
+hpone clean cowrie
+hpone clean --all --data
+```
+
+## 🔧 Command Reference
+
+### **Available Commands**
+- `check` - Check dependencies
+- `list` - List tools (`-a` untuk detail)
+- `status` - Show running status
+- `inspect <tool>` - Show tool details
+- `enable/disable <tool>` - Enable/disable tools
+- `up <tool>` - Start tool (auto-import)
+- `up --all` - Start all enabled tools
+- `down <tool>` - Stop tool
+- `down --all` - Stop all tools
+- `shell <tool>` - Open shell (bash/sh) in running container
+- `clean <tool>` - Stop + remove tool
+- `clean --all` - Stop + remove all tools
+- `clean --data` - Also remove data volumes
+- `clean --image` - Also remove images
+- `clean --volume` - Also remove volumes
+
 ### **Examples**
 
 ```bash
 # Basic workflow
-./app.py enable cowrie
-./app.py up cowrie
-./app.py shell cowrie
-./app.py down cowrie
+hpone enable cowrie
+hpone up cowrie
+hpone shell cowrie
+hpone down cowrie
 
 # Clean everything
-./app.py clean --all --data --image --volume
+hpone clean --all --data --image --volume
 
 # Force start disabled tool
-./app.py up wordpot --force
+hpone up wordpot --force
 ```
 
 ## 🔍 Troubleshooting
 
 ### **Check Dependencies**
 ```bash
-./app.py check
+hpone check
 ```
 
 ### **View Logs**

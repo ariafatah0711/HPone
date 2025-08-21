@@ -6,6 +6,36 @@
 # 2. Or source it directly: source hpone-completion.bash
 # 3. Restart your shell or run: source ~/.bashrc
 
+# Helper function to find tools directory
+_hpone_find_tools_dir() {
+    local tools_dir=""
+    
+    # Always try to find from script location first (most reliable)
+    local script_dir=""
+    if [[ -n "${BASH_SOURCE[0]}" ]]; then
+        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)" || script_dir=""
+    fi
+    
+    if [[ -n "${script_dir}" ]]; then
+        local app_dir="$(dirname "$(dirname "${script_dir}")")"
+        if [[ -d "${app_dir}/tools" ]]; then
+            tools_dir="${app_dir}/tools"
+        fi
+    fi
+    
+    # Fallback: try current directory
+    if [[ -z "${tools_dir}" ]] && [[ -d "tools" ]]; then
+        tools_dir="tools"
+    fi
+    
+    # Fallback: try relative to app.py if it exists
+    if [[ -z "${tools_dir}" ]] && [[ -f "app.py" ]] && [[ -d "tools" ]]; then
+        tools_dir="tools"
+    fi
+    
+    echo "$tools_dir"
+}
+
 _hpone_completion() {
     local cur prev opts cmds
     COMPREPLY=()
@@ -29,8 +59,9 @@ _hpone_completion() {
             # These commands need a tool name
             if [[ ${COMP_CWORD} -eq 2 ]]; then
                 # Get available tools from tools/ directory
-                local tools_dir="tools"
-                if [[ -d "${tools_dir}" ]]; then
+                local tools_dir=$(_hpone_find_tools_dir)
+                
+                if [[ -n "${tools_dir}" ]] && [[ -d "${tools_dir}" ]]; then
                     local tools=$(find "${tools_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
                     COMPREPLY=( $(compgen -W "${tools}" -- "${cur}") )
                 fi
@@ -60,8 +91,9 @@ _hpone_completion() {
         "up")
             if [[ ${COMP_CWORD} -eq 2 ]]; then
                 # First try to complete tool names
-                local tools_dir="tools"
-                if [[ -d "${tools_dir}" ]]; then
+                local tools_dir=$(_hpone_find_tools_dir)
+                
+                if [[ -n "${tools_dir}" ]] && [[ -d "${tools_dir}" ]]; then
                     local tools=$(find "${tools_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
                     COMPREPLY=( $(compgen -W "${tools} --all" -- "${cur}") )
                 else
@@ -78,8 +110,9 @@ _hpone_completion() {
         "down")
             if [[ ${COMP_CWORD} -eq 2 ]]; then
                 # First try to complete tool names
-                local tools_dir="tools"
-                if [[ -d "${tools_dir}" ]]; then
+                local tools_dir=$(_hpone_find_tools_dir)
+                
+                if [[ -n "${tools_dir}" ]] && [[ -d "${tools_dir}" ]]; then
                     local tools=$(find "${tools_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
                     COMPREPLY=( $(compgen -W "${tools} --all" -- "${cur}") )
                 else
@@ -90,8 +123,9 @@ _hpone_completion() {
         "clean")
             if [[ ${COMP_CWORD} -eq 2 ]]; then
                 # First try to complete tool names
-                local tools_dir="tools"
-                if [[ -d "${tools_dir}" ]]; then
+                local tools_dir=$(_hpone_find_tools_dir)
+                
+                if [[ -n "${tools_dir}" ]] && [[ -d "${tools_dir}" ]]; then
                     local tools=$(find "${tools_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
                     COMPREPLY=( $(compgen -W "${tools} --all" -- "${cur}") )
                 else
