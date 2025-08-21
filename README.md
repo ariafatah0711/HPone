@@ -20,7 +20,7 @@
 
 ```
 HPone/
-├── app.py                 # Launcher script (dari folder lain)
+├── app.py                 # Launcher script
 ├── hpone/                 # Main application
 │   ├── app.py            # Main application
 │   ├── config.py         # Configuration file
@@ -28,9 +28,9 @@ HPone/
 │   └── scripts/          # Command scripts
 ├── tools/                 # YAML honeypot files
 ├── template/docker/       # Docker templates
-└── docker/               # Output Docker files
-└── data/                 # folder for volume container
-└── conf/                 # folder for config container custom (persistent)
+├── docker/               # Output Docker files
+├── data/                 # Volume data container
+└── conf/                 # Config container custom (persistent)
 ```
 
 ## ⚙️ Konfigurasi
@@ -45,24 +45,15 @@ ALWAYS_IMPORT = True          # True: auto-import (hide import/update), False: m
 TOOLS_DIR = PROJECT_ROOT / "tools"
 TEMPLATE_DOCKER_DIR = PROJECT_ROOT / "template" / "docker"
 OUTPUT_DOCKER_DIR = PROJECT_ROOT / "docker"
-DATA_DIR = PROJECT_ROOT / "data"   # lokasi mount data container (dipakai clean --data)
-
-# List display settings
-LIST_BASIC_MAX_WIDTH = 80
-LIST_DETAILED_MAX_WIDTH = 30
+DATA_DIR = PROJECT_ROOT / "data"   # lokasi mount data log container (ini buat filter kalo folder clean ini aman di hapus)
 
 # Logging configuration
-USE_EPHEMERAL_LOGGING = True  # True: use ephemeral logging for up/down, False: simple output
+USE_EPHEMERAL_LOGGING = True  # True: real-time logs, False: simple output
 ```
-
-Catatan:
-- Jika `ALWAYS_IMPORT = True`, perintah `import`/`update` disembunyikan dan proses `up` akan auto-import.
-- `DATA_DIR` dipakai oleh perintah `clean`; `clean --all --data` akan menghapus semua subfolder di `data/` meski tidak ada imported tools.
-- `USE_EPHEMERAL_LOGGING = True` memberikan tampilan log real-time yang bersih, `False` menggunakan output sederhana.
 
 ## 🎯 Cara Pakai
 
-### **1. Quick Start (ALWAYS_IMPORT=true)**
+### **Quick Start (ALWAYS_IMPORT=true)**
 
 ```bash
 # Enable tools yang dibutuhkan
@@ -84,115 +75,54 @@ Catatan:
 ./app.py down cowrie
 ./app.py down --all
 
-# paksa up tool yang tidak enable
-./app.py up conpot --force
-```
+# Buka shell di container
+./app.py shell cowrie
 
-### **2. Manual Mode (ALWAYS_IMPORT=false)**
-
-```bash
-# Import tools
-./app.py import cowrie
-./app.py import --all
-
-# Update templates
-./app.py update
-
-# Start tools
-./app.py up cowrie
-./app.py up --all --update
-
-# Stop tools
-./app.py down --all
-
-# Stop tools, remove imported, & remove folder mounting (only in folder data)
+# Clean tools (stop + remove)
+./app.py clean cowrie
 ./app.py clean --all --data
 ```
 
 ## 🔧 Command Reference
 
-### **Available Commands (ALWAYS_IMPORT=true)**
-- `check` - Run import self-tests + check dependencies
-- `list` - List tools
+### **Available Commands**
+- `check` - Check dependencies
+- `list` - List tools (`-a` untuk detail)
 - `status` - Show running status
-- `inspect` - Show tool details
-- `enable/disable` - Enable/disable tools
-- `up/down` - Start/Stop tools (auto-import)
-- `clean` - Stop tools, remove imported, & remove folder mounting (only in folder data)
-  - Catatan: `clean --all --data` akan tetap menghapus semua subfolder di `data/` meski tidak ada imported tools.
+- `inspect <tool>` - Show tool details
+- `enable/disable <tool>` - Enable/disable tools
+- `up <tool>` - Start tool (auto-import)
+- `up --all` - Start all enabled tools
+- `down <tool>` - Stop tool
+- `down --all` - Stop all tools
+- `shell <tool>` - Open shell (bash/sh) in running container
+- `clean <tool>` - Stop + remove tool
+- `clean --all` - Stop + remove all tools
+- `clean --data` - Also remove data volumes
+- `clean --image` - Also remove images
+- `clean --volume` - Also remove volumes
 
-### **Hidden Commands (ALWAYS_IMPORT=true)**
-- ❌ `import` - Disabled (auto-import)
-- ❌ `update` - Disabled (auto-update)
+### **Examples**
 
-### **All Commands (ALWAYS_IMPORT=false)**
-- Semua command tersedia seperti biasa
-
-## 📊 Tool Management
-
-### **Enable/Disable Tools**
 ```bash
-# Enable tool
+# Basic workflow
 ./app.py enable cowrie
+./app.py up cowrie
+./app.py shell cowrie
+./app.py down cowrie
 
-# Disable tool
-./app.py disable wordpot
+# Clean everything
+./app.py clean --all --data --image --volume
 
-# Check status
-./app.py list
-```
-
-### **Tool Information**
-```bash
-# Basic list
-./app.py list
-
-# Detailed list
-./app.py list -a
-
-# Tool details
-./app.py inspect cowrie
+# Force start disabled tool
+./app.py up wordpot --force
 ```
 
 ## 🔍 Troubleshooting
 
-### **Check Dependencies & Import Self-Test**
+### **Check Dependencies**
 ```bash
 ./app.py check
-```
-- Perintah ini akan menjalankan import self-tests terlebih dulu (menggunakan modul `hpone/test.py`).
-- Jika ada import yang gagal, proses berhenti (exit code 1) dan error ditampilkan.
-- Jika semua lolos, dilanjutkan dengan pengecekan dependencies seperti biasa.
-
-### **Self-Test Module**
-Lokasi fungsi self-test: `hpone/test.py` (`run_import_self_test()`).
-Anda bisa menjalankannya terpisah dari Python bila perlu:
-```bash
-python -c "from test import run_import_self_test as t; import sys; sys.exit(0 if t() else 1)"
-```
-
-### **Testing Ephemeral Logging**
-Test ephemeral logging functionality:
-```bash
-cd hpone
-python test_ephemeral.py
-```
-
-Test perbedaan mode logging:
-```bash
-cd hpone
-python test_logging_modes.py
-```
-
-Atau test individual command:
-```bash
-cd hpone
-python -c "from core.log_runner import run_with_ephemeral_logs; run_with_ephemeral_logs(['echo', 'test'], 'demo')"
-```
-
-### **Force Start Non-enabled Tool**
-```bash
-./app.py up wordpot --force
 ```
 
 ### **View Logs**
@@ -202,24 +132,11 @@ docker logs cowrie
 
 # Check compose status
 docker-compose -f docker/cowrie/docker-compose.yml ps
-
-cat data/cowrie/*
-```
-
-### **Logging Configuration**
-Jika ephemeral logging bermasalah atau ingin output sederhana:
-```bash
-# Edit config.py
-USE_EPHEMERAL_LOGGING = False  # Switch to simple output
 ```
 
 ### **Ephemeral Logging**
-HPone menggunakan ephemeral logging untuk perintah `up` dan `down` (bisa dikontrol via `USE_EPHEMERAL_LOGGING`):
-- **Real-time output**: Log ditampilkan live dengan timestamp `[HH:MM:SS] [INFO]`
-- **Auto-clear**: Setelah selesai, log dihapus dan diganti dengan ringkasan
-- **Clean display**: Output bersih seperti `[UP] cowrie OK (2.3s)` atau `[FAIL] cowrie ERR (1.5s)`
+HPone menggunakan ephemeral logging untuk tampilan real-time yang bersih:
 
-**Mode Ephemeral (USE_EPHEMERAL_LOGGING = True)**:
 ```
 [22:48:02] [INFO] Starting cowrie containers ...
 [22:48:05] [INFO] Docker network created
@@ -228,21 +145,7 @@ HPone menggunakan ephemeral logging untuk perintah `up` dan `down` (bisa dikontr
 [UP] cowrie OK (2.3s)
 ```
 
-**Mode Simple (USE_EPHEMERAL_LOGGING = False)**:
-```
-[UP] cowrie OK
-```
-
-### **Clean Data**
-- Hapus data semua tool meskipun tidak ada imported tools:
-```bash
-./app.py clean --all --data
-```
-- Hapus data untuk satu tool tertentu:
-```bash
-./app.py clean cowrie --data
-```
-- Saat menggunakan `--all --data`, akan ada prompt konfirmasi; jawab `y/yes/ya` untuk melanjutkan.
+Jika bermasalah, set `USE_EPHEMERAL_LOGGING = False` di `config.py`.
 
 ## 📝 Notes
 
@@ -250,7 +153,7 @@ HPone menggunakan ephemeral logging untuk perintah `up` dan `down` (bisa dikontr
 - **ALWAYS_IMPORT=false**: Mode development, full control, manual management
 - Tools yang **disabled** tidak akan auto-start
 - Gunakan `--force` untuk override enabled status
-- Semua path bisa dikustomisasi di `config.py`
+- Perintah `shell` membutuhkan container yang sedang running
 
 ## 🤝 Contributing
 

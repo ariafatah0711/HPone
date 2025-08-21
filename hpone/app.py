@@ -24,6 +24,7 @@ from core import (
     run_compose_action,
     up_tool,
     down_tool,
+    shell_tool,
 
     # Configuration handling
     parse_ports,
@@ -418,6 +419,15 @@ def main(argv: List[str]) -> int:
                 down_tool(args.tool)
         except Exception as exc:
             print(f"{PREFIX_ERROR} Failed to stop: {exc}", file=sys.stderr)
+            return 1
+        return 0
+
+    # Shell command
+    if args.command == "shell":
+        try:
+            shell_tool(args.tool)
+        except Exception as exc:
+            print(f"{PREFIX_ERROR} Failed to open shell in '{args.tool}': {exc}", file=sys.stderr)
             return 1
         return 0
 

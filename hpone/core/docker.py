@@ -150,3 +150,43 @@ def down_tool(tool_id: str, remove_volumes: bool = False, remove_images: bool = 
     
     if not USE_EPHEMERAL_LOGGING:
         print(f"{COLOR_YELLOW}[DOWN]{COLOR_RESET} {dir_id} {PREFIX_OK}")
+
+
+def shell_tool(tool_id: str) -> None:
+    """Open shell (bash/sh) in running container."""
+    # Import di dalam function untuk avoid circular import
+    from scripts.list import resolve_tool_dir_id
+    dir_id = resolve_tool_dir_id(tool_id)
+    dest_dir = OUTPUT_DOCKER_DIR / dir_id
+    if not dest_dir.exists():
+        raise FileNotFoundError(f"Docker folder for tool '{tool_id}' not found: {dest_dir}. Run 'import' first.")
+
+    # Check if container is running
+    if not is_tool_running(tool_id):
+        raise RuntimeError(f"Tool '{tool_id}' is not running. Start it first with 'up {tool_id}'.")
+
+    # Get the service name (usually same as tool_id, but could be different)
+    # For now, assume it's the same as tool_id
+    service_name = tool_id
+
+    # Try bash first, then fallback to sh
+    shells_to_try = ["bash", "sh"]
+    
+    for shell in shells_to_try:
+        try:
+            cmd = ["docker", "compose", "exec", service_name, shell]
+            subprocess.run(cmd, cwd=str(dest_dir), check=True)
+            return  # Success, exit function
+        except FileNotFoundError:
+            # Fallback to docker-compose v1
+            try:
+                cmd_legacy = ["docker-compose", "exec", service_name, shell]
+                subprocess.run(cmd_legacy, cwd=str(dest_dir), check=True)
+                return  # Success, exit function
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                continue  # Try next shell
+        except subprocess.CalledProcessError:
+            continue  # Try next shell
+    
+    # If we get here, neither bash nor sh worked
+    raise RuntimeError(f"Could not open shell in container '{tool_id}'. Neither bash nor sh are available.")

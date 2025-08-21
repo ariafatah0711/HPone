@@ -65,6 +65,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	group_down.add_argument("tool", nargs="?", help="Tool name. If omitted, use --all")
 	group_down.add_argument("--all", action="store_true", help="Run for all imported tools")
 
+	# Shell command
+	p_shell = sub.add_parser("shell", help="Open shell (bash/sh) in running container")
+	p_shell.add_argument("tool", help="Tool name to open shell in")
+
 	# Clean command
 	p_clean = sub.add_parser("clean", help="Stop (down) then delete directory docker/<tool>")
 	p_clean.add_argument("tool", nargs="?", help="Tool name to clean")
@@ -106,7 +110,7 @@ def format_full_help(parser: argparse.ArgumentParser) -> str:
 	# Urutan tampilan yang diinginkan; sisanya mengikuti urutan asli
 	desired_order = [
 		"check", "import", "update", "list", "status",
-		"inspect", "enable", "disable", "up", "down", "clean"
+		"inspect", "enable", "disable", "up", "down", "shell", "clean"
 	]
 	names_in_choice = list(choices.keys())
 	ordered_names = [n for n in desired_order if n in names_in_choice] + [

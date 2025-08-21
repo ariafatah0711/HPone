@@ -15,7 +15,8 @@ from .docker import (
     is_tool_running,
     run_compose_action,
     up_tool,
-    down_tool
+    down_tool,
+    shell_tool
 )
 
 from .config import (
@@ -50,6 +51,7 @@ __all__ = [
     'run_compose_action',
     'up_tool',
     'down_tool',
+    'shell_tool',
     
     # Configuration handling
     'parse_ports',
