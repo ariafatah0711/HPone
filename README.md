@@ -56,6 +56,9 @@ USE_EPHEMERAL_LOGGING = True  # True: real-time logs, False: simple output
 Agar `hpone` bisa dijalankan dari mana saja tanpa `./app.py`:
 
 ```bash
+git clone https://github.com/ariafatah0711/HPone hpone
+cd hpone
+
 chmod +x app.py
 sudo ln -s $(pwd)/app.py /usr/local/bin/hpone
 
@@ -72,7 +75,7 @@ chmod +x hpone/completion/install.sh
 ./hpone/completion/install.sh # perlu restart shell
 
 # atau secara manual
-source hpone/completion/
+source hpone/completion/hpone-completion.bash
 ```
 
 ### **Penggunaan**
@@ -88,6 +91,7 @@ hpone up <TAB>                 # Melengkapi tool atau --all
 
 ### **Uninstall**
 ```bash
+chmod +x hpone/completion/uninstall.sh
 ./hpone/completion/uninstall.sh
 ```
 
