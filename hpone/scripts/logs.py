@@ -25,23 +25,35 @@ from core.utils import PREFIX_ERROR, PREFIX_WARN, PREFIX_OK
 
 
 def show_docker_logs(tool_name: str, follow: bool = False) -> None:
-    """Show Docker container logs."""
+    """Show Docker container logs simply."""
     try:
         if not is_tool_running(tool_name):
             print(f"{PREFIX_WARN} Container '{tool_name}' is not running")
             return
 
-        cmd = ["docker", "logs"]
         if follow:
-            cmd.append("-f")
-        cmd.append(tool_name)
+            # Simple follow mode
+            print(f"🔄 Following logs for {tool_name} (Ctrl+C to stop)")
+            print("=" * 60)
 
-        print(f"📜 Docker logs for {tool_name}...")
-        print("=" * 50)
-        subprocess.run(cmd)
+            cmd = ["docker", "logs", "-f", "--tail", "20", tool_name]
+
+            try:
+                subprocess.run(cmd)
+            except KeyboardInterrupt:
+                print(f"\n{PREFIX_OK} Stopped following logs")
+
+        else:
+            # Show recent logs simply
+            print(f"📜 Recent logs for {tool_name}")
+            print("=" * 60)
+
+            cmd = ["docker", "logs", "--tail", "30", tool_name]
+            subprocess.run(cmd)
+            print("=" * 60)
 
     except Exception as exc:
-        print(f"{PREFIX_ERROR} Failed to show Docker logs: {exc}", file=sys.stderr)
+        print(f"{PREFIX_ERROR} Failed to show logs: {exc}", file=sys.stderr)
 
 
 def parse_mounted_volumes(tool_name: str) -> List[Dict[str, Path]]:
@@ -73,12 +85,14 @@ def parse_mounted_volumes(tool_name: str) -> List[Dict[str, Path]]:
                 dst_key = key.replace('_SRC', '_DST')
                 container_path = env_vars.get(dst_key, f"/opt/{tool_name}/{local_path.name}")
 
-                data_mounts.append({
-                    'name': f"{container_path} ← {local_path}",
-                    'local_path': local_path,
-                    'container_path': container_path,
-                    'display_name': local_path.name if local_path.name else str(local_path)
-                })
+                # Only add directories, not individual files
+                if local_path.exists() and local_path.is_dir():
+                    data_mounts.append({
+                        'name': f"{container_path} ← {local_path}",
+                        'local_path': local_path,
+                        'container_path': container_path,
+                        'display_name': local_path.name if local_path.name else str(local_path)
+                    })
 
         return data_mounts
 
@@ -117,6 +131,8 @@ def get_file_view_command(action: str, file_path: Path) -> List[str]:
             return ["grep", "-n", "--color=always", str(file_path)]
 
     return []
+
+
 def view_file_content(file_path: Path) -> None:
     """Interactive file content viewer."""
     if not file_path.exists():
@@ -142,69 +158,105 @@ def view_file_content(file_path: Path) -> None:
     if platform.system() != "Windows" and (any(ext in file_path.suffix.lower() for ext in ['.log', '.txt']) or 'log' in file_path.name.lower()):
         choices.insert(-1, '🔄 Follow (tail -f)')
 
-    # Show file info
-    print(f"\n📄 File: {file_path.name}")
-    print(f"💾 Size: {size_mb:.2f} MB ({file_size:,} bytes)")
-    print(f"📍 Path: {file_path}")
+    while True:  # Loop until user chooses to go back
+        action = questionary.select(
+            f"📄 {file_path.name} ({size_mb:.2f} MB)",
+            choices=choices
+        ).ask()
 
-    action = questionary.select(
-        "Choose action:",
-        choices=choices
-    ).ask()
+        if not action or action.startswith('🔙'):
+            return  # Go back to directory
 
-    if not action or action.startswith('🔙'):
-        return
+        try:
+            if action.startswith('👀'):
+                if file_size == 0:
+                    print("\n📖 File is empty")
+                    continue
 
-    try:
-        if action.startswith('👀'):
-            print(f"\n📖 First 50 lines of {file_path.name}:")
-            print("=" * 60)
-            cmd = get_file_view_command("head", file_path)
-            subprocess.run(cmd)
-
-        elif action.startswith('📜'):
-            if size_mb > 10:
-                confirm = questionary.confirm(
-                    f"File is {size_mb:.1f}MB. This might take a while. Continue?"
-                ).ask()
-                if not confirm:
-                    return
-
-            print(f"\n📖 Content of {file_path.name}:")
-            print("=" * 60)
-            cmd = get_file_view_command("cat", file_path)
-            subprocess.run(cmd)
-
-        elif action.startswith('🔄'):
-            print(f"\n🔄 Following {file_path.name} (Ctrl+C to stop):")
-            print("=" * 60)
-            cmd = get_file_view_command("tail", file_path)
-            subprocess.run(cmd)
-
-        elif action.startswith('🔍'):
-            search_term = questionary.text("Enter search term:").ask()
-            if search_term:
-                print(f"\n🔍 Searching for '{search_term}' in {file_path.name}:")
-                print("=" * 60)
-                if platform.system() == "Windows":
-                    subprocess.run(["findstr", "/n", search_term, str(file_path)])
+                print("\n📖 First 50 lines:")
+                print("=" * 50)
+                cmd = get_file_view_command("head", file_path)
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                if result.stdout.strip():
+                    print(result.stdout.rstrip())
                 else:
-                    subprocess.run(["grep", "-n", "--color=always", search_term, str(file_path)])
+                    print("(File is empty or contains only whitespace)")
+                print("=" * 50)
 
-    except KeyboardInterrupt:
-        print(f"\n{PREFIX_OK} Stopped viewing file")
-    except Exception as exc:
-        print(f"{PREFIX_ERROR} Failed to view file: {exc}", file=sys.stderr)
+            elif action.startswith('📜'):
+                if file_size == 0:
+                    print("\n📖 File is empty")
+                    continue
+
+                if size_mb > 10:
+                    confirm = questionary.confirm(
+                        f"File is {size_mb:.1f}MB. Continue?"
+                    ).ask()
+                    if not confirm:
+                        continue
+
+                print("\n📖 Full content:")
+                print("=" * 50)
+                cmd = get_file_view_command("cat", file_path)
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                if result.stdout.strip():
+                    print(result.stdout.rstrip())
+                else:
+                    print("(File is empty or contains only whitespace)")
+                print("=" * 50)
+
+            elif action.startswith('🔄'):
+                print(f"\n🔄 Following {file_path.name} (Ctrl+C to stop):")
+                print("=" * 50)
+                cmd = get_file_view_command("tail", file_path)
+                try:
+                    subprocess.run(cmd)
+                except KeyboardInterrupt:
+                    print(f"\n{PREFIX_OK} Stopped following")
+                print("=" * 50)
+
+            elif action.startswith('🔍'):
+                if file_size == 0:
+                    print("\n🔍 Cannot search in empty file")
+                    continue
+
+                search_term = questionary.text("Search term:").ask()
+                if search_term:
+                    print(f"\n🔍 Results for '{search_term}':")
+                    print("=" * 50)
+                    if platform.system() == "Windows":
+                        result = subprocess.run(["findstr", "/n", search_term, str(file_path)], capture_output=True, text=True)
+                    else:
+                        result = subprocess.run(["grep", "-n", "--color=always", search_term, str(file_path)], capture_output=True, text=True)
+
+                    if result.stdout.strip():
+                        print(result.stdout.rstrip())
+                    else:
+                        print(f"No matches found for '{search_term}'")
+                    print("=" * 50)
+
+        except KeyboardInterrupt:
+            print(f"\n{PREFIX_OK} Stopped")
+        except Exception as exc:
+            print(f"{PREFIX_ERROR} Error: {exc}", file=sys.stderr)
 
 
-def browse_directory(path: Path, tool_name: str) -> None:
-    """Interactive directory browser."""
-    current_path = path
+def browse_directory(path: Path, tool_name: str) -> bool:
+    """Interactive directory browser with proper navigation.
 
-    while True:
+    Returns:
+        bool: True if should return to main menu, False if should exit completely
+    """
+
+    def browse_level(current_path: Path, is_root: bool = True) -> bool:
+        """Browse a single directory level.
+
+        Returns:
+            bool: True if should return to main menu, False if should exit completely
+        """
         if not current_path.exists():
             print(f"{PREFIX_ERROR} Directory {current_path} does not exist")
-            return
+            return False
 
         try:
             items = list(current_path.iterdir())
@@ -215,20 +267,25 @@ def browse_directory(path: Path, tool_name: str) -> None:
             dirs.sort(key=lambda x: x.name.lower())
             files.sort(key=lambda x: x.name.lower())
 
-            choices = ['🔙 Back to main menu']
+            choices = []
 
-            # Add parent directory option if not at root
-            if current_path != path:
+            # Add back option based on context
+            if is_root:
+                choices.append('🔙 Back to main menu')
+            else:
                 choices.append('⬆️  Parent directory')
 
             # Add directories
             for dir_item in dirs:
                 choices.append(f"📁 {dir_item.name}/")
 
-            # Add files
+            # Add files (skip empty files)
             for file_item in files:
                 file_size = file_item.stat().st_size
-                if file_size < 1024:
+                if file_size == 0:
+                    # Skip empty files - don't add them to choices
+                    continue
+                elif file_size < 1024:
                     size_str = f"{file_size}B"
                 elif file_size < 1024 * 1024:
                     size_str = f"{file_size/1024:.1f}KB"
@@ -236,99 +293,144 @@ def browse_directory(path: Path, tool_name: str) -> None:
                     size_str = f"{file_size/(1024*1024):.1f}MB"
                 choices.append(f"📄 {file_item.name} ({size_str})")
 
-            if len(choices) == 1:  # Only "Back" option
-                print(f"📂 {current_path} is empty")
-                break
+            # Show directory info
+            total_files = len(files)
+            non_empty_files = len([f for f in files if f.stat().st_size > 0])
+            empty_files = total_files - non_empty_files
+
+            if len(choices) == 1:  # Only back option
+                if total_files == 0:
+                    info_msg = "Directory is empty"
+                else:
+                    info_msg = f"Directory contains {empty_files} empty file(s) - no viewable content"
+                print(f"📂 {info_msg}")
+                # Don't return - still allow navigation back
 
             # Show current path relative to data directory
             relative_path = current_path.relative_to(path) if current_path != path else "."
-            selection = questionary.select(
-                f"📂 {tool_name}/data/{relative_path}",
-                choices=choices
-            ).ask()
+            path_display = f"{tool_name}/data/{relative_path}" if relative_path != "." else f"{tool_name}/data"
 
-            if not selection or selection.startswith('🔙'):
-                break
-            elif selection.startswith('⬆️'):
-                current_path = current_path.parent
-            elif selection.startswith('📁'):
-                # Navigate to subdirectory
-                dirname = selection[2:-1]  # Remove emoji and trailing /
-                current_path = current_path / dirname
-            elif selection.startswith('📄'):
-                # Extract filename (remove emoji and size info)
-                filename = selection[2:].split(' (')[0]
-                view_file_content(current_path / filename)
+            while True:
+                selection = questionary.select(
+                    f"📂 {path_display}",
+                    choices=choices
+                ).ask()
+
+                if not selection:
+                    return False
+                elif selection.startswith('🔙'):
+                    return True  # Back to main menu
+                elif selection.startswith('⬆️'):
+                    return False  # Go back to parent (handled by recursion)
+                elif selection.startswith('📁'):
+                    # Navigate to subdirectory
+                    dirname = selection[2:-1]  # Remove emoji and trailing /
+                    subdir_path = current_path / dirname
+                    result = browse_level(subdir_path, is_root=False)
+                    if result:  # If subdirectory returned "back to main menu"
+                        return True
+                    # Otherwise continue in current menu
+                elif selection.startswith('📄'):
+                    # Extract filename (remove emoji and size info)
+                    filename = selection[2:].split(' (')[0]
+                    view_file_content(current_path / filename)
+                    # After viewing file, stay in current menu
 
         except PermissionError:
             print(f"{PREFIX_ERROR} Permission denied accessing {current_path}")
-            break
+            return False
         except Exception as exc:
             print(f"{PREFIX_ERROR} Error browsing directory: {exc}", file=sys.stderr)
-            break
+            return False
+
+    # Start browsing from the root level
+    return browse_level(path, is_root=True)
 
 
 def logs_main(tool_name: str) -> None:
     """Main logs command handler."""
     try:
-        # Get mounted volumes from Docker .env file
-        data_mounts = parse_mounted_volumes(tool_name)
+        while True:  # Loop to allow returning to main menu
+            # Get mounted volumes from Docker .env file
+            data_mounts = parse_mounted_volumes(tool_name)
 
-        # Build main menu
-        choices = []
+            # Build main menu
+            choices = []
 
-        # Add Docker logs option
-        if is_tool_running(tool_name):
-            choices.extend([
-                '🐳 Docker Logs (preview)',
-                '🔄 Docker Logs (follow)'
-            ])
-        else:
-            choices.append('🐳 Docker Logs (container not running)')
-
-        # Add mounted directories
-        for mount in data_mounts:
-            if mount['local_path'].exists():
-                try:
-                    item_count = len(list(mount['local_path'].iterdir())) if mount['local_path'].is_dir() else 0
-                    choices.append(f"📁 {mount['display_name']} ({item_count} items)")
-                except PermissionError:
-                    choices.append(f"📁 {mount['display_name']} (permission denied)")
+            # Add Docker logs options
+            if is_tool_running(tool_name):
+                choices.extend([
+                    '📜 Recent logs',
+                    '🔄 Follow live logs'
+                ])
             else:
-                choices.append(f"📁 {mount['display_name']} (not found)")
+                choices.append('❌ Container not running')
 
-        if len(choices) == 0:
-            print(f"{PREFIX_WARN} No log sources available for {tool_name}")
-            print(f"       Make sure the tool is imported: hpone up {tool_name}")
-            return
+            # Add data directories (only directories, not files)
+            if data_mounts:
+                choices.append('---')  # Separator
+                for mount in data_mounts:
+                    if mount['local_path'].exists():
+                        try:
+                            items = list(mount['local_path'].iterdir())
+                            files = [item for item in items if item.is_file()]
+                            non_empty_files = [f for f in files if f.stat().st_size > 0]
+                            item_count = len(non_empty_files)
 
-        # Show main selection menu
-        selection = questionary.select(
-            f"🔍 Select log source for {tool_name}:",
-            choices=choices
-        ).ask()
+                            if item_count > 0:
+                                choices.append(f"📁 Browse {mount['display_name']} ({item_count} files)")
+                            else:
+                                total_files = len(files)
+                                if total_files > 0:
+                                    choices.append(f"📁 Browse {mount['display_name']} ({total_files} empty files)")
+                                else:
+                                    choices.append(f"📁 Browse {mount['display_name']} (empty)")
+                        except PermissionError:
+                            choices.append(f"📁 Browse {mount['display_name']} (access denied)")
+                    else:
+                        choices.append(f"📁 Browse {mount['display_name']} (not found)")
 
-        if not selection:
-            return
+            if len([c for c in choices if c != '---' and not c.startswith('❌')]) == 0:
+                print(f"{PREFIX_WARN} No log sources available for {tool_name}")
+                print(f"       Make sure the tool is running: hpone up {tool_name}")
+                return
 
-        # Handle selection
-        if selection.startswith('🐳'):
-            if 'not running' in selection:
-                print(f"{PREFIX_WARN} Container '{tool_name}' is not running")
-            elif 'follow' in selection:
-                show_docker_logs(tool_name, follow=True)
-            else:
+            # Show main selection menu
+            selection = questionary.select(
+                f"🔍 Logs for {tool_name}:",
+                choices=[c for c in choices if c != '---']  # Remove separator
+            ).ask()
+
+            if not selection:
+                return
+
+            # Handle selection
+            if selection.startswith('📜'):
                 show_docker_logs(tool_name, follow=False)
+                # After showing logs, return to main menu
+            elif selection.startswith('🔄'):
+                show_docker_logs(tool_name, follow=True)
+                # After following logs, return to main menu
+            elif selection.startswith('❌'):
+                print(f"{PREFIX_WARN} Container '{tool_name}' is not running")
+                print(f"       Start it with: hpone up {tool_name}")
+                # Return to main menu
+            elif selection.startswith('📁'):
+                # Extract directory name from selection
+                # Format: "📁 Browse dirname (X files)"
+                parts = selection.split(' ')
+                if len(parts) >= 3:
+                    dir_name = parts[2]  # Get the directory name
+                    mount = next((m for m in data_mounts if m['display_name'] == dir_name), None)
 
-        elif selection.startswith('📁'):
-            # Find corresponding mount
-            display_name = selection.split(' (')[0][2:]  # Remove emoji and item count
-            mount = next((m for m in data_mounts if m['display_name'] == display_name), None)
-
-            if mount and mount['local_path'].exists():
-                browse_directory(mount['local_path'], tool_name)
-            else:
-                print(f"{PREFIX_ERROR} Directory not found or inaccessible")
+                    if mount and mount['local_path'].exists():
+                        should_return_to_menu = browse_directory(mount['local_path'], tool_name)
+                        if not should_return_to_menu:
+                            return  # User wants to exit completely
+                        # If should_return_to_menu is True, continue the loop to show main menu again
+                    else:
+                        print(f"{PREFIX_ERROR} Directory not found or inaccessible")
+                        # Return to main menu
 
     except Exception as exc:
         print(f"{PREFIX_ERROR} Failed to show logs: {exc}", file=sys.stderr)

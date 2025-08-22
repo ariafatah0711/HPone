@@ -116,10 +116,12 @@ source hpone/completion/hpone-completion.bash
 ```bash
 ./app.py <TAB>                    # Melengkapi command
 ./app.py inspect <TAB>            # Melengkapi nama tool
+./app.py logs <TAB>               # Melengkapi nama tool
 ./app.py up <TAB>                 # Melengkapi tool atau --all
 
 hpone <TAB>                       # Melengkapi command
 hpone clean <TAB>              # Melengkapi nama tool
+hpone logs <TAB>               # Melengkapi nama tool
 hpone up <TAB>                 # Melengkapi tool atau --all
 ```
 
@@ -151,6 +153,10 @@ hpone up --all
 hpone list
 hpone status
 
+# View logs interactively
+hpone logs cowrie
+hpone logs medpot
+
 # Stop tools
 hpone down cowrie
 hpone down --all
@@ -176,6 +182,7 @@ hpone clean --all --data
 - `down <tool>` - Stop tool
 - `down --all` - Stop all tools
 - `shell <tool>` - Open shell (bash/sh) in running container
+- `logs <tool>` - Interactive log viewer with file browsing
 - `clean <tool>` - Stop + remove tool
 - `clean --all` - Stop + remove all tools
 - `clean --data` - Also remove data volumes
@@ -188,8 +195,16 @@ hpone clean --all --data
 # Basic workflow
 hpone enable cowrie
 hpone up cowrie
+hpone logs cowrie    # Interactive log viewer
 hpone shell cowrie
 hpone down cowrie
+
+# Log viewing features
+hpone logs cowrie    # Interactive menu with:
+                     # - Recent Docker logs (last 30 lines)
+                     # - Follow live logs (tail -f)
+                     # - Browse log files in data directories
+                     # - View, search, and follow individual files
 
 # Clean everything
 hpone clean --all --data --image --volume
