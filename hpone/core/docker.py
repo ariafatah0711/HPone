@@ -139,7 +139,7 @@ def down_tool(tool_id: str, remove_volumes: bool = False, remove_images: bool = 
     if remove_volumes:
         extra_args.append("-v")
     if remove_images:
-        extra_args.extend(["--rmi", "local"])
+        extra_args.extend(["--rmi", "all"])
     run_compose_action(dest_dir, "down", extra_args=extra_args if extra_args else None)
 
     # Show output based on logging mode

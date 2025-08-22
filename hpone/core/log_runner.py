@@ -73,16 +73,57 @@ def run_with_ephemeral_logs(
     """
     start_time = time.time()
     log_lines: list[str] = []
+    is_build_command = "up" in command and "-d" in command
+
+    def should_show_line(line: str) -> bool:
+        """Filter out verbose build output but keep important information."""
+        if not is_build_command:
+            return True
+
+        line_lower = line.lower()
+
+        # Always show these important messages
+        important_keywords = ['error', 'failed', 'fatal', 'exception', 'warn', 'warning',
+                             'done', 'finished', 'complete', 'started', 'created', 'pull complete']
+        if any(keyword in line_lower for keyword in important_keywords):
+            return True
+
+        # Show main pull events but not progress details
+        if 'pulling' in line_lower and not any(skip in line_lower for skip in
+            ['fs layer', 'waiting', 'downloading', 'extracting', 'verifying']):
+            return True
+
+        # Skip all verbose output patterns
+        skip_patterns = [
+            # Build patterns
+            '#', 'transferring', 'load build definition', 'load metadata',
+            'building with', 'load .dockerignore', 'internal',
+            # Pull patterns
+            'pulling fs layer', 'waiting', 'downloading [', 'extracting [',
+            'verifying checksum', 'download complete',
+            # SHA256 and hash patterns
+            'sha256:', 'resolve docker.io', 'kb / ', 'mb / ', 'gb / ',
+            # Database and progress patterns
+            '(reading database', 'files and directories currently installed',
+            # Cargo/Rust download patterns
+            'downloaded ', 'kb/s', 'mb/s', ' added, ', ' removed; done'
+        ]
+        if any(pattern in line_lower for pattern in skip_patterns):
+            return False
+
+        # Show everything else by default
+        return True
 
     def log_line(line: str) -> None:
         """Add a timestamped log line."""
-        timestamp = get_timestamp()
-        formatted_line = f"[{timestamp}] [INFO] {line}"
-        log_lines.append(formatted_line)
-        print(formatted_line)
+        if should_show_line(line):
+            timestamp = get_timestamp()
+            formatted_line = f"[{timestamp}] [INFO] {line}"
+            log_lines.append(formatted_line)
+            print(formatted_line)
 
-        if on_log_line:
-            on_log_line(line)
+            if on_log_line:
+                on_log_line(line)
 
     def clear_logs() -> None:
         """Clear all displayed log lines."""
