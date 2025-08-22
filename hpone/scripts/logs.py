@@ -148,54 +148,34 @@ def view_file_content(file_path: Path) -> None:
     size_mb = file_size / (1024 * 1024)
 
     choices = [
-        '👀 Preview (first 50 lines)',
         '📜 View entire file',
         '🔍 Search in file',
         '🔙 Back'
     ]
 
-    # Add tail -f option for log files (Linux/macOS only)
-    if platform.system() != "Windows" and (any(ext in file_path.suffix.lower() for ext in ['.log', '.txt']) or 'log' in file_path.name.lower()):
-        choices.insert(-1, '🔄 Follow (tail -f)')
-
     while True:  # Loop until user chooses to go back
         action = questionary.select(
             f"📄 {file_path.name} ({size_mb:.2f} MB)",
             choices=choices
-        ).ask()
+        ).unsafe_ask()
 
         if not action or action.startswith('🔙'):
             return  # Go back to directory
 
         try:
-            if action.startswith('👀'):
+            if action.startswith('📜'):
                 if file_size == 0:
-                    print("\n📖 File is empty")
-                    continue
-
-                print("\n📖 First 50 lines:")
-                print("=" * 50)
-                cmd = get_file_view_command("head", file_path)
-                result = subprocess.run(cmd, capture_output=True, text=True)
-                if result.stdout.strip():
-                    print(result.stdout.rstrip())
-                else:
-                    print("(File is empty or contains only whitespace)")
-                print("=" * 50)
-
-            elif action.startswith('📜'):
-                if file_size == 0:
-                    print("\n📖 File is empty")
-                    continue
+                    print("📖 File is empty")
+                    return  # Return immediately after showing empty file
 
                 if size_mb > 10:
                     confirm = questionary.confirm(
                         f"File is {size_mb:.1f}MB. Continue?"
-                    ).ask()
+                    ).unsafe_ask()
                     if not confirm:
                         continue
 
-                print("\n📖 Full content:")
+                print("📖 Full content:")
                 print("=" * 50)
                 cmd = get_file_view_command("cat", file_path)
                 result = subprocess.run(cmd, capture_output=True, text=True)
@@ -204,25 +184,16 @@ def view_file_content(file_path: Path) -> None:
                 else:
                     print("(File is empty or contains only whitespace)")
                 print("=" * 50)
-
-            elif action.startswith('🔄'):
-                print(f"\n🔄 Following {file_path.name} (Ctrl+C to stop):")
-                print("=" * 50)
-                cmd = get_file_view_command("tail", file_path)
-                try:
-                    subprocess.run(cmd)
-                except KeyboardInterrupt:
-                    print(f"\n{PREFIX_OK} Stopped following")
-                print("=" * 50)
+                return  # Return immediately after showing file content
 
             elif action.startswith('🔍'):
                 if file_size == 0:
-                    print("\n🔍 Cannot search in empty file")
+                    print("🔍 Cannot search in empty file")
                     continue
 
-                search_term = questionary.text("Search term:").ask()
+                search_term = questionary.text("Search term:").unsafe_ask()
                 if search_term:
-                    print(f"\n🔍 Results for '{search_term}':")
+                    print(f"🔍 Results for '{search_term}':")
                     print("=" * 50)
                     if platform.system() == "Windows":
                         result = subprocess.run(["findstr", "/n", search_term, str(file_path)], capture_output=True, text=True)
@@ -234,6 +205,7 @@ def view_file_content(file_path: Path) -> None:
                     else:
                         print(f"No matches found for '{search_term}'")
                     print("=" * 50)
+                    # Continue loop to allow more searches
 
         except KeyboardInterrupt:
             print(f"\n{PREFIX_OK} Stopped")
@@ -298,13 +270,14 @@ def browse_directory(path: Path, tool_name: str) -> bool:
             non_empty_files = len([f for f in files if f.stat().st_size > 0])
             empty_files = total_files - non_empty_files
 
-            if len(choices) == 1:  # Only back option
+            if len(choices) == 1:  # Only back option (empty directory)
                 if total_files == 0:
                     info_msg = "Directory is empty"
                 else:
                     info_msg = f"Directory contains {empty_files} empty file(s) - no viewable content"
                 print(f"📂 {info_msg}")
-                # Don't return - still allow navigation back
+                # Automatically return to main menu for empty directories
+                return True if is_root else False
 
             # Show current path relative to data directory
             relative_path = current_path.relative_to(path) if current_path != path else "."
@@ -314,7 +287,7 @@ def browse_directory(path: Path, tool_name: str) -> bool:
                 selection = questionary.select(
                     f"📂 {path_display}",
                     choices=choices
-                ).ask()
+                ).unsafe_ask()
 
                 if not selection:
                     return False
@@ -399,7 +372,7 @@ def logs_main(tool_name: str) -> None:
             selection = questionary.select(
                 f"🔍 Logs for {tool_name}:",
                 choices=[c for c in choices if c != '---']  # Remove separator
-            ).ask()
+            ).unsafe_ask()
 
             if not selection:
                 return
@@ -432,5 +405,8 @@ def logs_main(tool_name: str) -> None:
                         print(f"{PREFIX_ERROR} Directory not found or inaccessible")
                         # Return to main menu
 
+    except KeyboardInterrupt:
+        # Handle Ctrl+C gracefully at the top level
+        return
     except Exception as exc:
         print(f"{PREFIX_ERROR} Failed to show logs: {exc}", file=sys.stderr)

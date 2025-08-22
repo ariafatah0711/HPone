@@ -40,7 +40,7 @@ def restore_input(old_settings):
 
 def main():
     if not PROJECT_PATH.exists():
-        print(f"{PREFIX_ERROR}[ERROR] Project path tidak ditemukan: {PROJECT_PATH}")
+        print(f"{PREFIX_ERROR} Project path tidak ditemukan: {PROJECT_PATH}")
         return 1
 
     os.chdir(PROJECT_PATH)
@@ -48,7 +48,7 @@ def main():
 
     # Tangani Ctrl+C dengan rapi
     def handle_sigint(sig, frame):
-        print(f"{PREFIX_INFO}[INFO] Dihentikan oleh user (Ctrl+C)")
+        print(f"{PREFIX_INFO} Dihentikan oleh user (Ctrl+C)")
         sys.exit(130)
 
     signal.signal(signal.SIGINT, handle_sigint)
