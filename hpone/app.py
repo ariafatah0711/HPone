@@ -188,6 +188,7 @@ def main(argv: List[str]) -> int:
                 remove_data_all = False
                 if getattr(args, "data", False):
                     reply = input("This will remove mounted data under data/<tool> for ALL tools. Continue? [y/N]: ").strip().lower()
+                    print()  # Add newline after input
                     remove_data_all = reply in ("y", "yes", "ya")
 
                 if not imported_ids:
@@ -214,7 +215,7 @@ def main(argv: List[str]) -> int:
                         print("No imported tools.")
                         return 0
 
-                print(f"Cleaning {len(imported_ids)} imported tools (down + remove{' + data' if remove_data_all else ''})...")
+                print(f"Cleaning {len(imported_ids)} imported tools (down + remove{' + data' if remove_data_all else ''}{' + images' if getattr(args, 'image', False) else ''}{' + volumes' if getattr(args, 'volume', False) else ''})...")
                 for t in imported_ids:
                     try:
                         # Down first
@@ -223,15 +224,24 @@ def main(argv: List[str]) -> int:
                             remove_volumes=bool(getattr(args, "volume", False)),
                             remove_images=bool(getattr(args, "image", False)),
                         )
+
                         # Remove data if confirmed
                         if remove_data_all:
                             try:
                                 from scripts import remove_tool_data
-                                remove_tool_data(t)
+                                remove_tool_data(t)  # This prints its own success message
                             except Exception as exc_data:
                                 print(f"{PREFIX_WARN} Failed to remove data for '{t}': {exc_data}")
+
+                        # Show image/volume removal status (docker compose down with flags doesn't show explicit confirmation)
+                        if getattr(args, "image", False):
+                            print(f"{PREFIX_OK}: Removed images for {t}")
+
+                        if getattr(args, "volume", False):
+                            print(f"{PREFIX_OK}: Removed volumes for {t}")
+
                         # Then remove docker directory
-                        remove_tool(t)
+                        remove_tool(t)  # This prints its own success message
                     except Exception as exc:
                         print(f"{PREFIX_ERROR} Failed to clean '{t}': {exc}", file=sys.stderr)
                         continue
@@ -245,15 +255,24 @@ def main(argv: List[str]) -> int:
                     remove_volumes=bool(getattr(args, "volume", False)),
                     remove_images=bool(getattr(args, "image", False)),
                 )
+
                 # Optionally remove data for single tool
                 if getattr(args, "data", False):
                     try:
                         from scripts import remove_tool_data
-                        remove_tool_data(args.tool)
+                        remove_tool_data(args.tool)  # This prints its own success message
                     except Exception as exc_data:
                         print(f"{PREFIX_WARN} Failed to remove data for '{args.tool}': {exc_data}")
+
+                # Show image/volume removal status (docker compose down with flags doesn't show explicit confirmation)
+                if getattr(args, "image", False):
+                    print(f"{PREFIX_OK}: Removed images for {args.tool}")
+
+                if getattr(args, "volume", False):
+                    print(f"{PREFIX_OK}: Removed volumes for {args.tool}")
+
                 # Then remove docker directory
-                remove_tool(args.tool)
+                remove_tool(args.tool)  # This prints its own success message
         except Exception as exc:
             print(f"{PREFIX_ERROR} Failed to clean: {exc}", file=sys.stderr)
             return 1
@@ -345,7 +364,16 @@ def main(argv: List[str]) -> int:
                 # Auto-import if ALWAYS_IMPORT=true
                 if ALWAYS_IMPORT:
                     try:
-                        # Check if tool is enabled
+                        # First check if tool exists
+                        from core.constants import TOOLS_DIR
+                        from core.yaml import find_tool_yaml_path
+                        try:
+                            find_tool_yaml_path(args.tool)
+                        except FileNotFoundError:
+                            print(f"{PREFIX_ERROR} Tool '{args.tool}' not found in '{TOOLS_DIR}'.", file=sys.stderr)
+                            return 1
+
+                        # Then check if tool is enabled
                         if not is_tool_enabled(args.tool):
                             if not getattr(args, "force", False):
                                 print(f"{PREFIX_ERROR} Tool '{args.tool}' is not enabled. Use --force to override.", file=sys.stderr)

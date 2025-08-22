@@ -26,6 +26,7 @@ HPone/
 ├── hpone/                 # Main application
 │   ├── app.py            # Main application
 │   ├── config.py         # Configuration file
+│   ├── completion/       # Bash completion scripts
 │   ├── core/             # Core modules
 │   └── scripts/          # Command scripts
 ├── tools/                 # YAML honeypot files
@@ -198,6 +199,10 @@ hpone up cowrie
 hpone logs cowrie    # Interactive log viewer
 hpone shell cowrie
 hpone down cowrie
+
+# Check status
+hpone list
+hpone status
 
 # Log viewing features
 hpone logs cowrie    # Interactive menu with:

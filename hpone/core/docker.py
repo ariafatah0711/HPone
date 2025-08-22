@@ -54,16 +54,16 @@ def run_compose_action(tool_dir: Path, action: str, extra_args: Optional[List[st
     except ImportError:
         USE_EPHEMERAL_LOGGING = True  # Default to True if config not found
 
-    # If extra args are provided, prefer direct subprocess to ensure full flag support
-    if USE_EPHEMERAL_LOGGING and not extra_args:
+    # Use ephemeral logging when enabled (even with extra args)
+    if USE_EPHEMERAL_LOGGING:
         # Use ephemeral logging for better UX
-        from .log_runner import run_docker_compose_action
-        
+        from .log_runner import run_docker_compose_action_with_args
+
         # Extract tool name from directory
         tool_name = tool_dir.name
-        
-        success, duration = run_docker_compose_action(action, tool_name, tool_dir)
-        
+
+        success, duration = run_docker_compose_action_with_args(action, tool_name, tool_dir, extra_args)
+
         if not success:
             raise subprocess.CalledProcessError(1, f"docker compose {action}")
     else:
@@ -116,13 +116,13 @@ def up_tool(tool_id: str, force: bool = False) -> None:
             raise ValueError(f"Tool '{tool_id}' is not enabled. Run 'enable {tool_id}' first or use --force.")
 
     run_compose_action(dest_dir, "up")
-    
+
     # Show output based on logging mode
     try:
         from config import USE_EPHEMERAL_LOGGING
     except ImportError:
         USE_EPHEMERAL_LOGGING = True
-    
+
     if not USE_EPHEMERAL_LOGGING:
         print(f"{COLOR_YELLOW}[UP]{COLOR_RESET} {dir_id} {PREFIX_OK}")
 
@@ -141,13 +141,13 @@ def down_tool(tool_id: str, remove_volumes: bool = False, remove_images: bool = 
     if remove_images:
         extra_args.extend(["--rmi", "local"])
     run_compose_action(dest_dir, "down", extra_args=extra_args if extra_args else None)
-    
+
     # Show output based on logging mode
     try:
         from config import USE_EPHEMERAL_LOGGING
     except ImportError:
         USE_EPHEMERAL_LOGGING = True
-    
+
     if not USE_EPHEMERAL_LOGGING:
         print(f"{COLOR_YELLOW}[DOWN]{COLOR_RESET} {dir_id} {PREFIX_OK}")
 
@@ -171,7 +171,7 @@ def shell_tool(tool_id: str) -> None:
 
     # Try bash first, then fallback to sh
     shells_to_try = ["bash", "sh"]
-    
+
     for shell in shells_to_try:
         try:
             cmd = ["docker", "compose", "exec", service_name, shell]
@@ -187,6 +187,6 @@ def shell_tool(tool_id: str) -> None:
                 continue  # Try next shell
         except subprocess.CalledProcessError:
             continue  # Try next shell
-    
+
     # If we get here, neither bash nor sh worked
     raise RuntimeError(f"Could not open shell in container '{tool_id}'. Neither bash nor sh are available.")

@@ -55,43 +55,45 @@ def run_with_ephemeral_logs(
     tool_name: str,
     cwd: Optional[Path] = None,
     timeout: Optional[int] = None,
-    on_log_line: Optional[Callable[[str], None]] = None
+    on_log_line: Optional[Callable[[str], None]] = None,
+    action: Optional[str] = None
 ) -> tuple[bool, float]:
     """
     Run a command with ephemeral logging display.
-    
+
     Args:
         command: List of command arguments
         tool_name: Name of the tool for display
         cwd: Working directory for the command
         timeout: Command timeout in seconds (None = no timeout)
         on_log_line: Optional callback for each log line
-    
+
     Returns:
         Tuple of (success: bool, duration: float)
     """
     start_time = time.time()
     log_lines: list[str] = []
-    
+
     def log_line(line: str) -> None:
         """Add a timestamped log line."""
         timestamp = get_timestamp()
         formatted_line = f"[{timestamp}] [INFO] {line}"
         log_lines.append(formatted_line)
         print(formatted_line)
-        
+
         if on_log_line:
             on_log_line(line)
-    
+
     def clear_logs() -> None:
         """Clear all displayed log lines."""
         if log_lines:
             clear_lines(len(log_lines))
-    
+
     try:
         # Start the process
-        log_line(f"Starting {tool_name} containers ...")
-        
+        action_verb = "Stopping" if action == "down" else "Starting"
+        log_line(f"{action_verb} {tool_name} containers ...")
+
         process = subprocess.Popen(
             command,
             cwd=str(cwd) if cwd else None,
@@ -101,43 +103,46 @@ def run_with_ephemeral_logs(
             bufsize=1,
             universal_newlines=True
         )
-        
+
         # Read output in real-time
         while True:
             line = process.stdout.readline()
             if not line and process.poll() is not None:
                 break
-            
+
             if line:
                 line = line.strip()
                 if line:  # Skip empty lines
                     log_line(line)
-        
+
         # Wait for process to complete
         return_code = process.wait(timeout=timeout)
         duration = time.time() - start_time
-        
+
         # Clear all logs
         clear_logs()
-        
+
         # Display result
         if return_code == 0:
-            status = f"{COLOR_GREEN}[UP]{COLOR_RESET}"
+            if action == "down":
+                status = f"{COLOR_YELLOW}[DOWN]{COLOR_RESET}"
+            else:
+                status = f"{COLOR_GREEN}[UP]{COLOR_RESET}"
             result = f"{COLOR_GREEN}OK{COLOR_RESET}"
         else:
             status = f"{COLOR_RED}[FAIL]{COLOR_RESET}"
             result = f"{COLOR_RED}ERR{COLOR_RESET}"
-        
+
         print(f"{status} {tool_name} {result} ({duration:.1f}s)")
         return return_code == 0, duration
-        
+
     except subprocess.TimeoutExpired:
         process.kill()
         duration = time.time() - start_time
         clear_logs()
         print(f"{COLOR_RED}[FAIL]{COLOR_RESET} {tool_name} {COLOR_RED}TIMEOUT{COLOR_RESET} ({duration:.1f}s)")
         return False, duration
-        
+
     except Exception as e:
         duration = time.time() - start_time
         clear_logs()
@@ -154,44 +159,77 @@ def run_docker_compose_action(
 ) -> tuple[bool, float]:
     """
     Run docker compose action with ephemeral logging.
-    
+
     Args:
         action: Docker compose action (up, down, etc.)
         tool_name: Name of the tool
         tool_dir: Directory containing docker-compose.yml
         timeout: Command timeout in seconds
-    
+
     Returns:
         Tuple of (success: bool, duration: float)
     """
     if not (tool_dir / "docker-compose.yml").exists():
         raise FileNotFoundError(f"docker-compose.yml not found in {tool_dir}")
-    
+
     # Build command
     cmd = ["docker", "compose", action]
     if action == "up":
         cmd.append("-d")
-    
-    return run_with_ephemeral_logs(cmd, tool_name, cwd=tool_dir, timeout=timeout)
+
+    return run_with_ephemeral_logs(cmd, tool_name, cwd=tool_dir, timeout=timeout, action=action)
+
+
+def run_docker_compose_action_with_args(
+    action: str,
+    tool_name: str,
+    tool_dir: Path,
+    extra_args: Optional[list[str]] = None,
+    timeout: Optional[int] = None
+) -> tuple[bool, float]:
+    """
+    Run docker compose action with extra arguments and ephemeral logging.
+
+    Args:
+        action: Docker compose action (up, down, etc.)
+        tool_name: Name of the tool
+        tool_dir: Directory containing docker-compose.yml
+        extra_args: Additional arguments for docker compose command
+        timeout: Command timeout in seconds
+
+    Returns:
+        Tuple of (success: bool, duration: float)
+    """
+    if not (tool_dir / "docker-compose.yml").exists():
+        raise FileNotFoundError(f"docker-compose.yml not found in {tool_dir}")
+
+    # Build command
+    cmd = ["docker", "compose", action]
+    if action == "up":
+        cmd.append("-d")
+    if extra_args:
+        cmd.extend(extra_args)
+
+    return run_with_ephemeral_logs(cmd, tool_name, cwd=tool_dir, timeout=timeout, action=action)
 
 
 # Example usage and testing
 if __name__ == "__main__":
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="Test ephemeral log runner")
     parser.add_argument("command", nargs="+", help="Command to run")
     parser.add_argument("--tool", default="test", help="Tool name for display")
     parser.add_argument("--cwd", type=Path, help="Working directory")
     parser.add_argument("--timeout", type=int, help="Timeout in seconds")
-    
+
     args = parser.parse_args()
-    
+
     success, duration = run_with_ephemeral_logs(
         args.command,
         args.tool,
         cwd=args.cwd,
         timeout=args.timeout
     )
-    
+
     sys.exit(0 if success else 1)
