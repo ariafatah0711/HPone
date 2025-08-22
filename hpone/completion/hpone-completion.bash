@@ -42,8 +42,8 @@ _hpone_completion() {
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
     
-    # Available commands
-    cmds="check import update list status inspect enable disable up down shell clean"
+    # Available commands (hapus import dan update)
+    cmds="check list status inspect enable disable up down shell clean"
     
     # If this is the first argument (command)
     if [[ ${COMP_CWORD} -eq 1 ]]; then
@@ -55,7 +55,7 @@ _hpone_completion() {
     local cmd="${COMP_WORDS[1]}"
     
     case "${cmd}" in
-        "import"|"inspect"|"enable"|"disable"|"up"|"down"|"shell"|"clean")
+        "inspect"|"enable"|"disable"|"up"|"down"|"shell"|"clean")
             # These commands need a tool name
             if [[ ${COMP_CWORD} -eq 2 ]]; then
                 # Get available tools from tools/ directory
@@ -76,18 +76,10 @@ _hpone_completion() {
         "status"|"check")
             # These commands don't need additional arguments
             ;;
-        "update")
-            # Update command doesn't need additional arguments
-            ;;
     esac
     
     # Handle options for specific commands
     case "${cmd}" in
-        "import")
-            if [[ ${COMP_CWORD} -eq 3 ]]; then
-                COMPREPLY=( $(compgen -W "--all --force" -- "${cur}") )
-            fi
-            ;;
         "up")
             if [[ ${COMP_CWORD} -eq 2 ]]; then
                 # First try to complete tool names
@@ -101,9 +93,7 @@ _hpone_completion() {
                 fi
             elif [[ ${COMP_CWORD} -eq 3 ]]; then
                 if [[ "${prev}" == "--all" ]]; then
-                    COMPREPLY=( $(compgen -W "--update" -- "${cur}") )
-                else
-                    COMPREPLY=( $(compgen -W "--force --update" -- "${cur}") )
+                    COMPREPLY=( $(compgen -W "--force") )
                 fi
             fi
             ;;
@@ -143,6 +133,9 @@ _hpone_completion() {
     
     return 0
 }
+
+tools_dir=$(_hpone_find_tools_dir)
+echo $tools_dir
 
 # Register the completion function
 complete -F _hpone_completion hpone

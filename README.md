@@ -2,7 +2,9 @@
 
 **HPone** adalah tool untuk mengelola Docker honeypot templates dengan fitur **auto-import** yang memudahkan deployment dan management.
 
-## 🚀 Fitur Utama: ALWAYS_IMPORT Mode
+## 🔑 Mode Operasional
+
+HPone bisa dijalankan dalam dua mode utama:
 
 ### **Mode Otomatis (ALWAYS_IMPORT=true)**
 - ✅ **Auto-import** tools saat startup
@@ -51,21 +53,42 @@ DATA_DIR = PROJECT_ROOT / "data"   # lokasi mount data log container (ini buat f
 USE_EPHEMERAL_LOGGING = True  # True: real-time logs, False: simple output
 ```
 
-
-## ⌨️ Clone This Repsitory
+## 🚀 Fast Setup (auto install)
 ```bash
 git clone https://github.com/ariafatah0711/HPone hpone
 cd hpone
 
+# setup Global Installation, and Bash Completion
+chmod +x setup.sh
+./setup.sh install # perlu restart shell setelah dijalankan
+
+# Uninsall Global Installation, and Bash Completion
+./setup.sh uninstall # perlu restart shell setelah dijalankan
+```
+
+## 🛠 manual install
+### 📦 install library & depedency
+```bash
 # install library
 pip3 install requirements.txt
 
-# setup Global Installation, and Bash Completion
-chmod +x setup.sh
-./setup.sh
+# install docker.io
+sudo apt install docker.io
+
+# install docker compose
+DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+mkdir -p $DOCKER_CONFIG/cli-plugins
+curl -SL https://github.com/docker/compose/releases/download/v2.29.0/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+
+chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+# or
+sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+# verifikasi
+docker compose version
 ```
 
-## ⚙️ Global Installation (Run Anywhere)
+### ⚙️ Global Installation (Run Anywhere)
 
 Agar `hpone` bisa dijalankan dari mana saja tanpa `./app.py`:
  

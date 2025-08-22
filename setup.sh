@@ -55,10 +55,9 @@ install_hpone() {
 
     if [ -f "$COMPLETION_SRC" ]; then
         echo "[*] Installing bash completion..."
-        cp "$COMPLETION_SRC" "$COMPLETION_TARGET"
-
-        if ! grep -q "source $COMPLETION_TARGET" "$HOME/.bashrc"; then
-            echo "source $COMPLETION_TARGET" >> "$HOME/.bashrc"
+        # Jangan copy, langsung pakai versi asli
+        if ! grep -q "source $COMPLETION_SRC" "$HOME/.bashrc"; then
+            echo "source $COMPLETION_SRC" >> "$HOME/.bashrc"
             echo "  -> Added completion to ~/.bashrc"
         fi
     fi
@@ -87,7 +86,7 @@ uninstall_hpone() {
 }
 
 case "$1" in
-    install|"")
+    install)
         install_hpone
         ;;
     uninstall)
