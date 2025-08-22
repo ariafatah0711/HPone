@@ -91,7 +91,7 @@ docker compose version
 ### ⚙️ Global Installation (Run Anywhere)
 
 Agar `hpone` bisa dijalankan dari mana saja tanpa `./app.py`:
- 
+
 ```bash
 chmod +x app.py
 sudo ln -s $(pwd)/app.py /usr/local/bin/hpone

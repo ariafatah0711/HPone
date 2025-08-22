@@ -52,6 +52,10 @@ from .status import (
     show_status,
 )
 
+from .logs import (
+    logs_main
+)
+
 __all__ = [
     # List commands
     'list_tools',
@@ -59,22 +63,22 @@ __all__ = [
     'list_all_enabled_tool_ids',
     'list_imported_tool_ids',
     'resolve_tool_dir_id',
-    
+
     # Inspect commands
     'inspect_tool',
-    
+
     # Import commands
     'import_tool',
-    
+
     # Remove commands
     'remove_tool',
-    
+
     # File operations
     'ensure_destination_dir',
     'find_template_dir',
     'copy_template_to_destination',
     'remove_tool_data',
-    
+
     # Check dependencies
     'check_all_dependencies',
     'check_python_dependencies',
@@ -82,7 +86,7 @@ __all__ = [
     'print_dependency_status',
     'get_installation_instructions',
     'require_dependencies',
-    
+
     # Error handlers
     'handle_yaml_error',
     'handle_docker_error',
@@ -91,5 +95,8 @@ __all__ = [
     'check_file_permissions'
     ,
     # Status helpers
-    'show_status'
+    'show_status',
+
+    # Logs
+    'logs_main'
 ]

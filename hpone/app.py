@@ -62,7 +62,10 @@ from scripts import (
     remove_tool,
 
     # Dependency checker
-    require_dependencies
+    require_dependencies,
+
+    # Logs
+    logs_main
 )
 
 from core.utils import PREFIX_OK, PREFIX_ERROR, PREFIX_WARN
@@ -116,7 +119,7 @@ def main(argv: List[str]) -> int:
     if args.command == "import":
         if ALWAYS_IMPORT:
             pass; return 1
-            
+
         try:
             if getattr(args, "all", False):
                 # Import all enabled tools
@@ -147,7 +150,7 @@ def main(argv: List[str]) -> int:
     if args.command == "update":
         if ALWAYS_IMPORT:
             pass; return 1
-            
+
         try:
             tool_ids = list_imported_tool_ids()
             if not tool_ids:
@@ -296,7 +299,7 @@ def main(argv: List[str]) -> int:
                     if not tool_ids:
                         print("No enabled tools.")
                         return 0
-                    
+
                     print(f"Auto-importing {len(tool_ids)} enabled tools...")
                     for t in tool_ids:
                         try:
@@ -305,7 +308,7 @@ def main(argv: List[str]) -> int:
                         except Exception as exc:
                             print(f"{PREFIX_ERROR} Failed to auto-import '{t}': {exc}", file=sys.stderr)
                             continue
-                    
+
                     print(f"Starting {len(tool_ids)} tools...")
                     for t in tool_ids:
                         try:
@@ -338,7 +341,7 @@ def main(argv: List[str]) -> int:
                 if not args.tool:
                     print("You must specify a tool or use --all", file=sys.stderr)
                     return 2
-                
+
                 # Auto-import if ALWAYS_IMPORT=true
                 if ALWAYS_IMPORT:
                     try:
@@ -348,19 +351,19 @@ def main(argv: List[str]) -> int:
                                 print(f"{PREFIX_ERROR} Tool '{args.tool}' is not enabled. Use --force to override.", file=sys.stderr)
                                 return 1
                             print(f"{PREFIX_WARN} Tool '{args.tool}' is not enabled, but continuing with --force")
-                        
+
                         # Auto-import the tool
                         dest = import_tool(args.tool, force=True)
                         # print(f"{PREFIX_OK}: Auto-imported '{args.tool}'")
-                        
+
                         # Start the tool
                         up_tool(args.tool, force=bool(args.force))
                         return 0
-                        
+
                     except Exception as exc:
                         print(f"{PREFIX_ERROR} Failed to auto-import and start '{args.tool}': {exc}", file=sys.stderr)
                         return 1
-                
+
                 # Original logic for ALWAYS_IMPORT=false
                 # If --update for a single tool, update first only if already imported
                 if getattr(args, "update", False):
@@ -428,6 +431,15 @@ def main(argv: List[str]) -> int:
             shell_tool(args.tool)
         except Exception as exc:
             print(f"{PREFIX_ERROR} Failed to open shell in '{args.tool}': {exc}", file=sys.stderr)
+            return 1
+        return 0
+
+    # Logs command
+    if args.command == "logs":
+        try:
+            logs_main(args.tool)
+        except Exception as exc:
+            print(f"{PREFIX_ERROR} Failed to show logs for '{args.tool}': {exc}", file=sys.stderr)
             return 1
         return 0
 

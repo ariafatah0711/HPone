@@ -17,14 +17,14 @@ def build_arg_parser() -> argparse.ArgumentParser:
 		show_import_commands = not ALWAYS_IMPORT
 	except ImportError:
 		show_import_commands = False
-	
+
 	if show_import_commands:
 		# Import command
 		p_import = sub.add_parser("import", help="Import template and generate .env for the tool")
 		p_import.add_argument("tool", nargs="?", help="Tool name (matches YAML filename in tools/)")
 		p_import.add_argument("--all", action="store_true", help="Import all enabled tools")
 		p_import.add_argument("--force", action="store_true", help="Overwrite docker/<tool> if it already exists")
-		
+
 		# Update command
 		p_update = sub.add_parser("update", help="Update all imported tools (equivalent to import --force)")
 
@@ -34,7 +34,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 	# Status command (running only)
 	p_status = sub.add_parser("status", help="Show port mappings of running tools (HOST -> CONTAINER)")
-	
+
 	# Inspect command
 	p_inspect = sub.add_parser("inspect", help="Show detailed configuration information for one tool")
 	p_inspect.add_argument("tool", help="Tool name to inspect")
@@ -52,11 +52,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	group_up = p_up.add_mutually_exclusive_group(required=True)
 	group_up.add_argument("tool", nargs="?", help="Tool name. If omitted, use --all")
 	group_up.add_argument("--all", action="store_true", help="Run for all enabled and imported tools")
-	
+
 	# Only show --update option when ALWAYS_IMPORT=false
 	if show_import_commands:
 		p_up.add_argument("--update", action="store_true", help="Update templates before starting")
-	
+
 	p_up.add_argument("--force", action="store_true", help="Force start even if not enabled (single tool only)")
 
 	# Down command
@@ -68,6 +68,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	# Shell command
 	p_shell = sub.add_parser("shell", help="Open shell (bash/sh) in running container")
 	p_shell.add_argument("tool", help="Tool name to open shell in")
+
+	# Logs command
+	p_logs = sub.add_parser("logs", help="Interactive logs viewer for containers and mounted data")
+	p_logs.add_argument("tool", help="Tool name to view logs for")
 
 	# Clean command
 	p_clean = sub.add_parser("clean", help="Stop (down) then delete directory docker/<tool>")
@@ -110,7 +114,7 @@ def format_full_help(parser: argparse.ArgumentParser) -> str:
 	# Urutan tampilan yang diinginkan; sisanya mengikuti urutan asli
 	desired_order = [
 		"check", "import", "update", "list", "status",
-		"inspect", "enable", "disable", "up", "down", "shell", "clean"
+		"inspect", "enable", "disable", "up", "down", "shell", "logs", "clean"
 	]
 	names_in_choice = list(choices.keys())
 	ordered_names = [n for n in desired_order if n in names_in_choice] + [

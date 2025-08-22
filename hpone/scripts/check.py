@@ -9,24 +9,21 @@ import sys
 from pathlib import Path
 from typing import List, Tuple, Dict
 
-
 def check_python_dependencies() -> Dict[str, bool]:
     """Check Python package dependencies."""
-    dependencies = {
-        'PyYAML': False,
-        'pathlib': True,  # Built-in in Python 3.4+
-        'typing': True,   # Built-in in Python 3.5+
-    }
-    
-    # Check PyYAML
-    try:
-        import yaml
-        dependencies['PyYAML'] = True
-    except ImportError:
-        pass
-    
-    return dependencies
+    builtin = {"pathlib": True, "typing": True}  # built-ins
+    to_check = ["yaml", "questionary"]           # external packages
 
+    deps = builtin.copy()
+    for module in to_check:
+        try:
+            __import__(module)
+            # tampilkan dengan nama lebih enak (PyYAML, bukan yaml)
+            deps["PyYAML" if module == "yaml" else module] = True
+        except ImportError:
+            deps["PyYAML" if module == "yaml" else module] = False
+
+    return deps
 
 def check_system_dependencies() -> Dict[str, bool]:
     """Check system command dependencies."""
@@ -35,34 +32,34 @@ def check_system_dependencies() -> Dict[str, bool]:
         'docker-compose': False,
         'docker compose': False,  # Docker Compose v2
     }
-    
+
     # Check docker command
     try:
-        result = subprocess.run(['docker', '--version'], 
+        result = subprocess.run(['docker', '--version'],
                               capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             dependencies['docker'] = True
     except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
         pass
-    
+
     # Check docker-compose v1
     try:
-        result = subprocess.run(['docker-compose', '--version'], 
+        result = subprocess.run(['docker-compose', '--version'],
                               capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             dependencies['docker-compose'] = True
     except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
         pass
-    
+
     # Check docker compose v2
     try:
-        result = subprocess.run(['docker', 'compose', 'version'], 
+        result = subprocess.run(['docker', 'compose', 'version'],
                               capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             dependencies['docker compose'] = True
     except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
         pass
-    
+
     return dependencies
 
 
@@ -70,91 +67,79 @@ def check_all_dependencies() -> Tuple[bool, Dict[str, Dict[str, bool]]]:
     """Check all dependencies and return status and details."""
     python_deps = check_python_dependencies()
     system_deps = check_system_dependencies()
-    
+
     all_deps = {
         'python': python_deps,
         'system': system_deps
     }
-    
+
     # Check if critical dependencies are available
     critical_python = all(python_deps.values())
     critical_system = any([system_deps['docker'], system_deps['docker-compose'], system_deps['docker compose']])
-    
+
     all_ok = critical_python and critical_system
-    
+
     return all_ok, all_deps
 
 
 def print_dependency_status() -> None:
     """Print dependency status in a clean format."""
-    print("╔══════════════════════════════════════════════════════════════════════════════╗")
-    print("║                           🔍 CHECKING DEPENDENCIES                           ║")
-    print("╚══════════════════════════════════════════════════════════════════════════════╝")
-    
+    print("🔍 Checking dependencies...")
+
     ok, deps = check_all_dependencies()
-    
+
     # Python dependencies
-    print(f"\n🐍 PYTHON")
-    print("   ┌─────────────────────────────────────────────────────────────────────────┐")
+    print("\n🐍 Python packages:")
     for dep, available in deps['python'].items():
-        status = "✅ OK" if available else "❌ MISSING"
-        print(f"   │ {dep:<15} : {status:<52} │")
-    print("   └─────────────────────────────────────────────────────────────────────────┘")
-    
+        status = "✅" if available else "❌"
+        print(f"   {status} {dep}")
+
     # System dependencies
-    print(f"\n🖥️  SYSTEM")
-    print("   ┌─────────────────────────────────────────────────────────────────────────┐")
-    for dep, available in deps['system'].items():
-        status = "✅ OK" if available else "❌ MISSING"
-        print(f"   │ {dep:<15} : {status:<52} │")
-    print("   └─────────────────────────────────────────────────────────────────────────┘")
-    
-    print("\n" + "═" * 80)
-    
-    if ok:
-        print("🎉 READY!")
+    print("\n🐳 Docker:")
+    docker_ok = deps['system']['docker']
+    compose_v1_ok = deps['system']['docker-compose']
+    compose_v2_ok = deps['system']['docker compose']
+
+    print(f"   {'✅' if docker_ok else '❌'} docker")
+    if compose_v2_ok:
+        print("   ✅ docker compose (v2)")
+    elif compose_v1_ok:
+        print("   ✅ docker-compose (v1)")
     else:
-        print("⚠️  MISSING DEPENDENCIES!")
-    
+        print("   ❌ docker compose")
+
+    print(f"\n{'🎉 Ready to go!' if ok else '⚠️  Some dependencies missing'}")
     return ok
 
 
 def get_installation_instructions() -> str:
     """Return installation instructions for missing dependencies."""
     instructions = []
-    
     ok, deps = check_all_dependencies()
-    
-    if not deps['python']['PyYAML']:
-        instructions.append("📦 PYTHON: pip install PyYAML")
-    
+
+    # Check Python packages
+    missing_python = [pkg for pkg, available in deps['python'].items() if not available]
+    if missing_python:
+        instructions.append(f"📦 Install Python packages: pip install {' '.join(missing_python)}")
+
+    # Check Docker
     if not any(deps['system'].values()):
-        instructions.append("🐳 DOCKER:")
-        instructions.append("   Ubuntu/Debian: sudo apt install docker.io docker-compose")
-        instructions.append("   CentOS/RHEL: sudo yum install docker docker-compose")
-        instructions.append("   macOS: brew install docker docker-compose")
-        instructions.append("   Windows: https://docs.docker.com/desktop/")
-    
-    if instructions:
-        return "\n".join(instructions)
-    else:
-        return "✅ READY!"
+        instructions.append("🐳 Install Docker: https://docs.docker.com/get-docker/")
+
+    return "\n".join(instructions) if instructions else "✅ All dependencies satisfied!"
 
 
 def require_dependencies() -> None:
     """Check dependencies and exit if any are missing."""
     ok, deps = check_all_dependencies()
-    
+
     if not ok:
-        print("╔══════════════════════════════════════════════════════════════════════════════╗")
-        print("║                           ❌ MISSING DEPENDENCIES                            ║")
-        print("╚══════════════════════════════════════════════════════════════════════════════╝")
+        print("❌ Missing dependencies!")
         print_dependency_status()
-        print("\n📋 INSTALL:")
-        print("   ┌─────────────────────────────────────────────────────────────────────────┐")
-        install_text = get_installation_instructions()
-        for line in install_text.strip().split('\n'):
+        print("\n📋 To install missing dependencies:")
+        instructions = get_installation_instructions()
+        for line in instructions.split('\n'):
             if line.strip():
-                print(f"   │ {line.strip():<65} │")
-        print("   └─────────────────────────────────────────────────────────────────────────┘")
+                print(f"   {line.strip()}")
+        print()
         sys.exit(1)

@@ -13,13 +13,23 @@ check_dependencies() {
     # Python3
     if ! command -v python3 >/dev/null 2>&1; then
         echo "❌ Python3 tidak ditemukan. Install dulu (apt/pacman/dnf)."
-        exit 1
+        read -p "👉 Apakah kamu mau install sekarang? (y/n): " yn
+        case $yn in
+            [Yy]*) sudo apt install -y python3 ;;
+            *) echo "❌ Gagal: Python3 wajib ada."; exit 1 ;;
+        esac
+        # exit 1
     fi
 
     # Pip3
     if ! command -v pip3 >/dev/null 2>&1; then
         echo "❌ pip3 tidak ditemukan. Install python3-pip dulu."
-        exit 1
+        read -p "👉 Apakah kamu mau install sekarang? (y/n): " yn
+        case $yn in
+            [Yy]*) sudo apt install -y python3-pip ;;
+            *) echo "❌ Gagal: pip3 wajib ada."; exit 1 ;;
+        esac
+        # exit 1
     fi
 
     # Install Python libs
@@ -31,7 +41,15 @@ check_dependencies() {
     # Docker
     if ! command -v docker >/dev/null 2>&1; then
         echo "❌ Docker tidak ditemukan. Install docker dulu."
-        exit 1
+        read -p "👉 Apakah kamu mau install sekarang? (y/n): " yn
+        case $yn in
+            [Yy]*)
+                sudo apt install -y docker.io
+                sudo usermod -aG docker $USER
+                ;;
+            *) echo "❌ Gagal: Docker wajib ada."; exit 1 ;;
+        esac
+        # exit 1
     fi
 
     # docker-compose (lama) atau docker compose (baru)
@@ -41,7 +59,17 @@ check_dependencies() {
         echo "[*] docker compose (plugin) ditemukan."
     else
         echo "❌ docker-compose atau docker compose tidak ditemukan."
-        exit 1
+        read -p "👉 Apakah kamu mau install docker compose sekarang? (y/n): " yn
+        case $yn in
+            [Yy]*)
+                DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+                mkdir -p $DOCKER_CONFIG/cli-plugins
+                curl -SL https://github.com/docker/compose/releases/download/v2.29.0/docker-compose-linux-x86_64 \
+                    -o $DOCKER_CONFIG/cli-plugins/docker-compose
+                chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+                ;;
+            *) echo "❌ Gagal: docker compose wajib ada."; exit 1 ;;
+        esac
     fi
 }
 
