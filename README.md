@@ -76,11 +76,15 @@
 ┣ 📂 conf/                      # 🔧 Persistent configurations
 ┣ 📂 docker/                    # 🐳 Generated build outputs (temp)
 ┗ 📂 data/                      # 💾 Runtime data & logs
+┗ 📋 requirements.txt           # Python dependencies
 ```
 
 ## ⚙️ Configuration
 
-Configure HPone behavior by editing `hpone/config.py`:
+Configure HPone behavior by editing the configuration file:
+
+- **📦 Debian Package Installation:** `/opt/hpone/hpone/config.py`
+- **🔧 Source Installation:** `hpone/config.py` (in your project directory)
 
 <details>
 <summary><strong>📋 View Configuration Options</strong></summary>
@@ -122,6 +126,32 @@ sudo usermod -aG docker $USER
 
 # 🔄 Restart your shell to enable bash completion
 ```
+
+**📍 Installation Location:** When installed via Debian package, HPone is located at `/opt/hpone/`
+
+<details>
+<summary><strong>📂 Debian Package Directory Structure</strong></summary>
+
+```
+📦 /opt/hpone/                   # Main installation directory
+┣ 🚀 app.py                     # Main application entry point
+┣ 📂 hpone/                     # Core application directory
+┃ ┣ 🎯 app.py                   # Application launcher
+┃ ┣ ⚙️ config.py               # Configuration management
+┃ ┣ 📂 completion/              # Bash completion scripts
+┃ ┣ 📂 core/                    # Core functionality modules
+┃ ┗ 📂 scripts/                 # Command implementations
+┣ 📂 honeypots/                 # 🍯 YAML honeypot definitions
+┣ 📂 template/docker/           # 📋 Base Docker templates
+┣ 📂 conf/                      # 🔧 Persistent configurations
+┣ 📂 docker/                    # 🐳 Generated build outputs (temp)
+┣ 📂 data/                      # 💾 Runtime data & logs
+┗ 📋 requirements.txt           # Python dependencies
+```
+
+**🔗 Global Access:** The `hpone` command is available system-wide via `/usr/bin/hpone`
+
+</details>
 
 ### 🔧 Source Installation
 
@@ -369,6 +399,33 @@ hpone up --all --update     # Update before starting
 ### 🥾 **Dependency Check**
 ```bash
 hpone check  # Comprehensive system validation
+```
+
+### 📂 **Accessing HPone Files**
+
+**📦 Debian Package Installation:**
+```bash
+# Configuration files
+sudo nano /opt/hpone/hpone/config.py
+
+# View honeypot templates
+ls /opt/hpone/honeypots/
+
+# Check data directory
+ls /opt/hpone/data/
+
+# Access application files
+cd /opt/hpone/
+```
+
+**🔧 Source Installation:**
+```bash
+# Configuration files
+nano hpone/config.py
+
+# All files are in your project directory
+ls honeypots/
+ls data/
 ```
 
 ### 📝 **Ephemeral Logging System**

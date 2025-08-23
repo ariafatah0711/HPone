@@ -252,6 +252,27 @@ def rewrite_compose_with_env(dest_dir: Path, honeypot_id: str, honeypot_name: st
         if not isinstance(svc, dict):
             continue
 
+        # Add HPone labels for proper container identification
+        labels = svc.get("labels", {})
+        if isinstance(labels, list):
+            # Convert list format to dict format
+            temp_labels = {}
+            for label in labels:
+                if isinstance(label, str) and "=" in label:
+                    k, v = label.split("=", 1)
+                    temp_labels[k] = v
+                elif isinstance(label, str):
+                    temp_labels[label] = ""
+            labels = temp_labels
+        elif not isinstance(labels, dict):
+            labels = {}
+
+        # Add HPone identification labels
+        labels.update({
+            "hpone": "true"
+        })
+        svc["labels"] = labels
+
         if ports_expr:
             svc["ports"] = ports_expr.copy()
 
@@ -288,6 +309,13 @@ def rewrite_compose_with_env(dest_dir: Path, honeypot_id: str, honeypot_name: st
 
         if isinstance(cfg_image, str) and cfg_image.strip():
             svc["image"] = cfg_image.strip()
+
+    # Preserve original network format (empty instead of null)
+    networks = compose_data.get("networks")
+    if isinstance(networks, dict):
+        for net_name, net_config in networks.items():
+            if net_config is None:
+                networks[net_name] = {}
 
     # Simpan kembali compose
     with compose_path.open("w", encoding="utf-8") as f:

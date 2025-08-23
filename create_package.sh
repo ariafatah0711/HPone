@@ -237,6 +237,9 @@ copy_local_source() {
         --exclude='.idea' \
         --exclude='*.deb' \
         --exclude='/tmp' \
+        --exclude='__tmp__*' \
+        --exclude='create_package.sh' \
+        --exclude='data' \
         "$abs_source_dir/" "$INSTALL_DIR/"
 
     # Verify essential files exist
@@ -255,6 +258,9 @@ clone_from_repository() {
 
     # Remove git metadata
     rm -rf "$INSTALL_DIR/.git"
+
+    # Remove package build script from cloned repository
+    rm -f "$INSTALL_DIR/create_package.sh"
 
     # Verify essential files exist
     verify_essential_files
@@ -550,10 +556,27 @@ case "\$1" in
 
         # Stop any running HPone containers (best effort)
         if command -v docker >/dev/null 2>&1; then
+            echo "[INFO] Cleaning up HPone Docker resources..."
+
+            # Stop and remove containers with hpone label
             if docker ps -q --filter "label=hpone" | grep -q .; then
-                echo "[INFO] Stopping HPone containers..."
+                echo "[INFO] Stopping HPone labeled containers..."
                 docker stop \$(docker ps -q --filter "label=hpone") 2>/dev/null || true
+                echo "[INFO] Removing HPone labeled containers..."
+                docker rm \$(docker ps -aq --filter "label=hpone") 2>/dev/null || true
             fi
+
+            # Remove HPone images by pattern (backward compatibility)
+            echo "[INFO] Removing HPone images..."
+            docker images --format "{{.Repository}}:{{.Tag}}" | grep -E "^(dtagdevsec|ghcr.io/telekom-security)/" | xargs -r docker rmi 2>/dev/null || true
+
+            # Remove images with hpone label (for new installations)
+            if docker images -q --filter "label=hpone" | grep -q .; then
+                echo "[INFO] Removing HPone labeled images..."
+                docker rmi \$(docker images -q --filter "label=hpone") 2>/dev/null || true
+            fi
+
+            echo "[INFO] Docker cleanup completed"
         fi
         ;;
 
