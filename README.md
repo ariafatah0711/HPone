@@ -108,7 +108,23 @@ USE_EPHEMERAL_LOGGING = True      # Real-time vs Simple output
 
 ## 🚀 Quick Setup
 
-### 🎨 One-Click Installation
+### 📦 Debian Package Installation (Recommended)
+
+```bash
+# Download and install the latest .deb package
+wget https://github.com/ariafatah0711/HPone/releases/latest/download/hpone_2.2.0_all.deb
+
+sudo apt install -f ./hpone_2.2.0_all.deb
+sudo usermod -aG docker $USER
+
+# sudo dpkg -i hpone_2.2.0_all.deb
+# sudo apt-get install -f
+
+# 🔄 Restart your shell to enable bash completion
+exec bash
+```
+
+### 🔧 Source Installation
 
 ```bash
 # Clone and setup HPone
@@ -219,7 +235,20 @@ chmod +x hpone/completion/uninstall.sh
 
 ## 🗑️ Uninstall
 
-### 🔄 Complete System Removal
+### 📦 Debian Package Removal
+
+```bash
+sudo apt remove hpone # Remove the installed package
+sudo apt purge hpone # Optional: Remove configuration files
+
+# sudo dpkg -r hpone # Remove the installed package
+# sudo dpkg -P hpone # Optional: Remove configuration files
+
+# 🔄 Restart your shell
+exec bash
+```
+
+### 🔄 Source Installation Removal
 
 ```bash
 # 🧹 Uninstall global installation & bash completion
