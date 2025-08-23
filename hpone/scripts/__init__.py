@@ -56,6 +56,18 @@ from .logs import (
     logs_main
 )
 
+from .clean import (
+    clean_main,
+    clean_all_honeypots,
+    clean_single_honeypot
+)
+
+from .up import (
+    up_main,
+    up_all_honeypots,
+    up_single_honeypot
+)
+
 __all__ = [
     # List commands
     'list_honeypots',
@@ -98,5 +110,15 @@ __all__ = [
     'show_status',
 
     # Logs
-    'logs_main'
+    'logs_main',
+
+    # Clean
+    'clean_main',
+    'clean_all_honeypots',
+    'clean_single_honeypot',
+
+    # Up
+    'up_main',
+    'up_all_honeypots',
+    'up_single_honeypot'
 ]
