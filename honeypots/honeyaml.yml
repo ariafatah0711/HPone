@@ -5,6 +5,6 @@ ports:
 - host: 8085
   container: 8080
   description: "HTTP web server (YAML-based)"
-env: {}
+env:
 volumes:
 - data/honeyaml/log:/opt/honeyaml/log

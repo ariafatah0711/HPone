@@ -5,7 +5,7 @@ ports:
 - host: 2222
   container: 22
   description: "SSH honeypot service"
-env: {}
+env:
 volumes:
 - data/cowrie/log:/home/cowrie/cowrie/log
 - data/cowrie/downloads:/home/cowrie/cowrie/dl

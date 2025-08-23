@@ -5,6 +5,6 @@ ports:
 - host: 631
   container: 631
   description: "IPP Internet Printing Protocol"
-env: {}
+env:
 volumes:
 - data/ipphoney/log:/opt/ipphoney/log

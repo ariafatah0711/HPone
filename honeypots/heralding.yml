@@ -50,6 +50,6 @@ ports:
 - host: 5900
   container: 5900
   description: "VNC remote desktop protocol"
-env: {}
+env:
 volumes:
 - data/heralding/log:/var/log/heralding

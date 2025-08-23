@@ -5,6 +5,6 @@ ports:
 - host: 80
   container: 80
   description: "HTTP web server port"
-env: {}
+env:
 volumes:
 - data/wordpot/log:/opt/wordpot/logs

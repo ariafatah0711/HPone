@@ -8,7 +8,8 @@ from .yaml import (
     load_honeypot_yaml_by_filename,
     find_honeypot_yaml_path,
     set_honeypot_enabled,
-    is_honeypot_enabled
+    is_honeypot_enabled,
+    get_custom_template_dir
 )
 
 from .docker import (
@@ -48,6 +49,7 @@ __all__ = [
     'find_honeypot_yaml_path',
     'set_honeypot_enabled',
     'is_honeypot_enabled',
+    'get_custom_template_dir',
 
     # Docker operations
     'is_honeypot_running',

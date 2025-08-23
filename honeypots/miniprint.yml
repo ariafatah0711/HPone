@@ -5,7 +5,7 @@ ports:
   - host: 9100
     container: 9100
     description: "Printer JetDirect protocol"
-env: {}
+env:
 volumes:
 - data/miniprint/log/:/opt/miniprint/log/
 - data/miniprint/uploads/:/opt/miniprint/uploads/

@@ -16,7 +16,7 @@ ports:
 - host: 1900
   container: 1900/udp
   description: "SSDP reflection attack"
-env: {}
+env:
 volumes:
 - data/ddospot/log:/opt/ddospot/ddospot/logs
 - data/ddospot/bl:/opt/ddospot/ddospot/bl

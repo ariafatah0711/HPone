@@ -8,6 +8,6 @@ ports:
 - host: 8443
   container: 8443
   description: "HTTPS/SSL management console"
-env: {}
+env:
 volumes:
 - data/ciscoasa/log:/var/log/ciscoasa

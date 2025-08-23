@@ -148,11 +148,13 @@ def generate_env_file(dest_dir: Path, honeypot_name: str, config: Dict[str, Any]
         lines.append(f"{prefix}_VOL{idx}_SRC={normalized_src}")
         lines.append(f"{prefix}_VOL{idx}_DST={dst}")
 
-    # Env
+    # Env - only include variables that are actually defined in YAML config
     env_mapping = parse_env(config)
-    for k, v in env_mapping.items():
-        key_name = re.sub(r"[^A-Z0-9]+", "_", str(k).upper()).strip("_")
-        lines.append(f"{prefix}_{key_name}={v}")
+    # Only add to .env file if there are actually environment variables defined
+    if env_mapping:
+        for k, v in env_mapping.items():
+            key_name = re.sub(r"[^A-Z0-9]+", "_", str(k).upper()).strip("_")
+            lines.append(f"{prefix}_{key_name}={v}")
 
     content = "\n".join(lines) + "\n"
     env_path = dest_dir / ".env"
@@ -235,11 +237,13 @@ def rewrite_compose_with_env(dest_dir: Path, honeypot_id: str, honeypot_name: st
     ports_expr: List[str] = [f"${{{prefix}_PORT{i}_SRC}}:${{{prefix}_PORT{i}_DST}}" for i in range(1, len(ports_pairs) + 1)]
     volumes_expr: List[str] = [f"${{{prefix}_VOL{i}_SRC}}:${{{prefix}_VOL{i}_DST}}" for i in range(1, len(volumes_pairs) + 1)]
 
-    env_map = parse_env(config) if isinstance(config.get("env"), dict) else {}
+    env_map = parse_env(config) if isinstance(config.get("env"), dict) and config.get("env") else {}
     env_expr_map: Dict[str, str] = {}
-    for k in env_map.keys():
-        key_name = re.sub(r"[^A-Z0-9]+", "_", str(k).upper()).strip("_")
-        env_expr_map[str(k)] = f"${{{prefix}_{key_name}}}"
+    # Only create environment variable expressions if there are actually variables defined
+    if env_map:
+        for k in env_map.keys():
+            key_name = re.sub(r"[^A-Z0-9]+", "_", str(k).upper()).strip("_")
+            env_expr_map[str(k)] = f"${{{prefix}_{key_name}}}"
 
     cfg_image = config.get("image")
 
@@ -255,24 +259,31 @@ def rewrite_compose_with_env(dest_dir: Path, honeypot_id: str, honeypot_name: st
             svc["volumes"] = volumes_expr.copy()
 
         if env_expr_map:
-            # Merge dengan environment yang sudah ada, namun overwrite key yang sama agar konsisten dengan honeypots YAML
+            # Merge with existing environment, keeping template variables that aren't overridden
             current_env = svc.get("environment")
             if isinstance(current_env, dict):
+                # Keep all existing template environment variables
                 merged = dict(current_env)
+                # Only override the specific variables defined in YAML config
                 for k, v in env_expr_map.items():
                     merged[k] = v
                 svc["environment"] = merged
             elif isinstance(current_env, list):
-                # Ubah list ke dict jika memungkinkan (format KEY=val)
+                # Convert list to dict format, preserving all template variables
                 temp: Dict[str, str] = {}
                 for item in current_env:
                     if isinstance(item, str) and "=" in item:
                         k, v = item.split("=", 1)
                         temp[k] = v
+                    elif isinstance(item, str):
+                        # Handle environment variables without values
+                        temp[item] = ""
+                # Only override the specific variables defined in YAML config
                 for k, v in env_expr_map.items():
                     temp[k] = v
                 svc["environment"] = temp
             else:
+                # No existing environment, use only YAML config variables
                 svc["environment"] = env_expr_map.copy()
 
         if isinstance(cfg_image, str) and cfg_image.strip():

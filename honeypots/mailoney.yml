@@ -8,6 +8,6 @@ ports:
 # - host: 587
 #   container: 25
 #   description: "SMTP submission port (secure)"
-env: {}
+env:
 volumes:
 - data/mailoney/log:/opt/mailoney/logs

@@ -23,10 +23,27 @@ def ensure_destination_dir(dest: Path, force: bool = False) -> None:
 
 def find_template_dir(honeypot_id: str) -> Path:
     """
-    Locate template directory:
-      1) template/docker/<honeypot_id>/
-      2) If not present, and template/docker/ contains 'Dockerfile' and 'docker-compose.yml' directly, use that.
+    Locate template directory with support for custom template_dir from YAML:
+      1) If honeypot YAML has 'template_dir' field, use that custom path
+      2) template/docker/<honeypot_id>/
+      3) If not present, and template/docker/ contains 'Dockerfile' and 'docker-compose.yml' directly, use that.
     """
+    # Check for custom template directory in YAML config
+    try:
+        from core.yaml import get_custom_template_dir
+        custom_template = get_custom_template_dir(honeypot_id)
+        if custom_template and custom_template.exists() and custom_template.is_dir():
+            # Verify custom template has required files
+            dockerfile = custom_template / "Dockerfile"
+            compose = custom_template / "docker-compose.yml"
+            if dockerfile.exists() and compose.exists():
+                return custom_template
+            else:
+                print(f"{PREFIX_WARN} Custom template directory '{custom_template}' missing required files (Dockerfile, docker-compose.yml)")
+    except Exception as e:
+        print(f"{PREFIX_WARN} Failed to check custom template directory: {e}")
+
+    # Fallback to standard template discovery
     honeypot_dir = TEMPLATE_DOCKER_DIR / honeypot_id
     if honeypot_dir.exists() and honeypot_dir.is_dir():
         return honeypot_dir
@@ -39,7 +56,7 @@ def find_template_dir(honeypot_id: str) -> Path:
     # Helpful info
     available = sorted([p.name for p in TEMPLATE_DOCKER_DIR.glob("*/") if p.is_dir()])
     raise FileNotFoundError(
-        f"Template not found. Expected '{TEMPLATE_DOCKER_DIR}/<honeypot>/' or common files 'Dockerfile' and 'docker-compose.yml'. "
+        f"Template not found. Expected custom 'template_dir' in YAML, '{TEMPLATE_DOCKER_DIR}/<honeypot>/' or common files 'Dockerfile' and 'docker-compose.yml'. "
         f"Requested honeypot: '{honeypot_id}'. Available templates: {', '.join(available) if available else '-'}"
     )
 

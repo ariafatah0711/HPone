@@ -1,7 +1,8 @@
 name: conpot
 description: ICS/SCADA honeypot to simulate industrial devices with various protocols
 enabled: true
-service: conpot_default
+service: conpot_default # Optional: service name
+template_dir: template/docker/conpot # Optional: custom template directory (relative to project root)
 ports:
 - host: 102
   container: 102
@@ -21,6 +22,12 @@ ports:
 - host: 47808
   container: 47808
   description: "BACnet building automation"
-env: {}
+env:
+  CONPOT_CONFIG: /etc/conpot/conpot.cfg
+  CONPOT_JSON_LOG: /var/log/conpot/conpot_default.json
+  CONPOT_LOG: /var/log/conpot/conpot_default.log
+  CONPOT_TEMPLATE: default
+  CONPOT_TMP: /tmp/conpot
+  # CUSTOM_VAR: my_custom_value
 volumes:
 - data/conpot/log:/var/log/conpot

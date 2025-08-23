@@ -5,6 +5,6 @@ ports:
 - host: 8080
   container: 8080
   description: "HTTP web server (infinite response)"
-env: {}
+env:
 volumes:
 - data/hellpot/log:/var/log/hellpot

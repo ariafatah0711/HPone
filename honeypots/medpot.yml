@@ -5,6 +5,6 @@ ports:
 - host: 2575
   container: 2575
   description: "HL7 medical protocol"
-env: {}
+env:
 volumes:
 - data/medpot/log:/var/log/medpot

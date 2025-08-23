@@ -5,7 +5,7 @@ ports:
 - host: 5550
   container: 5555
   description: "Android Debug Bridge (ADB) service"
-env: {}
+env:
 volumes:
 - data/adbhoney/log:/opt/adbhoney/log
 - data/adbhoney/downloads:/opt/adbhoney/dl

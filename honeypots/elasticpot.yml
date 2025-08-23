@@ -5,6 +5,6 @@ ports:
 - host: 9200
   container: 9200
   description: "Elasticsearch REST API"
-env: {}
+env:
 volumes:
 - data/elasticpot/log:/opt/elasticpot/log

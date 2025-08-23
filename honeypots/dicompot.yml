@@ -8,7 +8,7 @@ ports:
 - host: 11112
   container: 11112
   description: "DICOM medical imaging protocol"
-env: {}
+env:
 volumes:
 - data/dicompot/log:/var/log/dicompot
 #- data/dicompot/images:/opt/dicompot/images  # Medical image storage directory

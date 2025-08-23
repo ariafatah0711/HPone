@@ -80,3 +80,27 @@ def is_honeypot_enabled(honeypot_id: str) -> bool:
         return bool(data.get("enabled") is True)
     except Exception:
         return False
+
+
+def get_custom_template_dir(honeypot_id: str) -> Path | None:
+    """
+    Get custom template directory from honeypot YAML config.
+    Returns None if no custom template_dir is specified.
+    """
+    try:
+        yaml_path = find_honeypot_yaml_path(honeypot_id)
+        with yaml_path.open("r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        template_dir = data.get("template_dir")
+        if template_dir:
+            # Convert to Path and resolve relative paths
+            custom_path = Path(template_dir)
+            if not custom_path.is_absolute():
+                # Resolve relative to the project root or YAML location
+                from .constants import PROJECT_ROOT
+                custom_path = PROJECT_ROOT / custom_path
+            return custom_path
+        return None
+    except Exception:
+        return None

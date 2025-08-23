@@ -1,273 +1,491 @@
-# HPone - Docker Honeypot Manager
+<div align="center">
 
-**HPone** is a honeypot tool for managing Docker honeypot templates with **auto-import** features that simplify deployment and management.
+# 🍯 HPone - Docker Honeypot Manager
+
+<p align="center">
+  <strong>A powerful Docker honeypot management tool with auto-import capabilities</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/License-GPL%20v3-blue.svg?style=for-the-badge" alt="License">
+</p>
+
+</div>
+
+---
+
+## 🎯 Overview
+
+**HPone** is a comprehensive Docker-based honeypot management platform that simplifies the deployment, monitoring, and maintenance of security honeypots. With intelligent auto-import features and streamlined command interfaces, HPone makes honeypot management accessible for both production and development environments.
+
+### ✨ Key Features
+
+- 🚀 **Auto-Import System** - Seamless honeypot template deployment
+- 🐳 **Docker Integration** - Containerized honeypot environments
+- 📊 **Real-time Monitoring** - Live log streaming and status tracking
+- 🔧 **Flexible Configuration** - YAML-based honeypot definitions
+- 🛡️ **Multi-Honeypot Support** - Manage multiple honeypot types simultaneously
+- 💻 **Interactive CLI** - User-friendly command-line interface with bash completion
 
 ## 🔑 Operational Modes
 
-HPone can be run in two main modes:
+<table>
+<tr>
+<th>🤖 Automatic Mode</th>
+<th>🔧 Manual Mode</th>
+</tr>
+<tr>
+<td>
 
-### **Automatic Mode (ALWAYS_IMPORT=true)**
-- ✅ **Auto-import** honeypots at startup
-- ✅ **Command simplified** - no manual import/update required
-- ✅ **Production ready** - minimal human intervention
-- ✅ **Smart management** - honeypots managed automatically
-- ✅ **Ephemeral logging** - clean real-time log display
+**`ALWAYS_IMPORT=true`**
+- ✅ Auto-import at startup
+- ✅ Simplified commands
+- ✅ Production ready
+- ✅ Smart management
+- ✅ Ephemeral logging
 
-### **Manual Mode (ALWAYS_IMPORT=false)**
-- 🔧 **Full control** - manual import/update
-- 🔧 **Development friendly** - debugging and testing
-- 🔧 **Template management** - update and maintenance
+</td>
+<td>
+
+**`ALWAYS_IMPORT=false`**
+- 🔧 Full manual control
+- 🔧 Development friendly
+- 🔧 Debug & testing
+- 🔧 Template management
+- 🔧 Update control
+
+</td>
+</tr>
+</table>
 
 ## 📁 Project Structure
 
 ```
-HPone/
-├── app.py                 # Launcher script
-├── hpone/                 # Main application
-│   ├── app.py              # Main application
-│   ├── config.py           # Configuration file
-│   ├── completion/         # Bash completion scripts
-│   ├── core/               # Core modules
-│   └── scripts/            # Command scripts
-├── honeypots/             # YAML honeypot files
-├── template/docker/       # Base templates for generating Dockerfiles and related configs
-├── conf/                  # Custom persistent configuration (stored on host)
-├── docker/                # Generated Docker build output (temporary, not persistent)
-└── data/                  # Container volume for logs and runtime data
+📦 HPone/
+┣ 🚀 app.py                     # Main launcher script
+┣ 📂 hpone/                     # Core application directory
+┃ ┣ 🎯 app.py                   # Application entry point
+┃ ┣ ⚙️  config.py               # Configuration management
+┃ ┣ 📂 completion/              # Bash completion scripts
+┃ ┣ 📂 core/                    # Core functionality modules
+┃ ┗ 📂 scripts/                 # Command implementations
+┣ 📂 honeypots/                 # 🍯 YAML honeypot definitions
+┣ 📂 template/docker/           # 📋 Base Docker templates
+┣ 📂 conf/                      # 🔧 Persistent configurations
+┣ 📂 docker/                    # 🐳 Generated build outputs (temp)
+┗ 📂 data/                      # 💾 Runtime data & logs
 ```
 
 ## ⚙️ Configuration
 
-Edit `hpone/config.py`:
+Configure HPone behavior by editing `hpone/config.py`:
+
+<details>
+<summary><strong>📋 View Configuration Options</strong></summary>
 
 ```python
-# Behavior mode
-ALWAYS_IMPORT = True          # True: auto-import (hide import/update), False: manual control
+# 🎭 Behavior Mode
+ALWAYS_IMPORT = True              # Auto-import vs Manual control
 
-# Path configuration
-HONEYPOT_MANIFEST_DIR = PROJECT_ROOT / "honeypots"
-TEMPLATE_DOCKER_DIR = PROJECT_ROOT / "template" / "docker"
-OUTPUT_DOCKER_DIR = PROJECT_ROOT / "docker"
-DATA_DIR = PROJECT_ROOT / "data"   # mount location for container log data (safe to delete during folder clean)
+# 📍 Path Configuration
+HONEYPOT_MANIFEST_DIR = PROJECT_ROOT / "honeypots"    # YAML definitions
+TEMPLATE_DOCKER_DIR = PROJECT_ROOT / "template" / "docker"  # Base templates
+OUTPUT_DOCKER_DIR = PROJECT_ROOT / "docker"           # Build outputs
+DATA_DIR = PROJECT_ROOT / "data"                      # Runtime data
 
-# Display configuration
-LIST_BASIC_MAX_WIDTH = 80      # Max width for basic list
-LIST_DETAILED_MAX_WIDTH = 30   # Max width for list -a (detailed)
-STATUS_TABLE_MAX_WIDTH = 40    # Max width for status table columns
+# 🖥️  Display Configuration
+LIST_BASIC_MAX_WIDTH = 80         # Basic list width
+LIST_DETAILED_MAX_WIDTH = 30      # Detailed list width
+STATUS_TABLE_MAX_WIDTH = 40       # Status table width
 
-# Logging configuration
-USE_EPHEMERAL_LOGGING = True  # True: real-time logs, False: simple output
+# 📝 Logging Configuration
+USE_EPHEMERAL_LOGGING = True      # Real-time vs Simple output
 ```
 
-## 🚀 Fast Setup (auto install)
+</details>
+
+## 🚀 Quick Setup
+
+### 🎨 One-Click Installation
+
 ```bash
+# Clone and setup HPone
 git clone https://github.com/ariafatah0711/HPone hpone
 cd hpone
 
-# setup Global Installation, and Bash Completion
+# 🔧 Setup with global installation & bash completion
 chmod +x setup.sh
-./setup.sh install # restart shell after execution
-
-# Uninstall Global Installation, and Bash Completion
-./setup.sh uninstall # restart shell after execution
+./setup.sh install
+# 🔄 Restart your shell after installation
 ```
 
-## 🛠 Manual Install
-### 📦 Install Library & Dependencies
+---
+
+## 🛠 Manual Installation
+
+<details>
+<summary><strong>📦 Dependencies & Libraries</strong></summary>
+
+### 🔍 Install Required Dependencies
+
 ```bash
-# install library
-pip3 install requirements.txt
+# 🐍 Install Python dependencies
+pip3 install -r requirements.txt
 
-# install docker.io
+# 🐳 Install Docker Engine
 sudo apt install docker.io
+sudo usermod -aG docker $USER
 
-# install docker compose
+# 📦 Install Docker Compose
 DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
 mkdir -p $DOCKER_CONFIG/cli-plugins
-curl -SL https://github.com/docker/compose/releases/download/v2.29.0/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+curl -SL https://github.com/docker/compose/releases/download/v2.29.0/docker-compose-linux-x86_64 \
+  -o $DOCKER_CONFIG/cli-plugins/docker-compose
 
+# 🔒 Set executable permissions
 chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
-# or
-sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+# Alternative system-wide installation
+# sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
-# verify
+# ✅ Verify installation
 docker compose version
 ```
 
-### ⚙️ Global Installation (Run Anywhere)
+</details>
 
-To run `hpone` from anywhere without `./app.py`:
+<details>
+<summary><strong>🌐 Global Installation</strong></summary>
+
+### 🔗 Make HPone Available System-Wide
 
 ```bash
+# 🔒 Set executable permissions
 chmod +x app.py
+
+# 🔗 Create symbolic link for global access
 sudo ln -s $(pwd)/app.py /usr/local/bin/hpone
 
+# ✅ Test global installation
 hpone -h
 ```
 
-## ⌨️ Bash Completion
+</details>
 
-For ease of use, HPone provides bash completion.
+<details>
+<summary><strong>⌨️ Bash Completion Setup</strong></summary>
 
-### **Installation**
+### 🔍 Enhanced CLI Experience with Auto-Completion
+
 ```bash
+# 🔧 Quick setup
 chmod +x hpone/completion/install.sh
-./hpone/completion/install.sh # restart shell required
+./hpone/completion/install.sh
+# 🔄 Restart shell to activate
 
-# or manually
+# 🐄 Manual activation (session only)
 source hpone/completion/hpone-completion.bash
 ```
 
-### **Usage**
-```bash
-./app.py <TAB>                    # Complete command
-./app.py inspect <TAB>            # Complete honeypot name
-./app.py logs <TAB>               # Complete honeypot name
-./app.py up <TAB>                 # Complete honeypot or --all
+### 🎨 Usage Examples
 
-hpone <TAB>                       # Complete command
-hpone clean <TAB>              # Complete honeypot name
-hpone logs <TAB>               # Complete honeypot name
-hpone up <TAB>                 # Complete honeypot or --all
+```bash
+# 📝 Local execution
+./app.py <TAB>                    # Complete commands
+./app.py inspect <TAB>            # Complete honeypot names
+./app.py logs <TAB>               # Complete honeypot names
+./app.py up <TAB>                 # Complete honeypots or --all
+
+# 🌍 Global execution
+hpone <TAB>                       # Complete commands
+hpone clean <TAB>                 # Complete honeypot names
+hpone logs <TAB>                  # Complete honeypot names
+hpone up <TAB>                    # Complete honeypots or --all
 ```
 
-### **Uninstall**
+### 🗑️ Uninstall Completion
+
 ```bash
 chmod +x hpone/completion/uninstall.sh
 ./hpone/completion/uninstall.sh
 ```
 
-See `hpone/completion/README.md` for complete information.
+> 📋 **More Info:** See `hpone/completion/README.md` for detailed documentation
 
-## 🎯 How to Use
+</details>
 
-### **Quick Start (ALWAYS_IMPORT=true)**
+---
+
+## 🗑️ Uninstall
+
+### 🔄 Complete System Removal
 
 ```bash
-# Enable required honeypots
+# 🧹 Uninstall global installation & bash completion
+chmod +x setup.sh
+./setup.sh uninstall
+# 🔄 Restart your shell after uninstallation
+
+# 🗂️ Optional: Remove project directory
+cd ..
+rm -rf hpone
+```
+
+## 🎯 Getting Started
+
+### 🚀 **Quick Start Guide** (`ALWAYS_IMPORT=true`)
+
+<table>
+<tr>
+<th width="50%">📝 Commands</th>
+<th width="50%">📄 Description</th>
+</tr>
+<tr>
+<td>
+
+```bash
+# ⚙️ Enable honeypots
 hpone enable cowrie
 hpone enable medpot
 
-# Start honeypots (auto-import + up)
+# 🚀 Start honeypots
 hpone up cowrie
 hpone up medpot
-
-# Start all enabled honeypots
+# or start all at once
 hpone up --all
+```
 
-# Check status
+</td>
+<td>
+
+**Setup Phase**
+- Enable required honeypots
+- Auto-import & start containers
+- Bulk operations supported
+
+</td>
+</tr>
+<tr>
+<td>
+
+```bash
+# 📈 Monitor status
 hpone list
 hpone status
 
-# View logs interactively
+# 📄 View logs interactively
 hpone logs cowrie
 hpone logs medpot
+```
 
-# Stop honeypots
-hpone down cowrie
-hpone down --all
+</td>
+<td>
 
-# Open shell in container
+**Monitoring Phase**
+- Check honeypot status
+- Real-time log streaming
+- Interactive file browser
+
+</td>
+</tr>
+<tr>
+<td>
+
+```bash
+# 💻 Access containers
 hpone shell cowrie
 
-# Clean honeypots (stop + remove)
-hpone clean cowrie
+# 📏 Stop & cleanup
+hpone down cowrie
 hpone clean --all --data
 ```
 
+</td>
+<td>
+
+**Management Phase**
+- Direct container access
+- Graceful shutdown
+- Complete cleanup options
+
+</td>
+</tr>
+</table>
+
 ## 🔧 Command Reference
 
-### **Available Commands**
-- `check` - Check dependencies
-- `list` - List honeypots (`-a` for details)
-- `status` - Show running status
-- `inspect <honeypot>` - Show honeypot details
-- `enable/disable <honeypot>` - Enable/disable honeypots
-- `up <honeypot>` - Start honeypot (auto-import)
-- `up --all` - Start all enabled honeypots
-- `down <honeypot>` - Stop honeypot
-- `down --all` - Stop all honeypots
-- `shell <honeypot>` - Open shell (bash/sh) in running container
-- `logs <honeypot>` - Interactive log viewer with file browsing
-- `clean <honeypot>` - Stop + remove honeypot
-- `clean --all` - Stop + remove all honeypots
-- `clean --data` - Also remove data volumes
-- `clean --image` - Also remove images
-- `clean --volume` - Also remove volumes
+### 📊 **Core Commands**
 
-### **Examples**
+| Command | Description | Example |
+|---------|-------------|----------|
+| 🔍 `check` | Verify dependencies | `hpone check` |
+| 📋 `list` | Show honeypots | `hpone list -a` |
+| 📈 `status` | Runtime status | `hpone status` |
+| 🔎 `inspect` | Honeypot details | `hpone inspect cowrie` |
+
+### 🏃 **Lifecycle Commands**
+
+| Command | Description | Options | Example |
+|---------|-------------|---------|----------|
+| ⚙️ `enable/disable` | Toggle honeypot | - | `hpone enable cowrie` |
+| 🚀 `up` | Start honeypot | `--all`, `--force` | `hpone up --all` |
+| 📏 `down` | Stop honeypot | `--all` | `hpone down cowrie` |
+| 💻 `shell` | Container access | - | `hpone shell cowrie` |
+| 📄 `logs` | Interactive logs | - | `hpone logs cowrie` |
+| 🗑️ `clean` | Stop & remove | `--all`, `--data`, `--image`, `--volume` | `hpone clean --all --data` |
+
+### 🎨 **Advanced Usage Examples**
+
+<details>
+<summary><strong>📁 Expand Examples</strong></summary>
 
 ```bash
-# Basic workflow
+# 🔄 Complete workflow
 hpone enable cowrie
 hpone up cowrie
-hpone logs cowrie    # Interactive log viewer
-hpone shell cowrie
+hpone logs cowrie    # Interactive log viewer with:
+                     #   • Recent Docker logs (30 lines)
+                     #   • Follow live logs (tail -f)
+                     #   • Browse data directory files
+                     #   • Search & follow individual files
+hpone shell cowrie   # Direct container access
 hpone down cowrie
 
-# Check status
-hpone list
-hpone status
+# 📊 Status monitoring
+hpone list           # Basic honeypot list
+hpone list -a        # Detailed view with descriptions
+hpone status         # Runtime status table
 
-# Log viewing features
-hpone logs cowrie    # Interactive menu with:
-                     # - Recent Docker logs (last 30 lines)
-                     # - Follow live logs (tail -f)
-                     # - Browse log files in data directories
-                     # - View, search, and follow individual files
-
-# Clean everything
+# 🗑️ Comprehensive cleanup
 hpone clean --all --data --image --volume
+#   • --data: Remove persistent data
+#   • --image: Remove Docker images
+#   • --volume: Remove Docker volumes
 
-# Force start disabled honeypot
-hpone up wordpot --force
+# 👍 Force operations
+hpone up wordpot --force    # Override disabled status
+hpone up --all --update     # Update before starting
 ```
+
+</details>
 
 ## 🔍 Troubleshooting
 
-### **Check Dependencies**
+### 🥾 **Dependency Check**
 ```bash
-hpone check
+hpone check  # Comprehensive system validation
 ```
 
-### **View Logs**
-```bash
-# Check Docker logs
-docker logs cowrie
+### 📝 **Ephemeral Logging System**
 
-# Check compose status
-docker-compose -f docker/cowrie/docker-compose.yml ps
-```
-
-### **Ephemeral Logging**
-HPone uses ephemeral logging for clean real-time display:
+HPone features **real-time ephemeral logging** for clean output:
 
 ```
-[22:48:02] [INFO] Starting cowrie containers ...
+[22:48:02] [INFO] Starting cowrie containers...
 [22:48:05] [INFO] Docker network created
 [22:48:06] [INFO] Building cowrie image
 [22:48:10] [INFO] Container cowrie started
-[UP] cowrie OK (2.3s)
+🚀 [UP] cowrie OK (2.3s)
 ```
 
-If there are issues, set `USE_EPHEMERAL_LOGGING = False` in `config.py`.
+**🐛 Issues?** Set `USE_EPHEMERAL_LOGGING = False` in `config.py` for detailed output.
 
-## 📝 Notes
+---
 
-- **ALWAYS_IMPORT=true**: Production mode, minimal commands, auto-management
-- **ALWAYS_IMPORT=false**: Development mode, full control, manual management
-- **Disabled** tools will not auto-start
-- Use `--force` to override enabled status
-- `shell` command requires a running container
+## 📋 Creating Custom Honeypots
+
+### 🎨 **YAML Configuration Template**
+
+Create a new file in `honeypots/` directory:
+
+```yaml
+# 🍯 Custom Honeypot Definition
+name: myhoneypot
+description: "Custom honeypot for HTTP services"
+enabled: true
+
+# 📁 Optional: Custom template directory
+template_dir: custom/template/path  # Relative or absolute path
+
+# 🌐 Port Configuration
+ports:
+- host: 8080
+  container: 80
+  description: "HTTP service"
+- host: 8443
+  container: 443
+  description: "HTTPS service"
+
+# 🌍 Environment Variables (merged with template defaults)
+env:
+  MY_CUSTOM_VAR: "production_value"
+  DEBUG_MODE: "false"
+  LOG_LEVEL: "INFO"
+
+# 💾 Volume Mounts
+volumes:
+- data/myhoneypot/logs:/app/logs           # Persistent logs
+- conf/myhoneypot/config.yml:/app/config.yml  # Custom config override
+```
+
+### 🔑 **Key Configuration Fields**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `template_dir` | Optional | Custom template path (relative to project or absolute) |
+| `env` | Object | Environment variables (merged with template defaults) |
+| `ports` | Array | Port mappings with optional descriptions |
+| `volumes` | Array | Volume mounts for data persistence and configuration |
+
+---
+
+## 📝 Important Notes
+
+<div align="center">
+
+| 🤖 **Auto Mode** | 🔧 **Manual Mode** |
+|:---:|:---:|
+| `ALWAYS_IMPORT=true` | `ALWAYS_IMPORT=false` |
+| Production ready | Development friendly |
+| Minimal commands | Full control |
+| Auto-management | Manual operations |
+
+</div>
+
+> ⚠️ **Disabled honeypots** will not auto-start
+> 👍 Use `--force` to override enabled status
+> 💻 `shell` command requires running containers
+
+---
 
 ## 🤝 Contributing
 
-1. Fork project
-2. Create feature branch
-3. Commit changes
-4. Push to branch
-5. Create Pull Request
+<div align="center">
+
+**🎆 Help make HPone better!**
+
+</div>
+
+1. 🍴 **Fork** the project
+2. 🌱 **Create** feature branch (`git checkout -b feature/amazing-feature`)
+3. 📝 **Commit** changes (`git commit -m 'Add amazing feature'`)
+4. 🚀 **Push** to branch (`git push origin feature/amazing-feature`)
+5. 📩 **Open** Pull Request
+
+---
+
+<div align="center">
 
 ## 📄 License
 
-This project is licensed under the GNU General Public License v3.0 (GPL-3.0). See the `LICENSE` file.
+**HPone** is licensed under the **GNU General Public License v3.0** (GPL-3.0)
+See the [`LICENSE`](LICENSE) file for details.
+
+---
+
+<p align="center">
+  <strong>🍯 Made with ❤️ for cybersecurity enthusiasts</strong>
+</p>
+
+</div>
