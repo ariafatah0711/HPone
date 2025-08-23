@@ -190,3 +190,69 @@ def shell_honeypot(honeypot_id: str) -> None:
 
     # If we get here, neither bash nor sh worked
     raise RuntimeError(f"Could not open shell in container '{honeypot_id}'. Neither bash nor sh are available.")
+
+
+def cleanup_global_images() -> None:
+    """Remove all honeypot-related Docker images globally."""
+    print("Removing all honeypot Docker images...")
+
+    # Common honeypot image patterns
+    honeypot_patterns = [
+        "dtagdevsec/*",
+        "ghcr.io/telekom-security/*",
+        "*honeypot*",
+        "*pot*"
+    ]
+
+    removed_count = 0
+    for pattern in honeypot_patterns:
+        try:
+            # Get images matching the pattern
+            result = subprocess.run(
+                ["docker", "images", "--filter", f"reference={pattern}", "--format", "{{.Repository}}:{{.Tag}}"],
+                capture_output=True, text=True, check=False
+            )
+
+            if result.stdout.strip():
+                images = result.stdout.strip().split('\n')
+                for image in images:
+                    if image and not image.isspace():
+                        try:
+                            result = subprocess.run(
+                                ["docker", "rmi", image],
+                                capture_output=True, text=True, check=False
+                            )
+                            if result.returncode == 0:
+                                print(f"{PREFIX_OK}: Removed image {image}")
+                                removed_count += 1
+                            # Ignore errors (image might be in use, etc.)
+                        except Exception:
+                            # Silently skip problematic images
+                            pass
+        except Exception:
+            # Skip pattern if docker command fails
+            pass
+
+    if removed_count > 0:
+        print(f"{PREFIX_OK}: Global image cleanup completed ({removed_count} images removed)")
+    else:
+        print(f"{PREFIX_OK}: No honeypot images found to remove")
+
+
+def cleanup_global_volumes() -> None:
+    """Remove unused Docker volumes globally."""
+    print("Removing unused Docker volumes...")
+
+    try:
+        # Use docker volume prune to remove only unused volumes
+        result = subprocess.run(
+            ["docker", "volume", "prune", "-f"],
+            capture_output=True, text=True, check=False
+        )
+
+        if result.returncode == 0:
+            print(f"{PREFIX_OK}: Removed unused Docker volumes")
+        else:
+            print(f"{PREFIX_WARN} Volume cleanup completed with warnings")
+    except Exception as exc:
+        print(f"{PREFIX_WARN} Failed to remove volumes: {exc}")

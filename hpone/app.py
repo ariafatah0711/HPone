@@ -25,6 +25,8 @@ from core import (
     up_honeypot,
     down_honeypot,
     shell_honeypot,
+    cleanup_global_images,
+    cleanup_global_volumes,
 
     # Configuration handling
     parse_ports,
@@ -67,6 +69,13 @@ from scripts import (
     # Logs
     logs_main
 )
+
+# Import questionary for interactive prompts
+try:
+    import questionary
+except ImportError:
+    print("Error: questionary library not installed. Run: pip install questionary", file=sys.stderr)
+    sys.exit(1)
 
 from core.utils import PREFIX_OK, PREFIX_ERROR, PREFIX_WARN
 from test import run_import_self_test
@@ -192,29 +201,30 @@ def main(argv: List[str]) -> int:
 
                 # First ask about data removal if --data flag is present
                 if getattr(args, "data", False):
-                    reply = input("This will remove mounted data under data/<honeypot> for ALL honeypots. Continue? [y/N]: ").strip().lower()
-                    print()  # Add newline after input
-                    remove_data_all = reply in ("y", "yes", "ya")
+                    remove_data_all = questionary.confirm(
+                        "This will remove mounted data under data/<honeypot> for ALL honeypots. Continue?"
+                    ).unsafe_ask()
                     if not remove_data_all:
                         print("Data removal cancelled.")
 
                 # Second ask about image removal if --image flag is present
                 if getattr(args, "image", False):
-                    reply = input("This will remove Docker images for ALL honeypots. Continue? [y/N]: ").strip().lower()
-                    print()  # Add newline after input
-                    remove_images_all = reply in ("y", "yes", "ya")
+                    remove_images_all = questionary.confirm(
+                        "This will remove Docker images for ALL honeypots. Continue?"
+                    ).unsafe_ask()
                     if not remove_images_all:
                         print("Image removal cancelled.")
 
                 # Third ask about volume removal if --volume flag is present
                 if getattr(args, "volume", False):
-                    reply = input("This will remove Docker volumes for ALL honeypots. Continue? [y/N]: ").strip().lower()
-                    print()  # Add newline after input
-                    remove_volumes_all = reply in ("y", "yes", "ya")
+                    remove_volumes_all = questionary.confirm(
+                        "This will remove Docker volumes for ALL honeypots. Continue?"
+                    ).unsafe_ask()
                     if not remove_volumes_all:
                         print("Volume removal cancelled.")
 
                 if not imported_ids:
+                    # Handle data removal
                     if remove_data_all:
                         try:
                             # Remove all data directories under DATA_DIR even if nothing is imported
@@ -233,6 +243,24 @@ def main(argv: List[str]) -> int:
                         except Exception as exc:
                             print(f"{PREFIX_ERROR} Failed to remove data: {exc}", file=sys.stderr)
                             return 1
+
+                    # Handle global image removal when no imported honeypots
+                    if remove_images_all:
+                        try:
+                            print("No imported honeypots.")
+                            cleanup_global_images()
+                        except Exception as exc:
+                            print(f"{PREFIX_WARN} Failed to remove global images: {exc}")
+
+                    # Handle global volume removal when no imported honeypots
+                    if remove_volumes_all:
+                        try:
+                            cleanup_global_volumes()
+                        except Exception as exc:
+                            print(f"{PREFIX_WARN} Failed to remove volumes: {exc}")
+
+                    # Only return if at least one operation was performed or no operations were requested
+                    if remove_data_all or remove_images_all or remove_volumes_all:
                         return 0
                     else:
                         print("No imported honeypots.")
@@ -248,11 +276,18 @@ def main(argv: List[str]) -> int:
                             remove_images=remove_images_all,
                         )
 
-                        # Remove data if confirmed
+                        # Wait a moment for containers to fully stop before removing data
+                        if remove_data_all:
+                            import time
+                            time.sleep(1)  # Brief pause to ensure containers are fully stopped
+
+                        # Remove data if confirmed - do this before removing docker directory
                         if remove_data_all:
                             try:
                                 from scripts import remove_honeypot_data
-                                remove_honeypot_data(t)  # This prints its own success message
+                                success = remove_honeypot_data(t)  # This prints its own success message
+                                if not success:
+                                    print(f"{PREFIX_WARN} Data removal for '{t}' was skipped (folder may not exist)")
                             except Exception as exc_data:
                                 print(f"{PREFIX_WARN} Failed to remove data for '{t}': {exc_data}")
 
@@ -280,25 +315,25 @@ def main(argv: List[str]) -> int:
 
                 # Ask about data removal if --data flag is present
                 if getattr(args, "data", False):
-                    reply = input(f"This will remove mounted data for honeypot '{args.honeypot}'. Continue? [y/N]: ").strip().lower()
-                    print()  # Add newline after input
-                    remove_data_single = reply in ("y", "yes", "ya")
+                    remove_data_single = questionary.confirm(
+                        f"This will remove mounted data for honeypot '{args.honeypot}'. Continue?"
+                    ).unsafe_ask()
                     if not remove_data_single:
                         print("Data removal cancelled.")
 
                 # Ask about image removal if --image flag is present
                 if getattr(args, "image", False):
-                    reply = input(f"This will remove Docker images for honeypot '{args.honeypot}'. Continue? [y/N]: ").strip().lower()
-                    print()  # Add newline after input
-                    remove_images_single = reply in ("y", "yes", "ya")
+                    remove_images_single = questionary.confirm(
+                        f"This will remove Docker images for honeypot '{args.honeypot}'. Continue?"
+                    ).unsafe_ask()
                     if not remove_images_single:
                         print("Image removal cancelled.")
 
                 # Ask about volume removal if --volume flag is present
                 if getattr(args, "volume", False):
-                    reply = input(f"This will remove Docker volumes for honeypot '{args.honeypot}'. Continue? [y/N]: ").strip().lower()
-                    print()  # Add newline after input
-                    remove_volumes_single = reply in ("y", "yes", "ya")
+                    remove_volumes_single = questionary.confirm(
+                        f"This will remove Docker volumes for honeypot '{args.honeypot}'. Continue?"
+                    ).unsafe_ask()
                     if not remove_volumes_single:
                         print("Volume removal cancelled.")
 
@@ -309,11 +344,18 @@ def main(argv: List[str]) -> int:
                     remove_images=remove_images_single,
                 )
 
-                # Optionally remove data for single honeypot
+                # Wait a moment for containers to fully stop before removing data
+                if remove_data_single:
+                    import time
+                    time.sleep(1)  # Brief pause to ensure containers are fully stopped
+
+                # Optionally remove data for single honeypot - do this before removing docker directory
                 if remove_data_single:
                     try:
                         from scripts import remove_honeypot_data
-                        remove_honeypot_data(args.honeypot)  # This prints its own success message
+                        success = remove_honeypot_data(args.honeypot)  # This prints its own success message
+                        if not success:
+                            print(f"{PREFIX_WARN} Data removal for '{args.honeypot}' was skipped (folder may not exist)")
                     except Exception as exc_data:
                         print(f"{PREFIX_WARN} Failed to remove data for '{args.honeypot}': {exc_data}")
 
@@ -470,8 +512,10 @@ def main(argv: List[str]) -> int:
                         print(f"{PREFIX_ERROR} Honeypot '{args.honeypot}' not found in '{HONEYPOT_MANIFEST_DIR}'.", file=sys.stderr)
                         return 1
 
-                    reply = input(f"Honeypot '{args.honeypot}' is not imported. Import now? [y/N]: ").strip().lower()
-                    if reply in ("y", "yes", "ya"):
+                    confirm_import = questionary.confirm(
+                        f"Honeypot '{args.honeypot}' is not imported. Import now?"
+                    ).unsafe_ask()
+                    if confirm_import:
                         try:
                             dest = import_honeypot(args.honeypot, force=False)
                             print(f"{PREFIX_OK}: Imported '{args.honeypot}'")

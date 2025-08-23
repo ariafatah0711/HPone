@@ -16,7 +16,9 @@ from .docker import (
     run_compose_action,
     up_honeypot,
     down_honeypot,
-    shell_honeypot
+    shell_honeypot,
+    cleanup_global_images,
+    cleanup_global_volumes
 )
 
 from .config import (
@@ -53,6 +55,8 @@ __all__ = [
     'up_honeypot',
     'down_honeypot',
     'shell_honeypot',
+    'cleanup_global_images',
+    'cleanup_global_volumes',
 
     # Configuration handling
     'parse_ports',

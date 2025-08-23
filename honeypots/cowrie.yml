@@ -11,3 +11,4 @@ volumes:
 - data/cowrie/downloads:/home/cowrie/cowrie/dl
 - data/cowrie/keys:/home/cowrie/cowrie/etc
 - data/cowrie/log/tty:/home/cowrie/cowrie/log/tty
+# - conf/cowrie/userdb.txt:/home/cowrie/cowrie/etc/userdb.txt
