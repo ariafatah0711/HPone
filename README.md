@@ -236,82 +236,49 @@ rm -rf hpone
 
 ### 🚀 **Quick Start Guide** (`ALWAYS_IMPORT=true`)
 
-<table>
-<tr>
-<th width="50%">📝 Commands</th>
-<th width="50%">📄 Description</th>
-</tr>
-<tr>
-<td>
-
+#### ⚙️ **Setup Phase**
 ```bash
-# ⚙️ Enable honeypots
+# Enable required honeypots
 hpone enable cowrie
 hpone enable medpot
 
-# 🚀 Start honeypots
+# Start honeypots (auto-import & start containers)
 hpone up cowrie
 hpone up medpot
-# or start all at once
+
+# Or start all at once
 hpone up --all
 ```
+- ✅ Enable required honeypots
+- ✅ Auto-import & start containers
+- ✅ Bulk operations supported
 
-</td>
-<td>
-
-**Setup Phase**
-- Enable required honeypots
-- Auto-import & start containers
-- Bulk operations supported
-
-</td>
-</tr>
-<tr>
-<td>
-
+#### 📈 **Monitoring Phase**
 ```bash
-# 📈 Monitor status
+# Monitor status
 hpone list
 hpone status
 
-# 📄 View logs interactively
+# View logs interactively
 hpone logs cowrie
 hpone logs medpot
 ```
+- ✅ Check honeypot status
+- ✅ Real-time log streaming
+- ✅ Interactive file browser
 
-</td>
-<td>
-
-**Monitoring Phase**
-- Check honeypot status
-- Real-time log streaming
-- Interactive file browser
-
-</td>
-</tr>
-<tr>
-<td>
-
+#### 💻 **Management Phase**
 ```bash
-# 💻 Access containers
+# Access containers
 hpone shell cowrie
 
-# 📏 Stop & cleanup
+# Stop & cleanup
 hpone down cowrie
 hpone clean --all --data
 ```
-
-</td>
-<td>
-
-**Management Phase**
-- Direct container access
-- Graceful shutdown
-- Complete cleanup options
-
-</td>
-</tr>
-</table>
+- ✅ Direct container access
+- ✅ Graceful shutdown
+- ✅ Complete cleanup options
 
 ## 🔧 Command Reference
 
