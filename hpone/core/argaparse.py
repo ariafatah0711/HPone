@@ -3,7 +3,7 @@ import argparse
 def build_arg_parser() -> argparse.ArgumentParser:
 	"""Build the argument parser for the application."""
 	parser = argparse.ArgumentParser(
-		description="HPone Docker template manager - Modular Version",
+		description="HPone Docker honeypot manager - Modular Version",
 		formatter_class=argparse.RawTextHelpFormatter,
 	)
 	sub = parser.add_subparsers(dest="command", required=True, title="Commands", metavar="COMMAND")
@@ -20,64 +20,64 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 	if show_import_commands:
 		# Import command
-		p_import = sub.add_parser("import", help="Import template and generate .env for the tool")
-		p_import.add_argument("tool", nargs="?", help="Tool name (matches YAML filename in tools/)")
-		p_import.add_argument("--all", action="store_true", help="Import all enabled tools")
-		p_import.add_argument("--force", action="store_true", help="Overwrite docker/<tool> if it already exists")
+		p_import = sub.add_parser("import", help="Import template and generate .env for the honeypot")
+		p_import.add_argument("honeypot", nargs="?", help="Honeypot name (matches YAML filename in honeypots/)")
+		p_import.add_argument("--all", action="store_true", help="Import all enabled honeypots")
+		p_import.add_argument("--force", action="store_true", help="Overwrite docker/<honeypot> if it already exists")
 
 		# Update command
-		p_update = sub.add_parser("update", help="Update all imported tools (equivalent to import --force)")
+		p_update = sub.add_parser("update", help="Update all imported honeypots (equivalent to import --force)")
 
 	# List command
-	p_list = sub.add_parser("list", help="List tools based on YAML files in tools/")
+	p_list = sub.add_parser("list", help="List honeypots based on YAML files in honeypots/")
 	p_list.add_argument("-a", action="store_true", help="Show full details (description and ports)")
 
 	# Status command (running only)
-	p_status = sub.add_parser("status", help="Show port mappings of running tools (HOST -> CONTAINER)")
+	p_status = sub.add_parser("status", help="Show port mappings of running honeypots (HOST -> CONTAINER)")
 
 	# Inspect command
-	p_inspect = sub.add_parser("inspect", help="Show detailed configuration information for one tool")
-	p_inspect.add_argument("tool", help="Tool name to inspect")
+	p_inspect = sub.add_parser("inspect", help="Show detailed configuration information for one honeypot")
+	p_inspect.add_argument("honeypot", help="Honeypot name to inspect")
 
 	# Enable command
-	p_enable = sub.add_parser("enable", help="Enable tool in tools/<tool>.yml (set enabled: true)")
-	p_enable.add_argument("tool", help="Tool name to enable")
+	p_enable = sub.add_parser("enable", help="Enable honeypot in honeypots/<honeypot>.yml (set enabled: true)")
+	p_enable.add_argument("honeypot", help="Honeypot name to enable")
 
 	# Disable command
-	p_disable = sub.add_parser("disable", help="Disable tool in tools/<tool>.yml (set enabled: false)")
-	p_disable.add_argument("tool", help="Tool name to disable")
+	p_disable = sub.add_parser("disable", help="Disable honeypot in honeypots/<honeypot>.yml (set enabled: false)")
+	p_disable.add_argument("honeypot", help="Honeypot name to disable")
 
 	# Up command
-	p_up = sub.add_parser("up", help="docker compose up -d for one tool or all enabled tools")
+	p_up = sub.add_parser("up", help="docker compose up -d for one honeypot or all enabled honeypots")
 	group_up = p_up.add_mutually_exclusive_group(required=True)
-	group_up.add_argument("tool", nargs="?", help="Tool name. If omitted, use --all")
-	group_up.add_argument("--all", action="store_true", help="Run for all enabled and imported tools")
+	group_up.add_argument("honeypot", nargs="?", help="Honeypot name. If omitted, use --all")
+	group_up.add_argument("--all", action="store_true", help="Run for all enabled and imported honeypots")
 
 	# Only show --update option when ALWAYS_IMPORT=false
 	if show_import_commands:
 		p_up.add_argument("--update", action="store_true", help="Update templates before starting")
 
-	p_up.add_argument("--force", action="store_true", help="Force start even if not enabled (single tool only)")
+	p_up.add_argument("--force", action="store_true", help="Force start even if not enabled (single honeypot only)")
 
 	# Down command
-	p_down = sub.add_parser("down", help="docker compose down for one tool or all imported tools")
+	p_down = sub.add_parser("down", help="docker compose down for one honeypot or all imported honeypots")
 	group_down = p_down.add_mutually_exclusive_group(required=True)
-	group_down.add_argument("tool", nargs="?", help="Tool name. If omitted, use --all")
-	group_down.add_argument("--all", action="store_true", help="Run for all imported tools")
+	group_down.add_argument("honeypot", nargs="?", help="Honeypot name. If omitted, use --all")
+	group_down.add_argument("--all", action="store_true", help="Run for all imported honeypots")
 
 	# Shell command
 	p_shell = sub.add_parser("shell", help="Open shell (bash/sh) in running container")
-	p_shell.add_argument("tool", help="Tool name to open shell in")
+	p_shell.add_argument("honeypot", help="Honeypot name to open shell in")
 
 	# Logs command
 	p_logs = sub.add_parser("logs", help="Interactive logs viewer for containers and mounted data")
-	p_logs.add_argument("tool", help="Tool name to view logs for")
+	p_logs.add_argument("honeypot", help="Honeypot name to view logs for")
 
 	# Clean command
-	p_clean = sub.add_parser("clean", help="Stop (down) then delete directory docker/<tool>")
-	p_clean.add_argument("tool", nargs="?", help="Tool name to clean")
-	p_clean.add_argument("--all", action="store_true", help="Clean all imported tools")
-	p_clean.add_argument("--data", action="store_true", help="Also remove mounted data under data/<tool>")
+	p_clean = sub.add_parser("clean", help="Stop (down) then delete directory docker/<honeypot>")
+	p_clean.add_argument("honeypot", nargs="?", help="Honeypot name to clean")
+	p_clean.add_argument("--all", action="store_true", help="Clean all imported honeypots")
+	p_clean.add_argument("--data", action="store_true", help="Also remove mounted data under data/<honeypot>")
 	# Extra docker compose down options
 	p_clean.add_argument("--image", action="store_true", help="Also remove images (docker compose down --rmi local)")
 	p_clean.add_argument("--volume", action="store_true", help="Also remove volumes (docker compose down -v)")

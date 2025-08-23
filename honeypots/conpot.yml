@@ -1,10 +1,9 @@
 name: conpot
-description: Honeypot ICS/SCADA untuk mensimulasikan perangkat industri dengan berbagai protokol
-enabled: false
+description: Honeypot ICS/SCADA untuk mensimulasikan perangkat industri dengan berbagai
+  protokol
+enabled: true
 service: conpot_default
 ports:
-# - host: 8081
-#   container: 80
 - host: 102
   container: 102
 - host: 161

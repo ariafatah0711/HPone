@@ -1,7 +1,7 @@
 name: cowrie
 description: Honeypot SSH dan Telnet untuk memantau serta merekam aktivitas login
   brute-force
-enabled: false
+enabled: true
 ports:
 - host: 2222
   container: 22

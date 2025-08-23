@@ -1,16 +1,16 @@
 # HPone - Docker Honeypot Manager
 
-**HPone** adalah tool untuk mengelola Docker honeypot templates dengan fitur **auto-import** yang memudahkan deployment dan management.
+**HPone** adalah honeypot untuk mengelola Docker honeypot templates dengan fitur **auto-import** yang memudahkan deployment dan management.
 
 ## 🔑 Mode Operasional
 
 HPone bisa dijalankan dalam dua mode utama:
 
 ### **Mode Otomatis (ALWAYS_IMPORT=true)**
-- ✅ **Auto-import** tools saat startup
+- ✅ **Auto-import** honeypots saat startup
 - ✅ **Command simplified** - tidak ada import/update manual
 - ✅ **Production ready** - minimal human intervention
-- ✅ **Smart management** - tools dikelola otomatis
+- ✅ **Smart management** - honeypots dikelola otomatis
 - ✅ **Ephemeral logging** - tampilan log real-time yang bersih
 
 ### **Mode Manual (ALWAYS_IMPORT=false)**
@@ -29,7 +29,7 @@ HPone/
 │   ├── completion/       # Bash completion scripts
 │   ├── core/             # Core modules
 │   └── scripts/          # Command scripts
-├── tools/                 # YAML honeypot files
+├── honeypots/                 # YAML honeypot files
 ├── template/docker/       # Docker templates
 ├── docker/               # Output Docker files
 ├── data/                 # Volume data container
@@ -45,7 +45,7 @@ Edit `hpone/config.py`:
 ALWAYS_IMPORT = True          # True: auto-import (hide import/update), False: manual control
 
 # Path configuration
-TOOLS_DIR = PROJECT_ROOT / "tools"
+HONEYPOT_MANIFEST_DIR = PROJECT_ROOT / "honeypots"
 TEMPLATE_DOCKER_DIR = PROJECT_ROOT / "template" / "docker"
 OUTPUT_DOCKER_DIR = PROJECT_ROOT / "docker"
 DATA_DIR = PROJECT_ROOT / "data"   # lokasi mount data log container (ini buat filter kalo folder clean ini aman di hapus)
@@ -116,14 +116,14 @@ source hpone/completion/hpone-completion.bash
 ### **Penggunaan**
 ```bash
 ./app.py <TAB>                    # Melengkapi command
-./app.py inspect <TAB>            # Melengkapi nama tool
-./app.py logs <TAB>               # Melengkapi nama tool
-./app.py up <TAB>                 # Melengkapi tool atau --all
+./app.py inspect <TAB>            # Melengkapi nama honeypot
+./app.py logs <TAB>               # Melengkapi nama honeypot
+./app.py up <TAB>                 # Melengkapi honeypot atau --all
 
 hpone <TAB>                       # Melengkapi command
-hpone clean <TAB>              # Melengkapi nama tool
-hpone logs <TAB>               # Melengkapi nama tool
-hpone up <TAB>                 # Melengkapi tool atau --all
+hpone clean <TAB>              # Melengkapi nama honeypot
+hpone logs <TAB>               # Melengkapi nama honeypot
+hpone up <TAB>                 # Melengkapi honeypot atau --all
 ```
 
 ### **Uninstall**
@@ -139,15 +139,15 @@ Lihat `hpone/completion/README.md` untuk informasi lengkap.
 ### **Quick Start (ALWAYS_IMPORT=true)**
 
 ```bash
-# Enable tools yang dibutuhkan
+# Enable honeypots yang dibutuhkan
 hpone enable cowrie
 hpone enable medpot
 
-# Start tools (auto-import + up)
+# Start honeypots (auto-import + up)
 hpone up cowrie
 hpone up medpot
 
-# Start semua enabled tools
+# Start semua enabled honeypots
 hpone up --all
 
 # Check status
@@ -158,14 +158,14 @@ hpone status
 hpone logs cowrie
 hpone logs medpot
 
-# Stop tools
+# Stop honeypots
 hpone down cowrie
 hpone down --all
 
 # Buka shell di container
 hpone shell cowrie
 
-# Clean tools (stop + remove)
+# Clean honeypots (stop + remove)
 hpone clean cowrie
 hpone clean --all --data
 ```
@@ -174,18 +174,18 @@ hpone clean --all --data
 
 ### **Available Commands**
 - `check` - Check dependencies
-- `list` - List tools (`-a` untuk detail)
+- `list` - List honeypots (`-a` untuk detail)
 - `status` - Show running status
-- `inspect <tool>` - Show tool details
-- `enable/disable <tool>` - Enable/disable tools
-- `up <tool>` - Start tool (auto-import)
-- `up --all` - Start all enabled tools
-- `down <tool>` - Stop tool
-- `down --all` - Stop all tools
-- `shell <tool>` - Open shell (bash/sh) in running container
-- `logs <tool>` - Interactive log viewer with file browsing
-- `clean <tool>` - Stop + remove tool
-- `clean --all` - Stop + remove all tools
+- `inspect <honeypot>` - Show honeypot details
+- `enable/disable <honeypot>` - Enable/disable honeypots
+- `up <honeypot>` - Start honeypot (auto-import)
+- `up --all` - Start all enabled honeypots
+- `down <honeypot>` - Stop honeypot
+- `down --all` - Stop all honeypots
+- `shell <honeypot>` - Open shell (bash/sh) in running container
+- `logs <honeypot>` - Interactive log viewer with file browsing
+- `clean <honeypot>` - Stop + remove honeypot
+- `clean --all` - Stop + remove all honeypots
 - `clean --data` - Also remove data volumes
 - `clean --image` - Also remove images
 - `clean --volume` - Also remove volumes
@@ -214,7 +214,7 @@ hpone logs cowrie    # Interactive menu with:
 # Clean everything
 hpone clean --all --data --image --volume
 
-# Force start disabled tool
+# Force start disabled honeypot
 hpone up wordpot --force
 ```
 

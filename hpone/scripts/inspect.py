@@ -14,29 +14,29 @@ except ImportError:
     raise ImportError("PyYAML diperlukan untuk modul ini")
 
 # Import constants dan functions dari helpers
-from core.constants import TOOLS_DIR, OUTPUT_DOCKER_DIR
+from core.constants import HONEYPOT_MANIFEST_DIR, OUTPUT_DOCKER_DIR
 from core.utils import _format_table, PREFIX_ERROR
 from core.config import parse_ports, parse_volumes
-from core.docker import is_tool_running
+from core.docker import is_honeypot_running
 
-# Fungsi list_tools dipindah ke scripts/list.py untuk avoid duplication
+# Fungsi list_honeypots dipindah ke scripts/list.py untuk avoid duplication
 
-def inspect_tool(tool_id: str) -> None:
-    """Show detailed information about a tool."""
+def inspect_honeypot(honeypot_id: str) -> None:
+    """Show detailed information about a honeypot."""
     try:
-        from core.yaml import load_tool_yaml_by_filename, find_tool_yaml_path
-        resolved_name, config = load_tool_yaml_by_filename(tool_id)
+        from core.yaml import load_honeypot_yaml_by_filename, find_honeypot_yaml_path
+        resolved_name, config = load_honeypot_yaml_by_filename(honeypot_id)
     except FileNotFoundError as exc:
-        print(f"{PREFIX_ERROR} Tool '{tool_id}' not found: {exc}")
+        print(f"{PREFIX_ERROR} Tool '{honeypot_id}' not found: {exc}")
         return
     except Exception as exc:
-        print(f"{PREFIX_ERROR} Failed to load config for tool '{tool_id}': {exc}")
+        print(f"{PREFIX_ERROR} Failed to load config for honeypot '{honeypot_id}': {exc}")
         return
 
     # Status info
     enabled_flag = bool(config.get("enabled") is True)
-    imported_flag = (OUTPUT_DOCKER_DIR / tool_id).exists()
-    running_flag = is_tool_running(tool_id)
+    imported_flag = (OUTPUT_DOCKER_DIR / honeypot_id).exists()
+    running_flag = is_honeypot_running(honeypot_id)
 
     # Status indicators
     enabled_icon = "✅" if enabled_flag else "❌"
@@ -48,7 +48,7 @@ def inspect_tool(tool_id: str) -> None:
     status_str = "Running" if running_flag else "Stopped"
 
     # Simple header like check command
-    print(f"🔍 Inspecting tool '{resolved_name}'...")
+    print(f"🔍 Inspecting honeypot '{resolved_name}'...")
     print()
 
     # Basic info
@@ -112,12 +112,12 @@ def inspect_tool(tool_id: str) -> None:
 
     # File paths
     try:
-        yaml_path = find_tool_yaml_path(tool_id)
+        yaml_path = find_honeypot_yaml_path(honeypot_id)
         print("📁 File Information:")
         print(f"   Config: {yaml_path}")
 
         if imported_flag:
-            docker_dir = OUTPUT_DOCKER_DIR / tool_id
+            docker_dir = OUTPUT_DOCKER_DIR / honeypot_id
             print(f"   Docker: {docker_dir}")
 
             env_file = docker_dir / ".env"

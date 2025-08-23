@@ -13,17 +13,17 @@ from .constants import OUTPUT_DOCKER_DIR
 from .utils import PREFIX_OK, PREFIX_WARN, COLOR_YELLOW, COLOR_RESET
 # Import di dalam function untuk avoid circular import
 
-def is_tool_running(tool_id: str) -> bool:
-    """Check if tool is running by checking Docker container status."""
+def is_honeypot_running(honeypot_id: str) -> bool:
+    """Check if honeypot is running by checking Docker container status."""
     try:
         # Import di dalam function untuk avoid circular import
-        from scripts.list import resolve_tool_dir_id
-        dir_id = resolve_tool_dir_id(tool_id)
+        from scripts.list import resolve_honeypot_dir_id
+        dir_id = resolve_honeypot_dir_id(honeypot_id)
         dest_dir = OUTPUT_DOCKER_DIR / dir_id
         if not dest_dir.exists():
             return False
 
-        # Check if any containers for this tool are running
+        # Check if any containers for this honeypot are running
         cmd = ["docker", "compose", "ps", "--format", "json"]
         try:
             result = subprocess.run(cmd, cwd=str(dest_dir), capture_output=True, text=True, check=True)
@@ -44,9 +44,9 @@ def is_tool_running(tool_id: str) -> bool:
     except Exception:
         return False
 
-def run_compose_action(tool_dir: Path, action: str, extra_args: Optional[List[str]] = None) -> None:
-    if not (tool_dir / "docker-compose.yml").exists():
-        raise FileNotFoundError(f"docker-compose.yml not found in {tool_dir}")
+def run_compose_action(honeypot_dir: Path, action: str, extra_args: Optional[List[str]] = None) -> None:
+    if not (honeypot_dir / "docker-compose.yml").exists():
+        raise FileNotFoundError(f"docker-compose.yml not found in {honeypot_dir}")
 
     # Check if ephemeral logging is enabled
     try:
@@ -59,10 +59,10 @@ def run_compose_action(tool_dir: Path, action: str, extra_args: Optional[List[st
         # Use ephemeral logging for better UX
         from .log_runner import run_docker_compose_action_with_args
 
-        # Extract tool name from directory
-        tool_name = tool_dir.name
+        # Extract honeypot name from directory
+        honeypot_name = honeypot_dir.name
 
-        success, duration = run_docker_compose_action_with_args(action, tool_name, tool_dir, extra_args)
+        success, duration = run_docker_compose_action_with_args(action, honeypot_name, honeypot_dir, extra_args)
 
         if not success:
             raise subprocess.CalledProcessError(1, f"docker compose {action}")
@@ -77,7 +77,7 @@ def run_compose_action(tool_dir: Path, action: str, extra_args: Optional[List[st
         try:
             subprocess.run(
                 cmd_dc,
-                cwd=str(tool_dir),
+                cwd=str(honeypot_dir),
                 check=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -93,7 +93,7 @@ def run_compose_action(tool_dir: Path, action: str, extra_args: Optional[List[st
                 cmd_legacy.extend(extra_args)
             subprocess.run(
                 cmd_legacy,
-                cwd=str(tool_dir),
+                cwd=str(honeypot_dir),
                 check=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -101,19 +101,19 @@ def run_compose_action(tool_dir: Path, action: str, extra_args: Optional[List[st
             )
 
 
-def up_tool(tool_id: str, force: bool = False) -> None:
+def up_honeypot(honeypot_id: str, force: bool = False) -> None:
     # Import di dalam function untuk avoid circular import
-    from scripts.list import resolve_tool_dir_id
-    dir_id = resolve_tool_dir_id(tool_id)
+    from scripts.list import resolve_honeypot_dir_id
+    dir_id = resolve_honeypot_dir_id(honeypot_id)
     dest_dir = OUTPUT_DOCKER_DIR / dir_id
     if not dest_dir.exists():
-        raise FileNotFoundError(f"Docker folder for tool '{tool_id}' not found: {dest_dir}. Run 'import' first.")
+        raise FileNotFoundError(f"Docker folder for honeypot '{honeypot_id}' not found: {dest_dir}. Run 'import' first.")
 
-    # Check if tool is enabled (unless force is used)
+    # Check if honeypot is enabled (unless force is used)
     if not force:
-        from .yaml import is_tool_enabled
-        if not is_tool_enabled(tool_id):
-            raise ValueError(f"Tool '{tool_id}' is not enabled. Run 'enable {tool_id}' first or use --force.")
+        from .yaml import is_honeypot_enabled
+        if not is_honeypot_enabled(honeypot_id):
+            raise ValueError(f"Tool '{honeypot_id}' is not enabled. Run 'enable {honeypot_id}' first or use --force.")
 
     run_compose_action(dest_dir, "up")
 
@@ -127,10 +127,10 @@ def up_tool(tool_id: str, force: bool = False) -> None:
         print(f"{COLOR_YELLOW}[UP]{COLOR_RESET} {dir_id} {PREFIX_OK}")
 
 
-def down_tool(tool_id: str, remove_volumes: bool = False, remove_images: bool = False) -> None:
+def down_honeypot(honeypot_id: str, remove_volumes: bool = False, remove_images: bool = False) -> None:
     # Import di dalam function untuk avoid circular import
-    from scripts.list import resolve_tool_dir_id
-    dir_id = resolve_tool_dir_id(tool_id)
+    from scripts.list import resolve_honeypot_dir_id
+    dir_id = resolve_honeypot_dir_id(honeypot_id)
     dest_dir = OUTPUT_DOCKER_DIR / dir_id
     if not dest_dir.exists():
         print(f"{PREFIX_WARN} Skip {dir_id}: folder not found.")
@@ -152,22 +152,22 @@ def down_tool(tool_id: str, remove_volumes: bool = False, remove_images: bool = 
         print(f"{COLOR_YELLOW}[DOWN]{COLOR_RESET} {dir_id} {PREFIX_OK}")
 
 
-def shell_tool(tool_id: str) -> None:
+def shell_honeypot(honeypot_id: str) -> None:
     """Open shell (bash/sh) in running container."""
     # Import di dalam function untuk avoid circular import
-    from scripts.list import resolve_tool_dir_id
-    dir_id = resolve_tool_dir_id(tool_id)
+    from scripts.list import resolve_honeypot_dir_id
+    dir_id = resolve_honeypot_dir_id(honeypot_id)
     dest_dir = OUTPUT_DOCKER_DIR / dir_id
     if not dest_dir.exists():
-        raise FileNotFoundError(f"Docker folder for tool '{tool_id}' not found: {dest_dir}. Run 'import' first.")
+        raise FileNotFoundError(f"Docker folder for honeypot '{honeypot_id}' not found: {dest_dir}. Run 'import' first.")
 
     # Check if container is running
-    if not is_tool_running(tool_id):
-        raise RuntimeError(f"Tool '{tool_id}' is not running. Start it first with 'up {tool_id}'.")
+    if not is_honeypot_running(honeypot_id):
+        raise RuntimeError(f"Tool '{honeypot_id}' is not running. Start it first with 'up {honeypot_id}'.")
 
-    # Get the service name (usually same as tool_id, but could be different)
-    # For now, assume it's the same as tool_id
-    service_name = tool_id
+    # Get the service name (usually same as honeypot_id, but could be different)
+    # For now, assume it's the same as honeypot_id
+    service_name = honeypot_id
 
     # Try bash first, then fallback to sh
     shells_to_try = ["bash", "sh"]
@@ -189,4 +189,4 @@ def shell_tool(tool_id: str) -> None:
             continue  # Try next shell
 
     # If we get here, neither bash nor sh worked
-    raise RuntimeError(f"Could not open shell in container '{tool_id}'. Neither bash nor sh are available.")
+    raise RuntimeError(f"Could not open shell in container '{honeypot_id}'. Neither bash nor sh are available.")

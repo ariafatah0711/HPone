@@ -1,7 +1,7 @@
 """
-Remove tool script for HPone.
+Remove honeypot script for HPone.
 
-Functions to remove an imported tool.
+Functions to remove an imported honeypot.
 """
 
 import shutil
@@ -10,28 +10,28 @@ from core.constants import OUTPUT_DOCKER_DIR
 from core.utils import PREFIX_OK, PREFIX_ERROR
 
 
-def remove_tool(tool_id: str) -> bool:
+def remove_honeypot(honeypot_id: str) -> bool:
     """
-    Remove an imported tool.
-    
+    Remove an imported honeypot.
+
     Args:
-        tool_id: The tool ID to remove
-        
+        honeypot_id: The honeypot ID to remove
+
     Returns:
         True on success, False on failure
     """
     try:
-        tool_dir = OUTPUT_DOCKER_DIR / tool_id
-        
-        if not tool_dir.exists():
-            print(f"{PREFIX_ERROR} Tool {tool_id} not found in {OUTPUT_DOCKER_DIR}")
+        honeypot_dir = OUTPUT_DOCKER_DIR / honeypot_id
+
+        if not honeypot_dir.exists():
+            print(f"{PREFIX_ERROR} Tool {honeypot_id} not found in {OUTPUT_DOCKER_DIR}")
             return False
-            
-        # Remove tool directory
-        shutil.rmtree(tool_dir)
-        print(f"{PREFIX_OK}: Removed tool {tool_id}")
+
+        # Remove honeypot directory
+        shutil.rmtree(honeypot_dir)
+        print(f"{PREFIX_OK}: Removed honeypot {honeypot_id}")
         return True
-        
+
     except Exception as exc:
-        print(f"{PREFIX_ERROR} Failed to remove tool {tool_id}: {exc}")
+        print(f"{PREFIX_ERROR} Failed to remove honeypot {honeypot_id}: {exc}")
         return False

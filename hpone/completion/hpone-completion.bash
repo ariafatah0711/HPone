@@ -1,14 +1,14 @@
 #!/bin/bash
-# Bash completion script for HPone Docker Template Manager
+# Bash completion script for HPone Docker Honeypot Manager
 #
 # Installation:
 # 1. Copy this file to /etc/bash_completion.d/ or ~/.bash_completion.d/
 # 2. Or source it directly: source hpone-completion.bash
 # 3. Restart your shell or run: source ~/.bashrc
 
-# Helper function to find tools directory
-_hpone_find_tools_dir() {
-    local tools_dir=""
+# Helper function to find honeypots directory
+_hpone_find_honeypots_dir() {
+    local honeypots_dir=""
 
     # Always try to find from script location first (most reliable)
     local script_dir=""
@@ -18,22 +18,22 @@ _hpone_find_tools_dir() {
 
     if [[ -n "${script_dir}" ]]; then
         local app_dir="$(dirname "$(dirname "${script_dir}")")"
-        if [[ -d "${app_dir}/tools" ]]; then
-            tools_dir="${app_dir}/tools"
+        if [[ -d "${app_dir}/honeypots" ]]; then
+            honeypots_dir="${app_dir}/honeypots"
         fi
     fi
 
     # Fallback: try current directory
-    if [[ -z "${tools_dir}" ]] && [[ -d "tools" ]]; then
-        tools_dir="tools"
+    if [[ -z "${honeypots_dir}" ]] && [[ -d "honeypots" ]]; then
+        honeypots_dir="honeypots"
     fi
 
     # Fallback: try relative to app.py if it exists
-    if [[ -z "${tools_dir}" ]] && [[ -f "app.py" ]] && [[ -d "tools" ]]; then
-        tools_dir="tools"
+    if [[ -z "${honeypots_dir}" ]] && [[ -f "app.py" ]] && [[ -d "honeypots" ]]; then
+        honeypots_dir="honeypots"
     fi
 
-    echo "$tools_dir"
+    echo "$honeypots_dir"
 }
 
 _hpone_completion() {
@@ -56,14 +56,14 @@ _hpone_completion() {
 
     case "${cmd}" in
         "inspect"|"enable"|"disable"|"up"|"down"|"shell"|"logs"|"clean")
-            # These commands need a tool name
+            # These commands need a honeypot name
             if [[ ${COMP_CWORD} -eq 2 ]]; then
-                # Get available tools from tools/ directory
-                local tools_dir=$(_hpone_find_tools_dir)
+                # Get available honeypots from honeypots/ directory
+                local honeypots_dir=$(_hpone_find_honeypots_dir)
 
-                if [[ -n "${tools_dir}" ]] && [[ -d "${tools_dir}" ]]; then
-                    local tools=$(find "${tools_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
-                    COMPREPLY=( $(compgen -W "${tools}" -- "${cur}") )
+                if [[ -n "${honeypots_dir}" ]] && [[ -d "${honeypots_dir}" ]]; then
+                    local honeypots=$(find "${honeypots_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
+                    COMPREPLY=( $(compgen -W "${honeypots}" -- "${cur}") )
                 fi
             fi
             ;;
@@ -82,12 +82,12 @@ _hpone_completion() {
     case "${cmd}" in
         "up")
             if [[ ${COMP_CWORD} -eq 2 ]]; then
-                # First try to complete tool names
-                local tools_dir=$(_hpone_find_tools_dir)
+                # First try to complete honeypot names
+                local honeypots_dir=$(_hpone_find_honeypots_dir)
 
-                if [[ -n "${tools_dir}" ]] && [[ -d "${tools_dir}" ]]; then
-                    local tools=$(find "${tools_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
-                    COMPREPLY=( $(compgen -W "${tools} --all" -- "${cur}") )
+                if [[ -n "${honeypots_dir}" ]] && [[ -d "${honeypots_dir}" ]]; then
+                    local honeypots=$(find "${honeypots_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
+                    COMPREPLY=( $(compgen -W "${honeypots} --all" -- "${cur}") )
                 else
                     COMPREPLY=( $(compgen -W "--all" -- "${cur}") )
                 fi
@@ -99,12 +99,12 @@ _hpone_completion() {
             ;;
         "down")
             if [[ ${COMP_CWORD} -eq 2 ]]; then
-                # First try to complete tool names
-                local tools_dir=$(_hpone_find_tools_dir)
+                # First try to complete honeypot names
+                local honeypots_dir=$(_hpone_find_honeypots_dir)
 
-                if [[ -n "${tools_dir}" ]] && [[ -d "${tools_dir}" ]]; then
-                    local tools=$(find "${tools_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
-                    COMPREPLY=( $(compgen -W "${tools} --all" -- "${cur}") )
+                if [[ -n "${honeypots_dir}" ]] && [[ -d "${honeypots_dir}" ]]; then
+                    local honeypots=$(find "${honeypots_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
+                    COMPREPLY=( $(compgen -W "${honeypots} --all" -- "${cur}") )
                 else
                     COMPREPLY=( $(compgen -W "--all" -- "${cur}") )
                 fi
@@ -112,12 +112,12 @@ _hpone_completion() {
             ;;
         "clean")
             if [[ ${COMP_CWORD} -eq 2 ]]; then
-                # First try to complete tool names
-                local tools_dir=$(_hpone_find_tools_dir)
+                # First try to complete honeypot names
+                local honeypots_dir=$(_hpone_find_honeypots_dir)
 
-                if [[ -n "${tools_dir}" ]] && [[ -d "${tools_dir}" ]]; then
-                    local tools=$(find "${tools_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
-                    COMPREPLY=( $(compgen -W "${tools} --all" -- "${cur}") )
+                if [[ -n "${honeypots_dir}" ]] && [[ -d "${honeypots_dir}" ]]; then
+                    local honeypots=$(find "${honeypots_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
+                    COMPREPLY=( $(compgen -W "${honeypots} --all" -- "${cur}") )
                 else
                     COMPREPLY=( $(compgen -W "--all" -- "${cur}") )
                 fi
@@ -134,8 +134,8 @@ _hpone_completion() {
     return 0
 }
 
-tools_dir=$(_hpone_find_tools_dir)
-echo $tools_dir
+honeypots_dir=$(_hpone_find_honeypots_dir)
+echo $honeypots_dir
 
 # Register the completion function
 complete -F _hpone_completion hpone

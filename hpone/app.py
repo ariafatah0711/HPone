@@ -14,17 +14,17 @@ from typing import List
 # Import semua helpers
 from core import (
     # YAML operations
-    load_tool_yaml_by_filename,
-    find_tool_yaml_path,
-    set_tool_enabled,
-    is_tool_enabled,
+    load_honeypot_yaml_by_filename,
+    find_honeypot_yaml_path,
+    set_honeypot_enabled,
+    is_honeypot_enabled,
 
     # Docker operations
-    is_tool_running,
+    is_honeypot_running,
     run_compose_action,
-    up_tool,
-    down_tool,
-    shell_tool,
+    up_honeypot,
+    down_honeypot,
+    shell_honeypot,
 
     # Configuration handling
     parse_ports,
@@ -43,23 +43,23 @@ from core.argaparse import build_arg_parser, format_full_help
 
 from scripts import (
     # List commands
-    list_tools,
-    list_enabled_tool_ids,
-    list_all_enabled_tool_ids,
-    list_imported_tool_ids,
-    resolve_tool_dir_id,
+    list_honeypots,
+    list_enabled_honeypot_ids,
+    list_all_enabled_honeypot_ids,
+    list_imported_honeypot_ids,
+    resolve_honeypot_dir_id,
 
     # Display commands
-    inspect_tool,
+    inspect_honeypot,
 
     # Import commands
-    import_tool,
+    import_honeypot,
 
     # File operations
     ensure_destination_dir,
     find_template_dir,
     copy_template_to_destination,
-    remove_tool,
+    remove_honeypot,
 
     # Dependency checker
     require_dependencies,
@@ -122,25 +122,25 @@ def main(argv: List[str]) -> int:
 
         try:
             if getattr(args, "all", False):
-                # Import all enabled tools
-                tool_ids = list_all_enabled_tool_ids()
-                if not tool_ids:
-                    print("No enabled tools.")
+                # Import all enabled honeypots
+                honeypot_ids = list_all_enabled_honeypot_ids()
+                if not honeypot_ids:
+                    print("No enabled honeypots.")
                     return 0
-                print(f"Importing {len(tool_ids)} enabled tools...")
-                for t in tool_ids:
+                print(f"Importing {len(honeypot_ids)} enabled honeypots...")
+                for t in honeypot_ids:
                     try:
-                        dest = import_tool(t, force=bool(args.force))
+                        dest = import_honeypot(t, force=bool(args.force))
                         print(f"{PREFIX_OK}: Imported '{t}'")
                     except Exception as exc:
                         print(f"{PREFIX_ERROR} Failed to import '{t}': {exc}", file=sys.stderr)
                         continue
             else:
-                if not args.tool:
-                    print("You must specify a tool or use --all", file=sys.stderr)
+                if not args.honeypot:
+                    print("You must specify a honeypot or use --all", file=sys.stderr)
                     return 2
-                dest = import_tool(args.tool, force=bool(args.force))
-                print(f"{PREFIX_OK}: Imported '{args.tool}'")
+                dest = import_honeypot(args.honeypot, force=bool(args.force))
+                print(f"{PREFIX_OK}: Imported '{args.honeypot}'")
         except Exception as exc:
             print(f"{PREFIX_ERROR} Failed to import: {exc}", file=sys.stderr)
             return 1
@@ -152,14 +152,14 @@ def main(argv: List[str]) -> int:
             pass; return 1
 
         try:
-            tool_ids = list_imported_tool_ids()
-            if not tool_ids:
-                print("No imported tools.")
+            honeypot_ids = list_imported_honeypot_ids()
+            if not honeypot_ids:
+                print("No imported honeypots.")
                 return 0
-            print(f"Updating {len(tool_ids)} imported tools...")
-            for t in tool_ids:
+            print(f"Updating {len(honeypot_ids)} imported honeypots...")
+            for t in honeypot_ids:
                 try:
-                    dest = import_tool(t, force=True)
+                    dest = import_honeypot(t, force=True)
                     print(f"{PREFIX_OK}: Updated '{t}'")
                 except Exception as exc:
                     print(f"{PREFIX_ERROR} Failed to update '{t}': {exc}", file=sys.stderr)
@@ -172,9 +172,9 @@ def main(argv: List[str]) -> int:
     # List command
     if args.command == "list":
         try:
-            list_tools(detailed=bool(args.a))
+            list_honeypots(detailed=bool(args.a))
         except Exception as exc:
-            print(f"{PREFIX_ERROR} Failed to list tools: {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to list honeypots: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -182,12 +182,12 @@ def main(argv: List[str]) -> int:
     if args.command == "clean":
         try:
             if getattr(args, "all", False):
-                # Clean all imported tools; if none but --data specified, still remove data directories
-                imported_ids = list_imported_tool_ids()
+                # Clean all imported honeypots; if none but --data specified, still remove data directories
+                imported_ids = list_imported_honeypot_ids()
                 # Optional data removal confirmation for --all
                 remove_data_all = False
                 if getattr(args, "data", False):
-                    reply = input("This will remove mounted data under data/<tool> for ALL tools. Continue? [y/N]: ").strip().lower()
+                    reply = input("This will remove mounted data under data/<honeypot> for ALL honeypots. Continue? [y/N]: ").strip().lower()
                     print()  # Add newline after input
                     remove_data_all = reply in ("y", "yes", "ya")
 
@@ -196,13 +196,13 @@ def main(argv: List[str]) -> int:
                         try:
                             # Remove all data directories under DATA_DIR even if nothing is imported
                             from core.constants import DATA_DIR
-                            from scripts import remove_tool_data
+                            from scripts import remove_honeypot_data
                             # Iterate over immediate subdirectories in DATA_DIR
                             if DATA_DIR.exists():
-                                print("No imported tools. Removing data directories under data/...")
+                                print("No imported honeypots. Removing data directories under data/...")
                                 for d in sorted([p for p in DATA_DIR.iterdir() if p.is_dir()]):
                                     try:
-                                        remove_tool_data(d.name)
+                                        remove_honeypot_data(d.name)
                                     except Exception as exc_data:
                                         print(f"{PREFIX_WARN} Failed to remove data for '{d.name}': {exc_data}")
                             else:
@@ -212,14 +212,14 @@ def main(argv: List[str]) -> int:
                             return 1
                         return 0
                     else:
-                        print("No imported tools.")
+                        print("No imported honeypots.")
                         return 0
 
-                print(f"Cleaning {len(imported_ids)} imported tools (down + remove{' + data' if remove_data_all else ''}{' + images' if getattr(args, 'image', False) else ''}{' + volumes' if getattr(args, 'volume', False) else ''})...")
+                print(f"Cleaning {len(imported_ids)} imported honeypots (down + remove{' + data' if remove_data_all else ''}{' + images' if getattr(args, 'image', False) else ''}{' + volumes' if getattr(args, 'volume', False) else ''})...")
                 for t in imported_ids:
                     try:
                         # Down first
-                        down_tool(
+                        down_honeypot(
                             t,
                             remove_volumes=bool(getattr(args, "volume", False)),
                             remove_images=bool(getattr(args, "image", False)),
@@ -228,8 +228,8 @@ def main(argv: List[str]) -> int:
                         # Remove data if confirmed
                         if remove_data_all:
                             try:
-                                from scripts import remove_tool_data
-                                remove_tool_data(t)  # This prints its own success message
+                                from scripts import remove_honeypot_data
+                                remove_honeypot_data(t)  # This prints its own success message
                             except Exception as exc_data:
                                 print(f"{PREFIX_WARN} Failed to remove data for '{t}': {exc_data}")
 
@@ -241,38 +241,38 @@ def main(argv: List[str]) -> int:
                             print(f"{PREFIX_OK}: Removed volumes for {t}")
 
                         # Then remove docker directory
-                        remove_tool(t)  # This prints its own success message
+                        remove_honeypot(t)  # This prints its own success message
                     except Exception as exc:
                         print(f"{PREFIX_ERROR} Failed to clean '{t}': {exc}", file=sys.stderr)
                         continue
             else:
-                if not args.tool:
-                    print("You must specify a tool or use --all", file=sys.stderr)
+                if not args.honeypot:
+                    print("You must specify a honeypot or use --all", file=sys.stderr)
                     return 2
                 # Down first
-                down_tool(
-                    args.tool,
+                down_honeypot(
+                    args.honeypot,
                     remove_volumes=bool(getattr(args, "volume", False)),
                     remove_images=bool(getattr(args, "image", False)),
                 )
 
-                # Optionally remove data for single tool
+                # Optionally remove data for single honeypot
                 if getattr(args, "data", False):
                     try:
-                        from scripts import remove_tool_data
-                        remove_tool_data(args.tool)  # This prints its own success message
+                        from scripts import remove_honeypot_data
+                        remove_honeypot_data(args.honeypot)  # This prints its own success message
                     except Exception as exc_data:
-                        print(f"{PREFIX_WARN} Failed to remove data for '{args.tool}': {exc_data}")
+                        print(f"{PREFIX_WARN} Failed to remove data for '{args.honeypot}': {exc_data}")
 
                 # Show image/volume removal status (docker compose down with flags doesn't show explicit confirmation)
                 if getattr(args, "image", False):
-                    print(f"{PREFIX_OK}: Removed images for {args.tool}")
+                    print(f"{PREFIX_OK}: Removed images for {args.honeypot}")
 
                 if getattr(args, "volume", False):
-                    print(f"{PREFIX_OK}: Removed volumes for {args.tool}")
+                    print(f"{PREFIX_OK}: Removed volumes for {args.honeypot}")
 
                 # Then remove docker directory
-                remove_tool(args.tool)  # This prints its own success message
+                remove_honeypot(args.honeypot)  # This prints its own success message
         except Exception as exc:
             print(f"{PREFIX_ERROR} Failed to clean: {exc}", file=sys.stderr)
             return 1
@@ -281,30 +281,30 @@ def main(argv: List[str]) -> int:
     # Inspect command
     if args.command == "inspect":
         try:
-            inspect_tool(args.tool)
+            inspect_honeypot(args.honeypot)
         except Exception as exc:
-            print(f"{PREFIX_ERROR} Failed to inspect '{args.tool}': {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to inspect '{args.honeypot}': {exc}", file=sys.stderr)
             return 1
         return 0
 
     # Enable command
     if args.command == "enable":
         try:
-            set_tool_enabled(args.tool, True)
+            set_honeypot_enabled(args.honeypot, True)
         except Exception as exc:
-            print(f"{PREFIX_ERROR} Failed to enable '{args.tool}': {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to enable '{args.honeypot}': {exc}", file=sys.stderr)
             return 1
-        print(f"{PREFIX_OK}: Tool '{args.tool}' enabled.")
+        print(f"{PREFIX_OK}: Honeypot '{args.honeypot}' enabled.")
         return 0
 
     # Disable command
     if args.command == "disable":
         try:
-            set_tool_enabled(args.tool, False)
+            set_honeypot_enabled(args.honeypot, False)
         except Exception as exc:
-            print(f"{PREFIX_ERROR} Failed to disable '{args.tool}': {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to disable '{args.honeypot}': {exc}", file=sys.stderr)
             return 1
-        print(f"{PREFIX_OK}: Tool '{args.tool}' disabled.")
+        print(f"{PREFIX_OK}: Honeypot '{args.honeypot}' disabled.")
         return 0
 
     # Up command
@@ -313,118 +313,118 @@ def main(argv: List[str]) -> int:
             if getattr(args, "all", False):
                 # For --all, handle ALWAYS_IMPORT differently
                 if ALWAYS_IMPORT:
-                    # Auto-import all enabled tools first
-                    tool_ids = list_all_enabled_tool_ids()
-                    if not tool_ids:
-                        print("No enabled tools.")
+                    # Auto-import all enabled honeypots first
+                    honeypot_ids = list_all_enabled_honeypot_ids()
+                    if not honeypot_ids:
+                        print("No enabled honeypots.")
                         return 0
 
-                    print(f"Auto-importing {len(tool_ids)} enabled tools...")
-                    for t in tool_ids:
+                    print(f"Auto-importing {len(honeypot_ids)} enabled honeypots...")
+                    for t in honeypot_ids:
                         try:
-                            dest = import_tool(t, force=True)
+                            dest = import_honeypot(t, force=True)
                             # print(f"{PREFIX_OK}: Auto-imported '{t}'")
                         except Exception as exc:
                             print(f"{PREFIX_ERROR} Failed to auto-import '{t}': {exc}", file=sys.stderr)
                             continue
 
-                    print(f"Starting {len(tool_ids)} tools...")
-                    for t in tool_ids:
+                    print(f"Starting {len(honeypot_ids)} honeypots...")
+                    for t in honeypot_ids:
                         try:
-                            up_tool(t, force=False)
+                            up_honeypot(t, force=False)
                         except Exception as exc:
                             print(f"{PREFIX_ERROR} Failed to start '{t}': {exc}", file=sys.stderr)
                             continue
                 else:
                     # Original logic for ALWAYS_IMPORT=false
-                    # If --update, update all imported tools first
+                    # If --update, update all imported honeypots first
                     if getattr(args, "update", False):
-                        imported_ids = list_imported_tool_ids()
+                        imported_ids = list_imported_honeypot_ids()
                         if imported_ids:
-                            print(f"Updating {len(imported_ids)} imported tools before up...")
+                            print(f"Updating {len(imported_ids)} imported honeypots before up...")
                             for t in imported_ids:
                                 try:
-                                    dest = import_tool(t, force=True)
+                                    dest = import_honeypot(t, force=True)
                                     print(f"{PREFIX_OK}: Template '{t}' updated at: {dest}")
                                 except Exception as exc:
                                     print(f"{PREFIX_WARN} Failed to update '{t}': {exc}")
                         else:
-                            print("No imported tools to update.")
+                            print("No imported honeypots to update.")
 
-                    tool_ids = list_enabled_tool_ids()
-                    if not tool_ids:
-                        print("No enabled and imported tools.")
-                    for t in tool_ids:
-                        up_tool(t, force=False)
+                    honeypot_ids = list_enabled_honeypot_ids()
+                    if not honeypot_ids:
+                        print("No enabled and imported honeypots.")
+                    for t in honeypot_ids:
+                        up_honeypot(t, force=False)
             else:
-                if not args.tool:
-                    print("You must specify a tool or use --all", file=sys.stderr)
+                if not args.honeypot:
+                    print("You must specify a honeypot or use --all", file=sys.stderr)
                     return 2
 
                 # Auto-import if ALWAYS_IMPORT=true
                 if ALWAYS_IMPORT:
                     try:
-                        # First check if tool exists
-                        from core.constants import TOOLS_DIR
-                        from core.yaml import find_tool_yaml_path
+                        # First check if honeypot exists
+                        from core.constants import HONEYPOT_MANIFEST_DIR
+                        from core.yaml import find_honeypot_yaml_path
                         try:
-                            find_tool_yaml_path(args.tool)
+                            find_honeypot_yaml_path(args.honeypot)
                         except FileNotFoundError:
-                            print(f"{PREFIX_ERROR} Tool '{args.tool}' not found in '{TOOLS_DIR}'.", file=sys.stderr)
+                            print(f"{PREFIX_ERROR} Honeypot '{args.honeypot}' not found in '{HONEYPOT_MANIFEST_DIR}'.", file=sys.stderr)
                             return 1
 
-                        # Then check if tool is enabled
-                        if not is_tool_enabled(args.tool):
+                        # Then check if honeypot is enabled
+                        if not is_honeypot_enabled(args.honeypot):
                             if not getattr(args, "force", False):
-                                print(f"{PREFIX_ERROR} Tool '{args.tool}' is not enabled. Use --force to override.", file=sys.stderr)
+                                print(f"{PREFIX_ERROR} Honeypot '{args.honeypot}' is not enabled. Use --force to override.", file=sys.stderr)
                                 return 1
-                            print(f"{PREFIX_WARN} Tool '{args.tool}' is not enabled, but continuing with --force")
+                            print(f"{PREFIX_WARN} Honeypot '{args.honeypot}' is not enabled, but continuing with --force")
 
-                        # Auto-import the tool
-                        dest = import_tool(args.tool, force=True)
-                        # print(f"{PREFIX_OK}: Auto-imported '{args.tool}'")
+                        # Auto-import the honeypot
+                        dest = import_honeypot(args.honeypot, force=True)
+                        # print(f"{PREFIX_OK}: Auto-imported '{args.honeypot}'")
 
-                        # Start the tool
-                        up_tool(args.tool, force=bool(args.force))
+                        # Start the honeypot
+                        up_honeypot(args.honeypot, force=bool(args.force))
                         return 0
 
                     except Exception as exc:
-                        print(f"{PREFIX_ERROR} Failed to auto-import and start '{args.tool}': {exc}", file=sys.stderr)
+                        print(f"{PREFIX_ERROR} Failed to auto-import and start '{args.honeypot}': {exc}", file=sys.stderr)
                         return 1
 
                 # Original logic for ALWAYS_IMPORT=false
-                # If --update for a single tool, update first only if already imported
+                # If --update for a single honeypot, update first only if already imported
                 if getattr(args, "update", False):
                     try:
                         from core.constants import OUTPUT_DOCKER_DIR
-                        if (OUTPUT_DOCKER_DIR / args.tool).exists():
-                            dest = import_tool(args.tool, force=True)
-                            print(f"{PREFIX_OK}: Updated '{args.tool}'")
+                        if (OUTPUT_DOCKER_DIR / args.honeypot).exists():
+                            dest = import_honeypot(args.honeypot, force=True)
+                            print(f"{PREFIX_OK}: Updated '{args.honeypot}'")
                         else:
-                            print(f"Skip update: tool '{args.tool}' is not imported.")
+                            print(f"Skip update: honeypot '{args.honeypot}' is not imported.")
                     except Exception as exc:
-                        print(f"{PREFIX_ERROR} Failed to update '{args.tool}': {exc}", file=sys.stderr)
+                        print(f"{PREFIX_ERROR} Failed to update '{args.honeypot}': {exc}", file=sys.stderr)
                         return 1
                 try:
-                    up_tool(args.tool, force=bool(args.force))
+                    up_honeypot(args.honeypot, force=bool(args.force))
                 except FileNotFoundError:
-                    # Verify the tool exists in tools/ before offering import
+                    # Verify the honeypot exists in honeypots/ before offering import
                     try:
-                        from core.constants import TOOLS_DIR
-                        from core.yaml import find_tool_yaml_path
-                        find_tool_yaml_path(args.tool)
+                        from core.constants import HONEYPOT_MANIFEST_DIR
+                        from core.yaml import find_honeypot_yaml_path
+                        find_honeypot_yaml_path(args.honeypot)
                     except FileNotFoundError:
-                        print(f"{PREFIX_ERROR} Tool '{args.tool}' not found in '{TOOLS_DIR}'.", file=sys.stderr)
+                        print(f"{PREFIX_ERROR} Honeypot '{args.honeypot}' not found in '{HONEYPOT_MANIFEST_DIR}'.", file=sys.stderr)
                         return 1
 
-                    reply = input(f"Tool '{args.tool}' is not imported. Import now? [y/N]: ").strip().lower()
+                    reply = input(f"Honeypot '{args.honeypot}' is not imported. Import now? [y/N]: ").strip().lower()
                     if reply in ("y", "yes", "ya"):
                         try:
-                            dest = import_tool(args.tool, force=False)
-                            print(f"{PREFIX_OK}: Imported '{args.tool}'")
-                            up_tool(args.tool, force=bool(args.force))
+                            dest = import_honeypot(args.honeypot, force=False)
+                            print(f"{PREFIX_OK}: Imported '{args.honeypot}'")
+                            up_honeypot(args.honeypot, force=bool(args.force))
                         except Exception as exc:
-                            print(f"{PREFIX_ERROR} Failed to start '{args.tool}': {exc}", file=sys.stderr)
+                            print(f"{PREFIX_ERROR} Failed to start '{args.honeypot}': {exc}", file=sys.stderr)
                             return 1
                     else:
                         print("Cancelled.")
@@ -438,16 +438,16 @@ def main(argv: List[str]) -> int:
     if args.command == "down":
         try:
             if getattr(args, "all", False):
-                tool_ids = list_imported_tool_ids()
-                if not tool_ids:
-                    print("No imported tools.")
-                for t in tool_ids:
-                    down_tool(t)
+                honeypot_ids = list_imported_honeypot_ids()
+                if not honeypot_ids:
+                    print("No imported honeypots.")
+                for t in honeypot_ids:
+                    down_honeypot(t)
             else:
-                if not args.tool:
-                    print("You must specify a tool or use --all", file=sys.stderr)
+                if not args.honeypot:
+                    print("You must specify a honeypot or use --all", file=sys.stderr)
                     return 2
-                down_tool(args.tool)
+                down_honeypot(args.honeypot)
         except Exception as exc:
             print(f"{PREFIX_ERROR} Failed to stop: {exc}", file=sys.stderr)
             return 1
@@ -456,18 +456,18 @@ def main(argv: List[str]) -> int:
     # Shell command
     if args.command == "shell":
         try:
-            shell_tool(args.tool)
+            shell_honeypot(args.honeypot)
         except Exception as exc:
-            print(f"{PREFIX_ERROR} Failed to open shell in '{args.tool}': {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to open shell in '{args.honeypot}': {exc}", file=sys.stderr)
             return 1
         return 0
 
     # Logs command
     if args.command == "logs":
         try:
-            logs_main(args.tool)
+            logs_main(args.honeypot)
         except Exception as exc:
-            print(f"{PREFIX_ERROR} Failed to show logs for '{args.tool}': {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to show logs for '{args.honeypot}': {exc}", file=sys.stderr)
             return 1
         return 0
 

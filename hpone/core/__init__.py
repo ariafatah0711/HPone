@@ -5,18 +5,18 @@ Package ini berisi core functionality untuk HPone Docker template manager.
 """
 
 from .yaml import (
-    load_tool_yaml_by_filename,
-    find_tool_yaml_path,
-    set_tool_enabled,
-    is_tool_enabled
+    load_honeypot_yaml_by_filename,
+    find_honeypot_yaml_path,
+    set_honeypot_enabled,
+    is_honeypot_enabled
 )
 
 from .docker import (
-    is_tool_running,
+    is_honeypot_running,
     run_compose_action,
-    up_tool,
-    down_tool,
-    shell_tool
+    up_honeypot,
+    down_honeypot,
+    shell_honeypot
 )
 
 from .config import (
@@ -41,18 +41,18 @@ from .log_runner import (
 
 __all__ = [
     # YAML operations
-    'load_tool_yaml_by_filename',
-    'find_tool_yaml_path', 
-    'set_tool_enabled',
-    'is_tool_enabled',
-    
+    'load_honeypot_yaml_by_filename',
+    'find_honeypot_yaml_path',
+    'set_honeypot_enabled',
+    'is_honeypot_enabled',
+
     # Docker operations
-    'is_tool_running',
+    'is_honeypot_running',
     'run_compose_action',
-    'up_tool',
-    'down_tool',
-    'shell_tool',
-    
+    'up_honeypot',
+    'down_honeypot',
+    'shell_honeypot',
+
     # Configuration handling
     'parse_ports',
     'parse_volumes',
@@ -61,11 +61,11 @@ __all__ = [
     'generate_env_file',
     'ensure_volume_directories',
     'rewrite_compose_with_env',
-    
+
     # Utility functions
     'to_var_prefix',
     '_format_table',
-    
+
     # Log runner functions
     'run_with_ephemeral_logs',
     'run_docker_compose_action'

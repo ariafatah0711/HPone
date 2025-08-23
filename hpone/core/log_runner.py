@@ -52,7 +52,7 @@ def clear_lines(count: int) -> None:
 
 def run_with_ephemeral_logs(
     command: list[str],
-    tool_name: str,
+    honeypot_name: str,
     cwd: Optional[Path] = None,
     timeout: Optional[int] = None,
     on_log_line: Optional[Callable[[str], None]] = None,
@@ -63,7 +63,7 @@ def run_with_ephemeral_logs(
 
     Args:
         command: List of command arguments
-        tool_name: Name of the tool for display
+        honeypot_name: Name of the honeypot for display
         cwd: Working directory for the command
         timeout: Command timeout in seconds (None = no timeout)
         on_log_line: Optional callback for each log line
@@ -133,7 +133,7 @@ def run_with_ephemeral_logs(
     try:
         # Start the process
         action_verb = "Stopping" if action == "down" else "Starting"
-        log_line(f"{action_verb} {tool_name} containers ...")
+        log_line(f"{action_verb} {honeypot_name} containers ...")
 
         process = subprocess.Popen(
             command,
@@ -174,28 +174,28 @@ def run_with_ephemeral_logs(
             status = f"{COLOR_RED}[FAIL]{COLOR_RESET}"
             result = f"{COLOR_RED}ERR{COLOR_RESET}"
 
-        print(f"{status} {tool_name} {result} ({duration:.1f}s)")
+        print(f"{status} {honeypot_name} {result} ({duration:.1f}s)")
         return return_code == 0, duration
 
     except subprocess.TimeoutExpired:
         process.kill()
         duration = time.time() - start_time
         clear_logs()
-        print(f"{COLOR_RED}[FAIL]{COLOR_RESET} {tool_name} {COLOR_RED}TIMEOUT{COLOR_RESET} ({duration:.1f}s)")
+        print(f"{COLOR_RED}[FAIL]{COLOR_RESET} {honeypot_name} {COLOR_RED}TIMEOUT{COLOR_RESET} ({duration:.1f}s)")
         return False, duration
 
     except Exception as e:
         duration = time.time() - start_time
         clear_logs()
-        print(f"{COLOR_RED}[FAIL]{COLOR_RESET} {tool_name} {COLOR_RED}ERROR{COLOR_RESET} ({duration:.1f}s)")
+        print(f"{COLOR_RED}[FAIL]{COLOR_RESET} {honeypot_name} {COLOR_RED}ERROR{COLOR_RESET} ({duration:.1f}s)")
         print(f"Error: {e}")
         return False, duration
 
 
 def run_docker_compose_action(
     action: str,
-    tool_name: str,
-    tool_dir: Path,
+    honeypot_name: str,
+    honeypot_dir: Path,
     timeout: Optional[int] = None
 ) -> tuple[bool, float]:
     """
@@ -203,28 +203,28 @@ def run_docker_compose_action(
 
     Args:
         action: Docker compose action (up, down, etc.)
-        tool_name: Name of the tool
-        tool_dir: Directory containing docker-compose.yml
+        honeypot_name: Name of the honeypot
+        honeypot_dir: Directory containing docker-compose.yml
         timeout: Command timeout in seconds
 
     Returns:
         Tuple of (success: bool, duration: float)
     """
-    if not (tool_dir / "docker-compose.yml").exists():
-        raise FileNotFoundError(f"docker-compose.yml not found in {tool_dir}")
+    if not (honeypot_dir / "docker-compose.yml").exists():
+        raise FileNotFoundError(f"docker-compose.yml not found in {honeypot_dir}")
 
     # Build command
     cmd = ["docker", "compose", action]
     if action == "up":
         cmd.append("-d")
 
-    return run_with_ephemeral_logs(cmd, tool_name, cwd=tool_dir, timeout=timeout, action=action)
+    return run_with_ephemeral_logs(cmd, honeypot_name, cwd=honeypot_dir, timeout=timeout, action=action)
 
 
 def run_docker_compose_action_with_args(
     action: str,
-    tool_name: str,
-    tool_dir: Path,
+    honeypot_name: str,
+    honeypot_dir: Path,
     extra_args: Optional[list[str]] = None,
     timeout: Optional[int] = None
 ) -> tuple[bool, float]:
@@ -233,16 +233,16 @@ def run_docker_compose_action_with_args(
 
     Args:
         action: Docker compose action (up, down, etc.)
-        tool_name: Name of the tool
-        tool_dir: Directory containing docker-compose.yml
+        honeypot_name: Name of the honeypot
+        honeypot_dir: Directory containing docker-compose.yml
         extra_args: Additional arguments for docker compose command
         timeout: Command timeout in seconds
 
     Returns:
         Tuple of (success: bool, duration: float)
     """
-    if not (tool_dir / "docker-compose.yml").exists():
-        raise FileNotFoundError(f"docker-compose.yml not found in {tool_dir}")
+    if not (honeypot_dir / "docker-compose.yml").exists():
+        raise FileNotFoundError(f"docker-compose.yml not found in {honeypot_dir}")
 
     # Build command
     cmd = ["docker", "compose", action]
@@ -251,7 +251,7 @@ def run_docker_compose_action_with_args(
     if extra_args:
         cmd.extend(extra_args)
 
-    return run_with_ephemeral_logs(cmd, tool_name, cwd=tool_dir, timeout=timeout, action=action)
+    return run_with_ephemeral_logs(cmd, honeypot_name, cwd=honeypot_dir, timeout=timeout, action=action)
 
 
 # Example usage and testing
@@ -260,7 +260,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Test ephemeral log runner")
     parser.add_argument("command", nargs="+", help="Command to run")
-    parser.add_argument("--tool", default="test", help="Tool name for display")
+    parser.add_argument("--honeypot", default="test", help="Tool name for display")
     parser.add_argument("--cwd", type=Path, help="Working directory")
     parser.add_argument("--timeout", type=int, help="Timeout in seconds")
 
@@ -268,7 +268,7 @@ if __name__ == "__main__":
 
     success, duration = run_with_ephemeral_logs(
         args.command,
-        args.tool,
+        args.honeypot,
         cwd=args.cwd,
         timeout=args.timeout
     )

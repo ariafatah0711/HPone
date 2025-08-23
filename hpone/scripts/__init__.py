@@ -5,30 +5,30 @@ This package contains command scripts for the HPone Docker template manager.
 """
 
 from .list import (
-    list_tools,
-    list_enabled_tool_ids,
-    list_all_enabled_tool_ids,
-    list_imported_tool_ids,
-    resolve_tool_dir_id
+    list_honeypots,
+    list_enabled_honeypot_ids,
+    list_all_enabled_honeypot_ids,
+    list_imported_honeypot_ids,
+    resolve_honeypot_dir_id
 )
 
 from .inspect import (
-    inspect_tool
+    inspect_honeypot
 )
 
 from .import_cmd import (
-    import_tool
+    import_honeypot
 )
 
 from .remove import (
-    remove_tool
+    remove_honeypot
 )
 
 from .file_ops import (
     ensure_destination_dir,
     find_template_dir,
     copy_template_to_destination,
-    remove_tool_data
+    remove_honeypot_data
 )
 
 from .check import (
@@ -58,26 +58,26 @@ from .logs import (
 
 __all__ = [
     # List commands
-    'list_tools',
-    'list_enabled_tool_ids',
-    'list_all_enabled_tool_ids',
-    'list_imported_tool_ids',
-    'resolve_tool_dir_id',
+    'list_honeypots',
+    'list_enabled_honeypot_ids',
+    'list_all_enabled_honeypot_ids',
+    'list_imported_honeypot_ids',
+    'resolve_honeypot_dir_id',
 
     # Inspect commands
-    'inspect_tool',
+    'inspect_honeypot',
 
     # Import commands
-    'import_tool',
+    'import_honeypot',
 
     # Remove commands
-    'remove_tool',
+    'remove_honeypot',
 
     # File operations
     'ensure_destination_dir',
     'find_template_dir',
     'copy_template_to_destination',
-    'remove_tool_data',
+    'remove_honeypot_data',
 
     # Check dependencies
     'check_all_dependencies',

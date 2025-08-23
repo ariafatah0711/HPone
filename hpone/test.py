@@ -28,14 +28,14 @@ def run_import_self_test() -> bool:
 
     # Core exports via package __init__
     core_functions = [
-        "load_tool_yaml_by_filename",
-        "find_tool_yaml_path",
-        "set_tool_enabled",
-        "is_tool_enabled",
-        "is_tool_running",
+        "load_honeypot_yaml_by_filename",
+        "find_honeypot_yaml_path",
+        "set_honeypot_enabled",
+        "is_honeypot_enabled",
+        "is_honeypot_running",
         "run_compose_action",
-        "up_tool",
-        "down_tool",
+        "up_honeypot",
+        "down_honeypot",
         "parse_ports",
         "parse_volumes",
         "parse_env",
@@ -55,17 +55,17 @@ def run_import_self_test() -> bool:
 
     # Scripts exports via package __init__
     scripts_functions = [
-        "list_tools",
-        "list_enabled_tool_ids",
-        "list_all_enabled_tool_ids",
-        "list_imported_tool_ids",
-        "resolve_tool_dir_id",
-        "inspect_tool",
-        "import_tool",
+        "list_honeypots",
+        "list_enabled_honeypot_ids",
+        "list_all_enabled_honeypot_ids",
+        "list_imported_honeypot_ids",
+        "resolve_honeypot_dir_id",
+        "inspect_honeypot",
+        "import_honeypot",
         "ensure_destination_dir",
         "find_template_dir",
         "copy_template_to_destination",
-        "remove_tool",
+        "remove_honeypot",
         "require_dependencies",
         "show_status",
     ]
@@ -78,7 +78,7 @@ def run_import_self_test() -> bool:
 
     # Core constants direct import
     constant_names = [
-        "TOOLS_DIR",
+        "HONEYPOT_MANIFEST_DIR",
         "TEMPLATE_DOCKER_DIR",
         "OUTPUT_DOCKER_DIR",
         "DATA_DIR",

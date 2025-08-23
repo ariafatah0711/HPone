@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Interactive logs viewer for HPone honeypot tools.
+Interactive logs viewer for HPone honeypot honeypots.
 
 Provides functionality to:
 1. View Docker container logs
@@ -20,23 +20,23 @@ except ImportError:
     print("Error: questionary library not installed. Run: pip install questionary", file=sys.stderr)
     sys.exit(1)
 
-from core.docker import is_tool_running
+from core.docker import is_honeypot_running
 from core.utils import PREFIX_ERROR, PREFIX_WARN, PREFIX_OK
 
 
-def show_docker_logs(tool_name: str, follow: bool = False) -> None:
+def show_docker_logs(honeypot_name: str, follow: bool = False) -> None:
     """Show Docker container logs simply."""
     try:
-        if not is_tool_running(tool_name):
-            print(f"{PREFIX_WARN} Container '{tool_name}' is not running")
+        if not is_honeypot_running(honeypot_name):
+            print(f"{PREFIX_WARN} Container '{honeypot_name}' is not running")
             return
 
         if follow:
             # Simple follow mode
-            print(f"🔄 Following logs for {tool_name} (Ctrl+C to stop)")
+            print(f"🔄 Following logs for {honeypot_name} (Ctrl+C to stop)")
             print("=" * 60)
 
-            cmd = ["docker", "logs", "-f", "--tail", "20", tool_name]
+            cmd = ["docker", "logs", "-f", "--tail", "20", honeypot_name]
 
             try:
                 subprocess.run(cmd)
@@ -45,10 +45,10 @@ def show_docker_logs(tool_name: str, follow: bool = False) -> None:
 
         else:
             # Show recent logs simply
-            print(f"📜 Recent logs for {tool_name}")
+            print(f"📜 Recent logs for {honeypot_name}")
             print("=" * 60)
 
-            cmd = ["docker", "logs", "--tail", "30", tool_name]
+            cmd = ["docker", "logs", "--tail", "30", honeypot_name]
             subprocess.run(cmd)
             print("=" * 60)
 
@@ -56,13 +56,13 @@ def show_docker_logs(tool_name: str, follow: bool = False) -> None:
         print(f"{PREFIX_ERROR} Failed to show logs: {exc}", file=sys.stderr)
 
 
-def parse_mounted_volumes(tool_name: str) -> List[Dict[str, Path]]:
+def parse_mounted_volumes(honeypot_name: str) -> List[Dict[str, Path]]:
     """Parse mounted volumes from Docker .env file."""
     try:
         from core.constants import OUTPUT_DOCKER_DIR
 
-        # Read .env file from docker/<toolname>/.env
-        env_file = OUTPUT_DOCKER_DIR / tool_name / ".env"
+        # Read .env file from docker/<honeypotname>/.env
+        env_file = OUTPUT_DOCKER_DIR / honeypot_name / ".env"
         if not env_file.exists():
             return []
 
@@ -83,7 +83,7 @@ def parse_mounted_volumes(tool_name: str) -> List[Dict[str, Path]]:
 
                 # Find corresponding _DST entry
                 dst_key = key.replace('_SRC', '_DST')
-                container_path = env_vars.get(dst_key, f"/opt/{tool_name}/{local_path.name}")
+                container_path = env_vars.get(dst_key, f"/opt/{honeypot_name}/{local_path.name}")
 
                 # Only add directories, not individual files
                 if local_path.exists() and local_path.is_dir():
@@ -213,7 +213,7 @@ def view_file_content(file_path: Path) -> None:
             print(f"{PREFIX_ERROR} Error: {exc}", file=sys.stderr)
 
 
-def browse_directory(path: Path, tool_name: str) -> bool:
+def browse_directory(path: Path, honeypot_name: str) -> bool:
     """Interactive directory browser with proper navigation.
 
     Returns:
@@ -281,7 +281,7 @@ def browse_directory(path: Path, tool_name: str) -> bool:
 
             # Show current path relative to data directory
             relative_path = current_path.relative_to(path) if current_path != path else "."
-            path_display = f"{tool_name}/data/{relative_path}" if relative_path != "." else f"{tool_name}/data"
+            path_display = f"{honeypot_name}/data/{relative_path}" if relative_path != "." else f"{honeypot_name}/data"
 
             while True:
                 selection = questionary.select(
@@ -320,18 +320,18 @@ def browse_directory(path: Path, tool_name: str) -> bool:
     return browse_level(path, is_root=True)
 
 
-def logs_main(tool_name: str) -> None:
+def logs_main(honeypot_name: str) -> None:
     """Main logs command handler."""
     try:
         while True:  # Loop to allow returning to main menu
             # Get mounted volumes from Docker .env file
-            data_mounts = parse_mounted_volumes(tool_name)
+            data_mounts = parse_mounted_volumes(honeypot_name)
 
             # Build main menu
             choices = []
 
             # Add Docker logs options
-            if is_tool_running(tool_name):
+            if is_honeypot_running(honeypot_name):
                 choices.extend([
                     '📜 Recent logs',
                     '🔄 Follow live logs'
@@ -364,13 +364,13 @@ def logs_main(tool_name: str) -> None:
                         choices.append(f"📁 Browse {mount['display_name']} (not found)")
 
             if len([c for c in choices if c != '---' and not c.startswith('❌')]) == 0:
-                print(f"{PREFIX_WARN} No log sources available for {tool_name}")
-                print(f"       Make sure the tool is running: hpone up {tool_name}")
+                print(f"{PREFIX_WARN} No log sources available for {honeypot_name}")
+                print(f"       Make sure the honeypot is running: hpone up {honeypot_name}")
                 return
 
             # Show main selection menu
             selection = questionary.select(
-                f"🔍 Logs for {tool_name}:",
+                f"🔍 Logs for {honeypot_name}:",
                 choices=[c for c in choices if c != '---']  # Remove separator
             ).unsafe_ask()
 
@@ -379,14 +379,14 @@ def logs_main(tool_name: str) -> None:
 
             # Handle selection
             if selection.startswith('📜'):
-                show_docker_logs(tool_name, follow=False)
+                show_docker_logs(honeypot_name, follow=False)
                 # After showing logs, return to main menu
             elif selection.startswith('🔄'):
-                show_docker_logs(tool_name, follow=True)
+                show_docker_logs(honeypot_name, follow=True)
                 # After following logs, return to main menu
             elif selection.startswith('❌'):
-                print(f"{PREFIX_WARN} Container '{tool_name}' is not running")
-                print(f"       Start it with: hpone up {tool_name}")
+                print(f"{PREFIX_WARN} Container '{honeypot_name}' is not running")
+                print(f"       Start it with: hpone up {honeypot_name}")
                 # Return to main menu
             elif selection.startswith('📁'):
                 # Extract directory name from selection
@@ -397,7 +397,7 @@ def logs_main(tool_name: str) -> None:
                     mount = next((m for m in data_mounts if m['display_name'] == dir_name), None)
 
                     if mount and mount['local_path'].exists():
-                        should_return_to_menu = browse_directory(mount['local_path'], tool_name)
+                        should_return_to_menu = browse_directory(mount['local_path'], honeypot_name)
                         if not should_return_to_menu:
                             return  # User wants to exit completely
                         # If should_return_to_menu is True, continue the loop to show main menu again

@@ -17,8 +17,8 @@ source hpone/completion/hpone-completion.bash
 
 ```bash
 ./app.py <TAB>                    # Melengkapi command
-./app.py inspect <TAB>            # Melengkapi nama tool
-./app.py up <TAB>                 # Melengkapi tool atau --all
+./app.py inspect <TAB>            # Melengkapi nama honeypot
+./app.py up <TAB>                 # Melengkapi honeypot atau --all
 ./app.py clean --all <TAB>        # Melengkapi opsi
 ```
 

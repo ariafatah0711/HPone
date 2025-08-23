@@ -38,30 +38,30 @@ def color_text(text: str, color_code: str) -> str:
 
 
 def to_var_prefix(name: str) -> str:
-    """Convert tool name to environment variable prefix."""
+    """Convert honeypot name to environment variable prefix."""
     # Replace non-alphanumeric chars with underscore, convert to uppercase
     prefix = re.sub(r'[^a-zA-Z0-9]', '_', name).upper()
     # Ensure it starts with a letter
     if prefix and not prefix[0].isalpha():
-        prefix = 'TOOL_' + prefix
+        prefix = 'HONEYPOT_' + prefix
     return prefix
 
 
 def _format_table(headers: List[str], rows: List[List[str]], max_width: int = 50) -> str:
     """
     Format data sebagai ASCII table dengan truncation.
-    
+
     Args:
         headers: List header columns
         rows: List of rows (each row is list of strings)
         max_width: Maximum width untuk truncation
-        
+
     Returns:
         Formatted table string
     """
     if not headers or not rows:
         return ""
-    
+
     # Calculate column widths (ignore ANSI sequences)
     col_widths = []
     for i, header in enumerate(headers):
@@ -74,15 +74,15 @@ def _format_table(headers: List[str], rows: List[List[str]], max_width: int = 50
         # Apply max_width limit
         max_width_col = min(max_width_col, max_width)
         col_widths.append(max_width_col)
-    
+
     # Build separator line
     separator = "+" + "+".join("-" * (w + 2) for w in col_widths) + "+"
-    
+
     # Build header row
     header_row = "|"
     for header, width in zip(headers, col_widths):
         header_row += f" {_pad_ansi_left(header, width)} |"
-    
+
     # Build data rows with word-wrapping per cell
     data_rows = []
     for row in rows:
@@ -112,12 +112,12 @@ def _format_table(headers: List[str], rows: List[List[str]], max_width: int = 50
                 part = lines[line_idx] if line_idx < len(lines) else ""
                 line_str += f" {_pad_ansi_left(part, width)} |"
             data_rows.append(line_str)
-    
+
     # Combine all parts
     table = separator + "\n"
     table += header_row + "\n"
     table += separator + "\n"
     table += "\n".join(data_rows) + "\n"
     table += separator
-    
+
     return table

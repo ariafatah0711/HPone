@@ -13,8 +13,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 # Konfigurasi behavior
 ALWAYS_IMPORT = True          # True: hide import/remove commands, auto-import on up
 
-# Lokasi direktori tools (berisi file YAML honeypot)
-TOOLS_DIR = PROJECT_ROOT / "tools"
+# Lokasi direktori honeypots (berisi file YAML honeypot)
+HONEYPOT_MANIFEST_DIR = PROJECT_ROOT / "honeypots"
 # Lokasi direktori template Docker
 TEMPLATE_DOCKER_DIR = PROJECT_ROOT / "template" / "docker"
 # Lokasi direktori output Docker (tempat hasil import)

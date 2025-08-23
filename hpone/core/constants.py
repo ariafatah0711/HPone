@@ -16,7 +16,7 @@ def find_project_root() -> Path:
 
     # Naik ke parent directories sampai ketemu app.py
     for parent in [current_path] + list(current_path.parents):
-        if (parent / "app.py").exists() and (parent / "tools").exists():
+        if (parent / "app.py").exists() and (parent / "honeypots").exists():
             return parent
 
     # Fallback: assume structure hpone/core/constants.py
@@ -32,18 +32,18 @@ try:
         sys.path.insert(0, str(config_dir))
 
     from config import (
-        TOOLS_DIR as CONFIG_TOOLS_DIR,
+        HONEYPOT_MANIFEST_DIR as CONFIG_HONEYPOT_MANIFEST_DIR,
         TEMPLATE_DOCKER_DIR as CONFIG_TEMPLATE_DOCKER_DIR,
         OUTPUT_DOCKER_DIR as CONFIG_OUTPUT_DOCKER_DIR,
         DATA_DIR as CONFIG_DATA_DIR,
     )
-    TOOLS_DIR = CONFIG_TOOLS_DIR
+    HONEYPOT_MANIFEST_DIR = CONFIG_HONEYPOT_MANIFEST_DIR
     TEMPLATE_DOCKER_DIR = CONFIG_TEMPLATE_DOCKER_DIR
     OUTPUT_DOCKER_DIR = CONFIG_OUTPUT_DOCKER_DIR
     DATA_DIR = CONFIG_DATA_DIR
 except ImportError:
     # Fallback ke default values jika config.py tidak ditemukan
-    TOOLS_DIR = PROJECT_ROOT / "tools"
+    HONEYPOT_MANIFEST_DIR = PROJECT_ROOT / "honeypots"
     TEMPLATE_DOCKER_DIR = PROJECT_ROOT / "template" / "docker"
     OUTPUT_DOCKER_DIR = PROJECT_ROOT / "docker"
     DATA_DIR = PROJECT_ROOT / "data"

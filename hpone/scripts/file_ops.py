@@ -21,15 +21,15 @@ def ensure_destination_dir(dest: Path, force: bool = False) -> None:
     dest.mkdir(parents=True, exist_ok=True)
 
 
-def find_template_dir(tool_id: str) -> Path:
+def find_template_dir(honeypot_id: str) -> Path:
     """
     Locate template directory:
-      1) template/docker/<tool_id>/
+      1) template/docker/<honeypot_id>/
       2) If not present, and template/docker/ contains 'Dockerfile' and 'docker-compose.yml' directly, use that.
     """
-    tool_dir = TEMPLATE_DOCKER_DIR / tool_id
-    if tool_dir.exists() and tool_dir.is_dir():
-        return tool_dir
+    honeypot_dir = TEMPLATE_DOCKER_DIR / honeypot_id
+    if honeypot_dir.exists() and honeypot_dir.is_dir():
+        return honeypot_dir
 
     dockerfile = TEMPLATE_DOCKER_DIR / "Dockerfile"
     compose = TEMPLATE_DOCKER_DIR / "docker-compose.yml"
@@ -39,8 +39,8 @@ def find_template_dir(tool_id: str) -> Path:
     # Helpful info
     available = sorted([p.name for p in TEMPLATE_DOCKER_DIR.glob("*/") if p.is_dir()])
     raise FileNotFoundError(
-        f"Template not found. Expected '{TEMPLATE_DOCKER_DIR}/<tool>/' or common files 'Dockerfile' and 'docker-compose.yml'. "
-        f"Requested tool: '{tool_id}'. Available templates: {', '.join(available) if available else '-'}"
+        f"Template not found. Expected '{TEMPLATE_DOCKER_DIR}/<honeypot>/' or common files 'Dockerfile' and 'docker-compose.yml'. "
+        f"Requested honeypot: '{honeypot_id}'. Available templates: {', '.join(available) if available else '-'}"
     )
 
 
@@ -54,7 +54,7 @@ def copy_template_to_destination(template_dir: Path, dest_dir: Path) -> None:
                 shutil.copy2(src, dest_dir / fname)
         return
 
-    # If tool-specific template (contains dist/, etc.), copy the tree
+    # If honeypot-specific template (contains dist/, etc.), copy the tree
     for item in template_dir.iterdir():
         src = item
         dst = dest_dir / item.name
@@ -64,19 +64,19 @@ def copy_template_to_destination(template_dir: Path, dest_dir: Path) -> None:
             shutil.copy2(src, dst)
 
 
-def remove_tool(tool_id: str) -> None:
-    dest_dir = OUTPUT_DOCKER_DIR / tool_id
+def remove_honeypot(honeypot_id: str) -> None:
+    dest_dir = OUTPUT_DOCKER_DIR / honeypot_id
     if not dest_dir.exists():
         print(f"{PREFIX_WARN} Folder not found: {dest_dir}")
         return
     shutil.rmtree(dest_dir)
-    print(f"{PREFIX_OK}: Removed tool {tool_id}")
+    print(f"{PREFIX_OK}: Removed honeypot {honeypot_id}")
 
 
-def remove_tool_data(tool_id: str) -> bool:
+def remove_honeypot_data(honeypot_id: str) -> bool:
     """
-    Remove mounted data directory for a tool inside DATA_DIR.
-    Only deletes if path is strictly within DATA_DIR and equals DATA_DIR/tool_id.
+    Remove mounted data directory for a honeypot inside DATA_DIR.
+    Only deletes if path is strictly within DATA_DIR and equals DATA_DIR/honeypot_id.
 
     Returns True if data was removed, False if nothing removed.
     """
@@ -84,13 +84,13 @@ def remove_tool_data(tool_id: str) -> bool:
         base = DATA_DIR.resolve()
     except Exception:
         base = DATA_DIR
-    target = (DATA_DIR / tool_id)
+    target = (DATA_DIR / honeypot_id)
     try:
         target_resolved = target.resolve()
     except Exception:
         target_resolved = target
 
-    # Safety checks: target exists, is a directory, and under base, and exactly base/tool_id
+    # Safety checks: target exists, is a directory, and under base, and exactly base/honeypot_id
     if not target.exists() or not target.is_dir():
         print(f"{PREFIX_WARN} Data folder not found: {target}")
         return False
@@ -100,11 +100,11 @@ def remove_tool_data(tool_id: str) -> bool:
     except Exception:
         print(f"{PREFIX_ERROR} Refuse to remove data outside DATA_DIR: {target_resolved}")
         return False
-    # Ensure the immediate path matches DATA_DIR/tool_id (not deeper arbitrary)
-    if target_resolved != (base / tool_id):
+    # Ensure the immediate path matches DATA_DIR/honeypot_id (not deeper arbitrary)
+    if target_resolved != (base / honeypot_id):
         print(f"{PREFIX_ERROR} Refuse to remove unexpected path: {target_resolved}")
         return False
 
     shutil.rmtree(target_resolved)
-    print(f"{PREFIX_OK}: Removed data for {tool_id}")
+    print(f"{PREFIX_OK}: Removed data for {honeypot_id}")
     return True

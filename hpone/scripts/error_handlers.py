@@ -60,17 +60,17 @@ def handle_docker_error(func: Callable[..., T]) -> Callable[..., T]:
     return wrapper
 
 
-def safe_execute(func: Callable[..., T], 
-                error_msg: str = "An error occurred", 
+def safe_execute(func: Callable[..., T],
+                error_msg: str = "An error occurred",
                 exit_on_error: bool = False) -> Optional[T]:
     """
     Execute a function with safe error handling.
-    
+
     Args:
         func: Function to execute
         error_msg: Error message to display
         exit_on_error: Whether to exit program on error
-    
+
     Returns:
         Result dari function atau None jika error
     """
@@ -83,12 +83,12 @@ def safe_execute(func: Callable[..., T],
         return None
 
 
-def print_error_with_suggestion(error: Exception, 
-                              suggestion: str = "", 
+def print_error_with_suggestion(error: Exception,
+                              suggestion: str = "",
                               exit_code: int = 1) -> None:
     """
     Print an error along with a helpful suggestion.
-    
+
     Args:
         error: The exception raised
         suggestion: Helpful suggestion for the user
@@ -97,7 +97,7 @@ def print_error_with_suggestion(error: Exception,
     print(f"{PREFIX_ERROR} {error}")
     if suggestion:
         print(f"💡 {suggestion}")
-    
+
     if exit_code != 0:
         sys.exit(exit_code)
 
@@ -105,10 +105,10 @@ def print_error_with_suggestion(error: Exception,
 def check_file_permissions(file_path: str) -> bool:
     """
     Check whether a file can be accessed.
-    
+
     Args:
         file_path: Path to the file to check
-    
+
     Returns:
         True if file is accessible, False otherwise
     """
