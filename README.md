@@ -67,7 +67,7 @@
 ┣ 🚀 app.py                     # Main launcher script
 ┣ 📂 hpone/                     # Core application directory
 ┃ ┣ 🎯 app.py                   # Application entry point
-┃ ┣ ⚙️  config.py               # Configuration management
+┃ ┣ ⚙️ config.py               # Configuration management
 ┃ ┣ 📂 completion/              # Bash completion scripts
 ┃ ┣ 📂 core/                    # Core functionality modules
 ┃ ┗ 📂 scripts/                 # Command implementations
