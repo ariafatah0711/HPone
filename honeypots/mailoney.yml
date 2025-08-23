@@ -1,11 +1,13 @@
 name: mailoney
-description: Honeypot SMTP untuk memantau serta merekam aktivitas email spam/bot
+description: SMTP honeypot to monitor and record email spam/bot activities
 enabled: false
 ports:
 - host: 25
   container: 25
+  description: "SMTP email transfer protocol"
 # - host: 587
 #   container: 25
+#   description: "SMTP submission port (secure)"
 env: {}
 volumes:
 - data/mailoney/log:/opt/mailoney/logs

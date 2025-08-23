@@ -1,17 +1,21 @@
 name: sentrypeer
-description: Honeypot SIP/VoIP untuk mendeteksi, merekam, dan menganalisis serangan terhadap layanan telepon berbasis SIP
+description: SIP/VoIP honeypot to detect, record, and analyze attacks against SIP-based telephony services
 enabled: false
 ports:
 - host: 5060
   container: 5060
   protocol: udp
+  description: "SIP signaling protocol (UDP)"
 # - host: 5060
 #   container: 5060
 #   protocol: tcp
+#   description: "SIP signaling protocol (TCP)"
 # - host: 4222
 #   container: 4222
+#   description: "NATS messaging system"
 - host: 8082
   container: 8082
+  description: "SentryPeer web interface"
 env:
   SENTRYPEER_VERBOSE: "1"
   SENTRYPEER_DEBUG: "1"

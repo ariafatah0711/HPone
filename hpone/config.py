@@ -26,5 +26,8 @@ DATA_DIR = PROJECT_ROOT / "data"
 LIST_BASIC_MAX_WIDTH = 80      # Max width untuk list biasa
 LIST_DETAILED_MAX_WIDTH = 30   # Max width untuk list -a (detailed)
 
+# Konfigurasi untuk status command
+STATUS_TABLE_MAX_WIDTH = 40    # Max width untuk status table columns
+
 # Konfigurasi logging
 USE_EPHEMERAL_LOGGING = True  # True: use ephemeral logging for up/down commands, False: use simple output

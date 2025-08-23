@@ -1,9 +1,10 @@
 name: miniprint
-description: Honeypot untuk mendeteksi percobaan serangan printer
+description: Honeypot to detect printer attack attempts
 enabled: false  # disable
 ports:
   - host: 9100
     container: 9100
+    description: "Printer JetDirect protocol"
 env: {}
 volumes:
 - data/miniprint/log/:/opt/miniprint/log/

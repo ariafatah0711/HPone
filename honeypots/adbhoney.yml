@@ -1,9 +1,10 @@
 name: adbhoney
-description: Honeypot untuk layanan Android Debug Bridge (ADB) pada port 5555
+description: Honeypot for Android Debug Bridge (ADB) service on port 5555
 enabled: true
 ports:
-- host: 5555
+- host: 5550
   container: 5555
+  description: "Android Debug Bridge (ADB) service"
 env: {}
 volumes:
 - data/adbhoney/log:/opt/adbhoney/log

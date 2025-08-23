@@ -1,40 +1,55 @@
 name: heralding
-description: Honeypot multi-protokol untuk menangkap kredensial login dari berbagai
-  layanan
+description: Multi-protocol honeypot to capture login credentials from various services
 enabled: false
 ports:
 - host: 21
   container: 21
+  description: "FTP file transfer protocol"
 - host: 2022
   container: 22
+  description: "SSH secure shell (alt port)"
 - host: 23
   container: 23
+  description: "Telnet terminal protocol"
 - host: 25
   container: 25
+  description: "SMTP email transfer protocol"
 # - host: 80
 #   container: 80
+#   description: "HTTP web server protocol"
 - host: 110
   container: 110
+  description: "POP3 email retrieval protocol"
 - host: 143
   container: 143
+  description: "IMAP email access protocol"
 - host: 443
   container: 443
+  description: "HTTPS secure web protocol"
 - host: 465
   container: 465
+  description: "SMTPS secure email transfer"
 - host: 993
   container: 993
+  description: "IMAPS secure email access"
 - host: 995
   container: 995
+  description: "POP3S secure email retrieval"
 - host: 1080
   container: 1080
+  description: "SOCKS proxy protocol"
 - host: 3306
   container: 3306
+  description: "MySQL database service"
 - host: 3389
   container: 3389
+  description: "RDP remote desktop protocol"
 - host: 5432
   container: 5432
+  description: "PostgreSQL database service"
 - host: 5900
   container: 5900
+  description: "VNC remote desktop protocol"
 env: {}
 volumes:
 - data/heralding/log:/var/log/heralding

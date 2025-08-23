@@ -1,21 +1,26 @@
 name: conpot
-description: Honeypot ICS/SCADA untuk mensimulasikan perangkat industri dengan berbagai
-  protokol
+description: ICS/SCADA honeypot to simulate industrial devices with various protocols
 enabled: true
 service: conpot_default
 ports:
 - host: 102
   container: 102
+  description: "S7 PLC communication"
 - host: 161
   container: 161
+  description: "SNMP monitoring"
 - host: 502
   container: 502
+  description: "Modbus TCP protocol"
 - host: 2121
   container: 21
+  description: "FTP file transfer"
 - host: 44818
   container: 44818
+  description: "EtherNet/IP protocol"
 - host: 47808
   container: 47808
+  description: "BACnet building automation"
 env: {}
 volumes:
 - data/conpot/log:/var/log/conpot

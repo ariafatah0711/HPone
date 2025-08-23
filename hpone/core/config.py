@@ -41,6 +41,29 @@ def parse_ports(config: Dict[str, Any]) -> List[Tuple[str, str]]:
     return result
 
 
+def parse_ports_with_description(config: Dict[str, Any]) -> List[Tuple[str, str, str]]:
+    """Return list of (host_src, container_dst, description). Supports dict with optional description."""
+    result: List[Tuple[str, str, str]] = []
+    ports = config.get("ports") or []
+    for entry in ports:
+        if isinstance(entry, dict):
+            # Support keys 'host'/'container' or 'src'/'dst'
+            host = entry.get("host") or entry.get("src") or entry.get("source")
+            container = entry.get("container") or entry.get("dst") or entry.get("destination")
+            description = entry.get("description", "")
+            if host is not None and container is not None:
+                result.append((str(host), str(container), str(description)))
+                continue
+        if isinstance(entry, str):
+            # Format "2222:22" → take the first left and right parts
+            if ":" in entry:
+                left, right = entry.split(":", 1)
+                result.append((left.strip(), right.strip(), ""))
+                continue
+        raise ValueError(f"Unrecognized port format: {entry!r}")
+    return result
+
+
 def parse_volumes(config: Dict[str, Any]) -> List[Tuple[str, str]]:
     """Return list of (src, dst). Supports 'src:dst' string or dict {'src'/'dst'} or {'host'/'container'}."""
     result: List[Tuple[str, str]] = []

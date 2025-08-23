@@ -1,10 +1,10 @@
 name: cowrie
-description: Honeypot SSH dan Telnet untuk memantau serta merekam aktivitas login
-  brute-force
+description: SSH and Telnet honeypot to monitor and record brute-force login activities
 enabled: true
 ports:
 - host: 2222
   container: 22
+  description: "SSH honeypot service"
 env: {}
 volumes:
 - data/cowrie/log:/home/cowrie/cowrie/log

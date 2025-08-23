@@ -1,9 +1,10 @@
 name: elasticpot
-description: Honeypot Elasticsearch untuk memantau serta merekam eksploitasi dan query berbahaya
+description: Elasticsearch honeypot to monitor and record exploitation and malicious queries
 enabled: false
 ports:
 - host: 9200
   container: 9200
+  description: "Elasticsearch REST API"
 env: {}
 volumes:
 - data/elasticpot/log:/opt/elasticpot/log

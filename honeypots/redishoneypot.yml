@@ -1,9 +1,10 @@
 name: redishoneypot
-description: Honeypot Redis untuk memantau serta merekam eksploitasi dan command injection
+description: Redis honeypot to monitor and record exploitation and command injection
 enabled: true
 ports:
 - host: 6379
   container: 6379
+  description: "Redis database service"
 env: {}
 volumes:
 - data/redishoneypot/log:/var/log/redishoneypot

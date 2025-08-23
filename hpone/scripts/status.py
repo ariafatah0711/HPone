@@ -21,6 +21,12 @@ from core.docker import is_honeypot_running
 from core.yaml import load_honeypot_yaml_by_filename
 from core.config import parse_ports
 
+# Import STATUS_TABLE_MAX_WIDTH with fallback
+try:
+    from config import STATUS_TABLE_MAX_WIDTH
+except ImportError:
+    STATUS_TABLE_MAX_WIDTH = 25  # Default fallback value
+
 def _color(text: str, code: str) -> str:
     # Backward-compatible wrapper if other parts still pass numeric codes
     if code == "32":
@@ -61,16 +67,24 @@ def _gather_ports_rows(running_honeypots: List[str]) -> List[List[str]]:
     for t in running_honeypots:
         try:
             _resolved_name, cfg = load_honeypot_yaml_by_filename(t)
-            port_pairs = parse_ports(cfg)
+            # Import the new function
+            from core.config import parse_ports_with_description
+            port_triplets = parse_ports_with_description(cfg)
         except Exception:
-            port_pairs = []
+            port_triplets = []
 
-        for host, container in port_pairs:
+        for host, container, description in port_triplets:
             container_str = str(container)
             lc = container_str.lower()
             if ("/udp" not in lc) and ("/tcp" not in lc):
                 container_str = f"{container_str}/tcp"
-            rows.append([str(host), container_str, t])
+
+            # Separate service name and description
+            service_name = t
+            desc_text = description.strip() if description and description.strip() else "-"
+
+            rows.append([str(host), container_str, service_name, desc_text])
+
     # Sort by HOST numerically if possible
     def _key_host(row):
         try:
@@ -100,8 +114,8 @@ def show_status() -> None:
     if port_rows:
         # Colorize service name in ports table for readability
         colored_rows = []
-        for host, container, svc in port_rows:
-            colored_rows.append([host, container, _color(svc, "36")])
-        port_table = _format_table(["HOST", "CONTAINER", "SERVICE"], colored_rows, max_width=30)
+        for host, container, svc, desc in port_rows:
+            colored_rows.append([host, container, _color(svc, "36"), desc])
+        port_table = _format_table(["HOST", "CONTAINER", "SERVICE", "DESCRIPTION"], colored_rows, max_width=STATUS_TABLE_MAX_WIDTH)
         if port_table:
             print(port_table)

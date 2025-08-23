@@ -1,11 +1,13 @@
 name: ciscoasa
-description: Honeypot emulasi Cisco ASA (Adaptive Security Appliance) firewall
+description: Cisco ASA (Adaptive Security Appliance) firewall emulation honeypot
 enabled: false
 ports:
 - host: 5000
   container: 5000
+  description: "Cisco ASA management interface"
 - host: 8443
   container: 8443
+  description: "HTTPS/SSL management console"
 env: {}
 volumes:
 - data/ciscoasa/log:/var/log/ciscoasa

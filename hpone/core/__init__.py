@@ -21,6 +21,7 @@ from .docker import (
 
 from .config import (
     parse_ports,
+    parse_ports_with_description,
     parse_volumes,
     parse_env,
     normalize_host_path,
@@ -55,6 +56,7 @@ __all__ = [
 
     # Configuration handling
     'parse_ports',
+    'parse_ports_with_description',
     'parse_volumes',
     'parse_env',
     'normalize_host_path',
