@@ -1,42 +1,42 @@
 # HPone - Docker Honeypot Manager
 
-**HPone** adalah honeypot untuk mengelola Docker honeypot templates dengan fitur **auto-import** yang memudahkan deployment dan management.
+**HPone** is a honeypot tool for managing Docker honeypot templates with **auto-import** features that simplify deployment and management.
 
-## 🔑 Mode Operasional
+## 🔑 Operational Modes
 
-HPone bisa dijalankan dalam dua mode utama:
+HPone can be run in two main modes:
 
-### **Mode Otomatis (ALWAYS_IMPORT=true)**
-- ✅ **Auto-import** honeypots saat startup
-- ✅ **Command simplified** - tidak ada import/update manual
+### **Automatic Mode (ALWAYS_IMPORT=true)**
+- ✅ **Auto-import** honeypots at startup
+- ✅ **Command simplified** - no manual import/update required
 - ✅ **Production ready** - minimal human intervention
-- ✅ **Smart management** - honeypots dikelola otomatis
-- ✅ **Ephemeral logging** - tampilan log real-time yang bersih
+- ✅ **Smart management** - honeypots managed automatically
+- ✅ **Ephemeral logging** - clean real-time log display
 
-### **Mode Manual (ALWAYS_IMPORT=false)**
-- 🔧 **Full control** - import/update manual
-- 🔧 **Development friendly** - debugging dan testing
-- 🔧 **Template management** - update dan maintenance
+### **Manual Mode (ALWAYS_IMPORT=false)**
+- 🔧 **Full control** - manual import/update
+- 🔧 **Development friendly** - debugging and testing
+- 🔧 **Template management** - update and maintenance
 
-## 📁 Struktur Project
+## 📁 Project Structure
 
 ```
 HPone/
 ├── app.py                 # Launcher script
 ├── hpone/                 # Main application
-│   ├── app.py            # Main application
-│   ├── config.py         # Configuration file
-│   ├── completion/       # Bash completion scripts
-│   ├── core/             # Core modules
-│   └── scripts/          # Command scripts
-├── honeypots/                 # YAML honeypot files
-├── template/docker/       # Docker templates
-├── docker/               # Output Docker files
-├── data/                 # Volume data container
-└── conf/                 # Config container custom (persistent)
+│   ├── app.py              # Main application
+│   ├── config.py           # Configuration file
+│   ├── completion/         # Bash completion scripts
+│   ├── core/               # Core modules
+│   └── scripts/            # Command scripts
+├── honeypots/             # YAML honeypot files
+├── template/docker/       # Base templates for generating Dockerfiles and related configs
+├── conf/                  # Custom persistent configuration (stored on host)
+├── docker/                # Generated Docker build output (temporary, not persistent)
+└── data/                  # Container volume for logs and runtime data
 ```
 
-## ⚙️ Konfigurasi
+## ⚙️ Configuration
 
 Edit `hpone/config.py`:
 
@@ -48,7 +48,12 @@ ALWAYS_IMPORT = True          # True: auto-import (hide import/update), False: m
 HONEYPOT_MANIFEST_DIR = PROJECT_ROOT / "honeypots"
 TEMPLATE_DOCKER_DIR = PROJECT_ROOT / "template" / "docker"
 OUTPUT_DOCKER_DIR = PROJECT_ROOT / "docker"
-DATA_DIR = PROJECT_ROOT / "data"   # lokasi mount data log container (ini buat filter kalo folder clean ini aman di hapus)
+DATA_DIR = PROJECT_ROOT / "data"   # mount location for container log data (safe to delete during folder clean)
+
+# Display configuration
+LIST_BASIC_MAX_WIDTH = 80      # Max width for basic list
+LIST_DETAILED_MAX_WIDTH = 30   # Max width for list -a (detailed)
+STATUS_TABLE_MAX_WIDTH = 40    # Max width for status table columns
 
 # Logging configuration
 USE_EPHEMERAL_LOGGING = True  # True: real-time logs, False: simple output
@@ -61,14 +66,14 @@ cd hpone
 
 # setup Global Installation, and Bash Completion
 chmod +x setup.sh
-./setup.sh install # perlu restart shell setelah dijalankan
+./setup.sh install # restart shell after execution
 
-# Uninsall Global Installation, and Bash Completion
-./setup.sh uninstall # perlu restart shell setelah dijalankan
+# Uninstall Global Installation, and Bash Completion
+./setup.sh uninstall # restart shell after execution
 ```
 
-## 🛠 manual install
-### 📦 install library & depedency
+## 🛠 Manual Install
+### 📦 Install Library & Dependencies
 ```bash
 # install library
 pip3 install requirements.txt
@@ -85,13 +90,13 @@ chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 # or
 sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
-# verifikasi
+# verify
 docker compose version
 ```
 
 ### ⚙️ Global Installation (Run Anywhere)
 
-Agar `hpone` bisa dijalankan dari mana saja tanpa `./app.py`:
+To run `hpone` from anywhere without `./app.py`:
 
 ```bash
 chmod +x app.py
@@ -102,28 +107,28 @@ hpone -h
 
 ## ⌨️ Bash Completion
 
-Untuk kemudahan penggunaan, HPone menyediakan bash completion.
+For ease of use, HPone provides bash completion.
 
-### **Instalasi**
+### **Installation**
 ```bash
 chmod +x hpone/completion/install.sh
-./hpone/completion/install.sh # perlu restart shell
+./hpone/completion/install.sh # restart shell required
 
-# atau secara manual
+# or manually
 source hpone/completion/hpone-completion.bash
 ```
 
-### **Penggunaan**
+### **Usage**
 ```bash
-./app.py <TAB>                    # Melengkapi command
-./app.py inspect <TAB>            # Melengkapi nama honeypot
-./app.py logs <TAB>               # Melengkapi nama honeypot
-./app.py up <TAB>                 # Melengkapi honeypot atau --all
+./app.py <TAB>                    # Complete command
+./app.py inspect <TAB>            # Complete honeypot name
+./app.py logs <TAB>               # Complete honeypot name
+./app.py up <TAB>                 # Complete honeypot or --all
 
-hpone <TAB>                       # Melengkapi command
-hpone clean <TAB>              # Melengkapi nama honeypot
-hpone logs <TAB>               # Melengkapi nama honeypot
-hpone up <TAB>                 # Melengkapi honeypot atau --all
+hpone <TAB>                       # Complete command
+hpone clean <TAB>              # Complete honeypot name
+hpone logs <TAB>               # Complete honeypot name
+hpone up <TAB>                 # Complete honeypot or --all
 ```
 
 ### **Uninstall**
@@ -132,14 +137,14 @@ chmod +x hpone/completion/uninstall.sh
 ./hpone/completion/uninstall.sh
 ```
 
-Lihat `hpone/completion/README.md` untuk informasi lengkap.
+See `hpone/completion/README.md` for complete information.
 
-## 🎯 Cara Pakai
+## 🎯 How to Use
 
 ### **Quick Start (ALWAYS_IMPORT=true)**
 
 ```bash
-# Enable honeypots yang dibutuhkan
+# Enable required honeypots
 hpone enable cowrie
 hpone enable medpot
 
@@ -147,7 +152,7 @@ hpone enable medpot
 hpone up cowrie
 hpone up medpot
 
-# Start semua enabled honeypots
+# Start all enabled honeypots
 hpone up --all
 
 # Check status
@@ -162,7 +167,7 @@ hpone logs medpot
 hpone down cowrie
 hpone down --all
 
-# Buka shell di container
+# Open shell in container
 hpone shell cowrie
 
 # Clean honeypots (stop + remove)
@@ -174,7 +179,7 @@ hpone clean --all --data
 
 ### **Available Commands**
 - `check` - Check dependencies
-- `list` - List honeypots (`-a` untuk detail)
+- `list` - List honeypots (`-a` for details)
 - `status` - Show running status
 - `inspect <honeypot>` - Show honeypot details
 - `enable/disable <honeypot>` - Enable/disable honeypots
@@ -235,7 +240,7 @@ docker-compose -f docker/cowrie/docker-compose.yml ps
 ```
 
 ### **Ephemeral Logging**
-HPone menggunakan ephemeral logging untuk tampilan real-time yang bersih:
+HPone uses ephemeral logging for clean real-time display:
 
 ```
 [22:48:02] [INFO] Starting cowrie containers ...
@@ -245,15 +250,15 @@ HPone menggunakan ephemeral logging untuk tampilan real-time yang bersih:
 [UP] cowrie OK (2.3s)
 ```
 
-Jika bermasalah, set `USE_EPHEMERAL_LOGGING = False` di `config.py`.
+If there are issues, set `USE_EPHEMERAL_LOGGING = False` in `config.py`.
 
 ## 📝 Notes
 
-- **ALWAYS_IMPORT=true**: Mode production, minimal command, auto-management
-- **ALWAYS_IMPORT=false**: Mode development, full control, manual management
-- Tools yang **disabled** tidak akan auto-start
-- Gunakan `--force` untuk override enabled status
-- Perintah `shell` membutuhkan container yang sedang running
+- **ALWAYS_IMPORT=true**: Production mode, minimal commands, auto-management
+- **ALWAYS_IMPORT=false**: Development mode, full control, manual management
+- **Disabled** tools will not auto-start
+- Use `--force` to override enabled status
+- `shell` command requires a running container
 
 ## 🤝 Contributing
 
@@ -265,4 +270,4 @@ Jika bermasalah, set `USE_EPHEMERAL_LOGGING = False` di `config.py`.
 
 ## 📄 License
 
-Proyek ini dilisensikan di bawah GNU General Public License v3.0 (GPL-3.0). Lihat berkas `LICENSE`.
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0). See the `LICENSE` file.

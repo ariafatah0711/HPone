@@ -12,22 +12,22 @@ check_dependencies() {
 
     # Python3
     if ! command -v python3 >/dev/null 2>&1; then
-        echo "❌ Python3 tidak ditemukan. Install dulu (apt/pacman/dnf)."
-        read -p "👉 Apakah kamu mau install sekarang? (y/n): " yn
+        echo "❌ Python3 not found. Install it first (apt/pacman/dnf)."
+        read -p "👉 Do you want to install it now? (y/n): " yn
         case $yn in
             [Yy]*) sudo apt install -y python3 ;;
-            *) echo "❌ Gagal: Python3 wajib ada."; exit 1 ;;
+            *) echo "❌ Failed: Python3 is required."; exit 1 ;;
         esac
         # exit 1
     fi
 
     # Pip3
     if ! command -v pip3 >/dev/null 2>&1; then
-        echo "❌ pip3 tidak ditemukan. Install python3-pip dulu."
-        read -p "👉 Apakah kamu mau install sekarang? (y/n): " yn
+        echo "❌ pip3 not found. Install python3-pip first."
+        read -p "👉 Do you want to install it now? (y/n): " yn
         case $yn in
             [Yy]*) sudo apt install -y python3-pip ;;
-            *) echo "❌ Gagal: pip3 wajib ada."; exit 1 ;;
+            *) echo "❌ Failed: pip3 is required."; exit 1 ;;
         esac
         # exit 1
     fi
@@ -40,26 +40,26 @@ check_dependencies() {
 
     # Docker
     if ! command -v docker >/dev/null 2>&1; then
-        echo "❌ Docker tidak ditemukan. Install docker dulu."
-        read -p "👉 Apakah kamu mau install sekarang? (y/n): " yn
+        echo "❌ Docker not found. Install docker first."
+        read -p "👉 Do you want to install it now? (y/n): " yn
         case $yn in
             [Yy]*)
                 sudo apt install -y docker.io
                 sudo usermod -aG docker $USER
                 ;;
-            *) echo "❌ Gagal: Docker wajib ada."; exit 1 ;;
+            *) echo "❌ Failed: Docker is required."; exit 1 ;;
         esac
         # exit 1
     fi
 
-    # docker-compose (lama) atau docker compose (baru)
+    # docker-compose (old) or docker compose (new)
     if command -v docker-compose >/dev/null 2>&1; then
-        echo "[*] docker-compose ditemukan."
+        echo "[*] docker-compose found."
     elif docker compose version >/dev/null 2>&1; then
-        echo "[*] docker compose (plugin) ditemukan."
+        echo "[*] docker compose (plugin) found."
     else
-        echo "❌ docker-compose atau docker compose tidak ditemukan."
-        read -p "👉 Apakah kamu mau install docker compose sekarang? (y/n): " yn
+        echo "❌ docker-compose or docker compose not found."
+        read -p "👉 Do you want to install docker compose now? (y/n): " yn
         case $yn in
             [Yy]*)
                 DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
@@ -68,7 +68,7 @@ check_dependencies() {
                     -o $DOCKER_CONFIG/cli-plugins/docker-compose
                 chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
                 ;;
-            *) echo "❌ Gagal: docker compose wajib ada."; exit 1 ;;
+            *) echo "❌ Failed: docker compose is required."; exit 1 ;;
         esac
     fi
 }
@@ -83,14 +83,23 @@ install_hpone() {
 
     if [ -f "$COMPLETION_SRC" ]; then
         echo "[*] Installing bash completion..."
-        # Jangan copy, langsung pakai versi asli
+
+        # Fix line endings if needed
+        if command -v dos2unix >/dev/null 2>&1; then
+            dos2unix "$COMPLETION_SRC" 2>/dev/null || true
+        else
+            # Fallback: use sed to remove carriage returns
+            sed -i 's/\r$//' "$COMPLETION_SRC" 2>/dev/null || true
+        fi
+
+        # Don't copy, use the original version directly
         if ! grep -q "source $COMPLETION_SRC" "$HOME/.bashrc"; then
             echo "source $COMPLETION_SRC" >> "$HOME/.bashrc"
             echo "  -> Added completion to ~/.bashrc"
         fi
     fi
 
-    echo "✅ hpone installed. Restart shell untuk apply completion."
+    echo "✅ hpone installed. Restart shell to apply completion."
 }
 
 uninstall_hpone() {
