@@ -10,30 +10,52 @@
 _hpone_find_honeypots_dir() {
     local honeypots_dir=""
 
-    # Always try to find from script location first (most reliable)
-    local script_dir=""
-    if [[ -n "${BASH_SOURCE[0]}" ]]; then
-        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)" || script_dir=""
+    # First priority: Check if installed via .deb package
+    if [[ -d "/opt/hpone/honeypots" ]]; then
+        honeypots_dir="/opt/hpone/honeypots"
     fi
 
-    if [[ -n "${script_dir}" ]]; then
-        local app_dir="$(dirname "$(dirname "${script_dir}")")"
-        if [[ -d "${app_dir}/honeypots" ]]; then
-            honeypots_dir="${app_dir}/honeypots"
+    # Second priority: Try to find from script location (development/manual install)
+    if [[ -z "${honeypots_dir}" ]]; then
+        local script_dir=""
+        if [[ -n "${BASH_SOURCE[0]}" ]]; then
+            script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)" || script_dir=""
+        fi
+
+        if [[ -n "${script_dir}" ]]; then
+            local app_dir="$(dirname "$(dirname "${script_dir}")")"
+            if [[ -d "${app_dir}/honeypots" ]]; then
+                honeypots_dir="${app_dir}/honeypots"
+            fi
         fi
     fi
 
-    # Fallback: try current directory
+    # Third priority: Try current directory (when running from project root)
     if [[ -z "${honeypots_dir}" ]] && [[ -d "honeypots" ]]; then
         honeypots_dir="honeypots"
     fi
 
-    # Fallback: try relative to app.py if it exists
+    # Fourth priority: Try relative to app.py if it exists (development mode)
     if [[ -z "${honeypots_dir}" ]] && [[ -f "app.py" ]] && [[ -d "honeypots" ]]; then
         honeypots_dir="honeypots"
     fi
 
+    # Fifth priority: Use HPone command to dynamically get honeypots list
+    # This works regardless of installation method
+    if [[ -z "${honeypots_dir}" ]] && command -v hpone >/dev/null 2>&1; then
+        # Create a temporary marker to indicate dynamic discovery
+        honeypots_dir="__DYNAMIC__"
+    fi
+
     echo "$honeypots_dir"
+}
+
+# Helper function to get honeypot list dynamically
+_hpone_get_honeypots_dynamic() {
+    if command -v hpone >/dev/null 2>&1; then
+        # Use HPone's list command to get available honeypots
+        hpone list 2>/dev/null | grep -E '^[[:space:]]*[a-zA-Z0-9_-]+[[:space:]]*\|' | awk '{print $1}' | grep -v '^$' || echo ""
+    fi
 }
 
 _hpone_completion() {
@@ -60,9 +82,17 @@ _hpone_completion() {
             if [[ ${COMP_CWORD} -eq 2 ]]; then
                 # Get available honeypots from honeypots/ directory
                 local honeypots_dir=$(_hpone_find_honeypots_dir)
+                local honeypots=""
 
-                if [[ -n "${honeypots_dir}" ]] && [[ -d "${honeypots_dir}" ]]; then
-                    local honeypots=$(find "${honeypots_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
+                if [[ "${honeypots_dir}" == "__DYNAMIC__" ]]; then
+                    # Use dynamic discovery via HPone command
+                    honeypots=$(_hpone_get_honeypots_dynamic)
+                elif [[ -n "${honeypots_dir}" ]] && [[ -d "${honeypots_dir}" ]]; then
+                    # Use directory scanning
+                    honeypots=$(find "${honeypots_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
+                fi
+
+                if [[ -n "${honeypots}" ]]; then
                     COMPREPLY=( $(compgen -W "${honeypots}" -- "${cur}") )
                 fi
             fi
@@ -84,9 +114,17 @@ _hpone_completion() {
             if [[ ${COMP_CWORD} -eq 2 ]]; then
                 # First try to complete honeypot names
                 local honeypots_dir=$(_hpone_find_honeypots_dir)
+                local honeypots=""
 
-                if [[ -n "${honeypots_dir}" ]] && [[ -d "${honeypots_dir}" ]]; then
-                    local honeypots=$(find "${honeypots_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
+                if [[ "${honeypots_dir}" == "__DYNAMIC__" ]]; then
+                    # Use dynamic discovery via HPone command
+                    honeypots=$(_hpone_get_honeypots_dynamic)
+                elif [[ -n "${honeypots_dir}" ]] && [[ -d "${honeypots_dir}" ]]; then
+                    # Use directory scanning
+                    honeypots=$(find "${honeypots_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
+                fi
+
+                if [[ -n "${honeypots}" ]]; then
                     COMPREPLY=( $(compgen -W "${honeypots} --all" -- "${cur}") )
                 else
                     COMPREPLY=( $(compgen -W "--all" -- "${cur}") )
@@ -101,9 +139,17 @@ _hpone_completion() {
             if [[ ${COMP_CWORD} -eq 2 ]]; then
                 # First try to complete honeypot names
                 local honeypots_dir=$(_hpone_find_honeypots_dir)
+                local honeypots=""
 
-                if [[ -n "${honeypots_dir}" ]] && [[ -d "${honeypots_dir}" ]]; then
-                    local honeypots=$(find "${honeypots_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
+                if [[ "${honeypots_dir}" == "__DYNAMIC__" ]]; then
+                    # Use dynamic discovery via HPone command
+                    honeypots=$(_hpone_get_honeypots_dynamic)
+                elif [[ -n "${honeypots_dir}" ]] && [[ -d "${honeypots_dir}" ]]; then
+                    # Use directory scanning
+                    honeypots=$(find "${honeypots_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
+                fi
+
+                if [[ -n "${honeypots}" ]]; then
                     COMPREPLY=( $(compgen -W "${honeypots} --all" -- "${cur}") )
                 else
                     COMPREPLY=( $(compgen -W "--all" -- "${cur}") )
@@ -114,9 +160,17 @@ _hpone_completion() {
             if [[ ${COMP_CWORD} -eq 2 ]]; then
                 # First try to complete honeypot names
                 local honeypots_dir=$(_hpone_find_honeypots_dir)
+                local honeypots=""
 
-                if [[ -n "${honeypots_dir}" ]] && [[ -d "${honeypots_dir}" ]]; then
-                    local honeypots=$(find "${honeypots_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
+                if [[ "${honeypots_dir}" == "__DYNAMIC__" ]]; then
+                    # Use dynamic discovery via HPone command
+                    honeypots=$(_hpone_get_honeypots_dynamic)
+                elif [[ -n "${honeypots_dir}" ]] && [[ -d "${honeypots_dir}" ]]; then
+                    # Use directory scanning
+                    honeypots=$(find "${honeypots_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
+                fi
+
+                if [[ -n "${honeypots}" ]]; then
                     COMPREPLY=( $(compgen -W "${honeypots} --all" -- "${cur}") )
                 else
                     COMPREPLY=( $(compgen -W "--all" -- "${cur}") )
@@ -134,8 +188,9 @@ _hpone_completion() {
     return 0
 }
 
-honeypots_dir=$(_hpone_find_honeypots_dir)
-echo $honeypots_dir
+# Remove debug output line
+# honeypots_dir=$(_hpone_find_honeypots_dir)
+# echo $honeypots_dir
 
 # Register the completion function
 complete -F _hpone_completion hpone
