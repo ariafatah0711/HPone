@@ -126,3 +126,58 @@ def check_file_permissions(file_path: str) -> bool:
     except Exception as e:
         print(f"❌ ERROR: Failed to access file {file_path}: {e}")
         return False
+
+
+def check_docker_permissions() -> bool:
+    """Check if Docker is accessible and user has proper permissions."""
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            ["docker", "info"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+
+        if result.returncode == 0:
+            return True
+
+        # Handle common Docker errors
+        error_output = result.stderr.lower()
+        if "permission denied" in error_output:
+            print(f"{PREFIX_ERROR} Docker permission denied!")
+            print("💡 Add your user to the docker group: sudo usermod -aG docker $USER")
+        elif "cannot connect" in error_output:
+            print(f"{PREFIX_ERROR} Docker service is not running!")
+            print("💡 Start Docker service: sudo systemctl start docker")
+        else:
+            print(f"{PREFIX_ERROR} Docker command failed: {result.stderr}")
+        return False
+
+    except FileNotFoundError:
+        print(f"{PREFIX_ERROR} Docker not found! Please install Docker first.")
+        return False
+    except subprocess.TimeoutExpired:
+        print(f"{PREFIX_ERROR} Docker command timed out! Try restarting Docker.")
+        return False
+    except Exception as e:
+        print(f"{PREFIX_ERROR} Docker check failed: {e}")
+        return False
+
+
+def check_directory_permissions(dir_path: str) -> bool:
+    """Check if directory is accessible and writable."""
+    import os
+    from pathlib import Path
+
+    try:
+        path = Path(dir_path)
+
+        if not path.exists() or not path.is_dir():
+            return False
+
+        return os.access(path, os.R_OK | os.W_OK)
+
+    except Exception:
+        return False

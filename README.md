@@ -121,7 +121,6 @@ sudo usermod -aG docker $USER
 # sudo apt-get install -f
 
 # 🔄 Restart your shell to enable bash completion
-exec bash
 ```
 
 ### 🔧 Source Installation
@@ -245,7 +244,6 @@ sudo apt purge hpone # Optional: Remove configuration files
 # sudo dpkg -P hpone # Optional: Remove configuration files
 
 # 🔄 Restart your shell
-exec bash
 ```
 
 ### 🔄 Source Installation Removal

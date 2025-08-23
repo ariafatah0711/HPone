@@ -45,7 +45,9 @@ from .error_handlers import (
     handle_docker_error,
     safe_execute,
     print_error_with_suggestion,
-    check_file_permissions
+    check_file_permissions,
+    check_docker_permissions,
+    check_directory_permissions
 )
 
 from .status import (
@@ -104,7 +106,9 @@ __all__ = [
     'handle_docker_error',
     'safe_execute',
     'print_error_with_suggestion',
-    'check_file_permissions'
+    'check_file_permissions',
+    'check_docker_permissions',
+    'check_directory_permissions'
     ,
     # Status helpers
     'show_status',

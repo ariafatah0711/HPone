@@ -14,6 +14,11 @@ MAINTAINER="Aria Fatah <ariafatah07@gmail.com>"
 REPO_URL="https://github.com/ariafatah0711/HPone.git"
 DOCKER_COMPOSE_VERSION="v2.29.0"
 
+# Build mode configuration
+BUILD_MODE="repo"  # Default to repo mode
+SOURCE_DIR="./"     # Default local source directory
+CUSTOM_REPO_URL="$REPO_URL"  # Default repository URL
+
 # Build directories
 BUILD_DIR="/tmp/${APP_NAME}_pkg"
 INSTALL_DIR="${BUILD_DIR}/opt/${APP_NAME}"
@@ -63,8 +68,14 @@ trap cleanup EXIT
 # Validation functions
 validate_dependencies() {
     local missing_deps=()
+    local required_deps=("git" "dpkg-deb")
 
-    for cmd in git dpkg-deb; do
+    # Add rsync requirement for local builds
+    if [ "$BUILD_MODE" = "local" ]; then
+        required_deps+=("rsync")
+    fi
+
+    for cmd in "${required_deps[@]}"; do
         if ! command -v "$cmd" >/dev/null 2>&1; then
             missing_deps+=("$cmd")
         fi
@@ -72,8 +83,43 @@ validate_dependencies() {
 
     if [ ${#missing_deps[@]} -ne 0 ]; then
         log_error "Missing required dependencies: ${missing_deps[*]}"
-        log_info "Please install: sudo apt-get install git dpkg-dev"
+        if [[ " ${missing_deps[*]} " =~ " rsync " ]]; then
+            log_info "Please install: sudo apt-get install git dpkg-dev rsync"
+        else
+            log_info "Please install: sudo apt-get install git dpkg-dev"
+        fi
         exit 1
+    fi
+}
+
+validate_build_mode() {
+    case "$BUILD_MODE" in
+        "local"|"remote"|"repo")
+            # Convert 'remote' and 'repo' to 'repo' internally
+            if [ "$BUILD_MODE" = "remote" ]; then
+                BUILD_MODE="repo"
+            fi
+            log_info "Build mode: $BUILD_MODE"
+            ;;
+        *)
+            log_error "Invalid build mode: $BUILD_MODE"
+            log_info "Valid modes: local, remote, repo"
+            exit 1
+            ;;
+    esac
+
+    if [ "$BUILD_MODE" = "local" ]; then
+        # Use environment variable if set, otherwise use default
+        SOURCE_DIR="${SOURCE_DIR:-./}"
+        if [ ! -d "$SOURCE_DIR" ]; then
+            log_error "Source directory does not exist: $SOURCE_DIR"
+            exit 1
+        fi
+        log_info "Source directory: $(realpath "$SOURCE_DIR")"
+    else
+        # Use custom repo URL if set, otherwise use default
+        CUSTOM_REPO_URL="${CUSTOM_REPO_URL:-$REPO_URL}"
+        log_info "Repository URL: $CUSTOM_REPO_URL"
     fi
 }
 
@@ -93,6 +139,44 @@ show_banner() {
     echo -e "${NC}"
 }
 
+show_usage() {
+    echo "Usage: $0 [MODE] [OPTIONS]"
+    echo ""
+    echo "Build modes:"
+    echo "  local                Build from local directory (default: ./)"
+    echo "  remote               Build from git repository (default)"
+    echo "  repo                 Alias for 'remote'"
+    echo ""
+    echo "Optional environment variables:"
+    echo "  SOURCE_DIR           Local source directory when using 'local' mode (default: ./)"
+    echo "  CUSTOM_REPO_URL      Custom repository URL when using 'remote' mode"
+    echo "  PKG_PATH             Output directory for .deb package (default: ../linux/)"
+    echo ""
+    echo "Examples:"
+    echo "  # Build from current directory"
+    echo "  $0 local"
+    echo ""
+    echo "  # Build from specific local directory"
+    echo "  SOURCE_DIR=/path/to/hpone $0 local"
+    echo ""
+    echo "  # Build from default repository"
+    echo "  $0 remote"
+    echo "  $0 repo"
+    echo "  $0        # defaults to remote"
+    echo ""
+    echo "  # Build from custom repository"
+    echo "  CUSTOM_REPO_URL=https://github.com/user/fork.git $0 remote"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help           Show this help message"
+    echo "  -v, --version        Show version information"
+}
+
+show_version() {
+    echo "HPone Debian Package Builder v$VERSION"
+    echo "Copyright $(date +%Y) Aria Fatah"
+}
+
 setup_build_environment() {
     log_info "Setting up build environment..."
 
@@ -109,10 +193,63 @@ setup_build_environment() {
 }
 
 clone_source_code() {
+    case "$BUILD_MODE" in
+        "local")
+            log_info "Copying source code from local directory: $SOURCE_DIR"
+            copy_local_source
+            ;;
+        "repo")
+            log_info "Cloning source code from repository: $CUSTOM_REPO_URL"
+            clone_from_repository
+            ;;
+        *)
+            log_error "Invalid build mode: $BUILD_MODE (expected: local or repo)"
+            exit 1
+            ;;
+    esac
+}
+
+copy_local_source() {
+    # Resolve absolute path for source directory
+    local abs_source_dir
+    abs_source_dir=$(realpath "$SOURCE_DIR")
+
+    if [ ! -d "$abs_source_dir" ]; then
+        log_error "Source directory does not exist: $abs_source_dir"
+        exit 1
+    fi
+
+    log_info "Copying from: $abs_source_dir"
+
+    # Copy all files except build artifacts and version control
+    rsync -av \
+        --exclude='.git' \
+        --exclude='.gitignore' \
+        --exclude='__pycache__' \
+        --exclude='*.pyc' \
+        --exclude='*.pyo' \
+        --exclude='.pytest_cache' \
+        --exclude='build/' \
+        --exclude='dist/' \
+        --exclude='*.egg-info' \
+        --exclude='node_modules' \
+        --exclude='.vscode' \
+        --exclude='.idea' \
+        --exclude='*.deb' \
+        --exclude='/tmp' \
+        "$abs_source_dir/" "$INSTALL_DIR/"
+
+    # Verify essential files exist
+    verify_essential_files
+
+    log_success "Local source code copied successfully"
+}
+
+clone_from_repository() {
     log_info "Cloning source code (shallow clone)..."
 
-    if ! git clone --depth=1 "$REPO_URL" "$INSTALL_DIR"; then
-        log_error "Failed to clone repository: $REPO_URL"
+    if ! git clone --depth=1 "$CUSTOM_REPO_URL" "$INSTALL_DIR"; then
+        log_error "Failed to clone repository: $CUSTOM_REPO_URL"
         exit 1
     fi
 
@@ -120,15 +257,23 @@ clone_source_code() {
     rm -rf "$INSTALL_DIR/.git"
 
     # Verify essential files exist
+    verify_essential_files
+
+    log_success "Repository source code cloned successfully"
+}
+
+verify_essential_files() {
     local essential_files=("app.py" "requirements.txt" "setup.sh")
     for file in "${essential_files[@]}"; do
         if [ ! -f "$INSTALL_DIR/$file" ]; then
             log_error "Essential file missing: $file"
+            log_error "Current directory contents:"
+            ls -la "$INSTALL_DIR/" || true
             exit 1
         fi
     done
 
-    log_success "Source code cloned successfully"
+    log_info "All essential files verified"
 }
 
 create_control_file() {
@@ -137,6 +282,14 @@ create_control_file() {
     # Calculate installed size
     local installed_size
     installed_size=$(du -s "$INSTALL_DIR" | cut -f1)
+
+    # Determine source information for description
+    local source_info
+    if [ "$BUILD_MODE" = "local" ]; then
+        source_info="Built from local source: $(realpath "$SOURCE_DIR")"
+    else
+        source_info="Built from repository: $CUSTOM_REPO_URL"
+    fi
 
     cat > "$DEBIAN_DIR/control" <<EOF
 Package: $APP_NAME
@@ -164,6 +317,10 @@ Description: Professional honeypot management tool
   * Container lifecycle management
   * Bash auto-completion support
   * Multi-platform honeypot support
+ .
+ Build Information:
+  * $source_info
+  * Package built on: $(date '+%Y-%m-%d %H:%M:%S %Z')
 EOF
 
     log_success "Control file created"
@@ -268,6 +425,18 @@ case "\$1" in
             fi
         fi
 
+        # Create necessary directories with proper permissions
+        log_info "Creating HPone working directories..."
+        mkdir -p /opt/hpone/docker /opt/hpone/data /opt/hpone/conf
+
+        # Set initial permissions for working directories
+        if getent group docker >/dev/null 2>&1; then
+            chgrp docker /opt/hpone/docker /opt/hpone/data /opt/hpone/conf 2>/dev/null || true
+            chmod 775 /opt/hpone/docker /opt/hpone/data /opt/hpone/conf 2>/dev/null || true
+        else
+            chmod 755 /opt/hpone/docker /opt/hpone/data /opt/hpone/conf 2>/dev/null || true
+        fi
+
         # Check and install Docker Compose if needed
         if ! command -v docker >/dev/null 2>&1; then
             log_warning "Docker is not installed. HPone requires Docker to function properly."
@@ -291,6 +460,40 @@ case "\$1" in
         chmod -R 755 /opt/hpone
         chown -R root:root /opt/hpone
 
+        # Set more permissive permissions for directories that need user write access
+        # Docker directory - where compose files and .env files are generated/modified
+        if [ -d /opt/hpone/docker ]; then
+            chmod -R 775 /opt/hpone/docker
+            # Make it writable by docker group if it exists
+            if getent group docker >/dev/null 2>&1; then
+                chgrp -R docker /opt/hpone/docker
+            fi
+        fi
+
+        # Data directory - where honeypot data is stored
+        if [ -d /opt/hpone/data ]; then
+            chmod -R 775 /opt/hpone/data
+            if getent group docker >/dev/null 2>&1; then
+                chgrp -R docker /opt/hpone/data
+            fi
+        fi
+
+        # Conf directory - where configurations are stored
+        if [ -d /opt/hpone/conf ]; then
+            chmod -R 775 /opt/hpone/conf
+            if getent group docker >/dev/null 2>&1; then
+                chgrp -R docker /opt/hpone/conf
+            fi
+        fi
+
+        # Honeypots directory - where YAML files might be modified
+        if [ -d /opt/hpone/honeypots ]; then
+            chmod -R 775 /opt/hpone/honeypots
+            if getent group docker >/dev/null 2>&1; then
+                chgrp -R docker /opt/hpone/honeypots
+            fi
+        fi
+
         # Make sure app.py is executable
         chmod +x /opt/hpone/app.py
 
@@ -302,7 +505,18 @@ case "\$1" in
 
         log_success "HPone installation completed successfully!"
         log_info "Run 'hpone --help' to get started"
-        log_info "Note: You may need to add your user to the docker group for non-root usage"
+
+        # Provide guidance on docker group membership
+        if getent group docker >/dev/null 2>&1; then
+            log_info "Important: Add your user to the docker group for proper permissions:"
+            log_info "  sudo usermod -aG docker \$USER"
+            log_info "  Then logout and login again, or run: newgrp docker"
+        else
+            log_warning "Docker group not found. Make sure Docker is properly installed."
+        fi
+
+        log_info "If you encounter permission errors, you may need to run with sudo"
+        log_info "or ensure your user has proper access to /opt/hpone directories"
         ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
@@ -496,9 +710,51 @@ build_package() {
 
 # Main execution
 main() {
+    # Parse command line arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h|--help)
+                show_usage
+                exit 0
+                ;;
+            -v|--version)
+                show_version
+                exit 0
+                ;;
+            local|remote|repo)
+                BUILD_MODE="$1"
+                shift
+                ;;
+            -*)
+                log_error "Unknown option: $1"
+                show_usage
+                exit 1
+                ;;
+            *)
+                log_error "Unknown argument: $1"
+                log_info "Valid build modes: local, remote, repo"
+                show_usage
+                exit 1
+                ;;
+        esac
+    done
+
     show_banner
+
+    # Show current configuration
+    log_info "Configuration:"
+    log_info "  Build mode: $BUILD_MODE"
+    if [ "$BUILD_MODE" = "local" ]; then
+        log_info "  Source directory: $(realpath "${SOURCE_DIR:-./}")"
+    else
+        log_info "  Repository URL: ${CUSTOM_REPO_URL:-$REPO_URL}"
+    fi
+    log_info "  Output package: $PKG_PATH$PKG_NAME"
+    echo
+
     validate_dependencies
     validate_version
+    validate_build_mode
 
     setup_build_environment
     clone_source_code
@@ -514,6 +770,12 @@ main() {
         echo
         log_success "=== BUILD COMPLETED SUCCESSFULLY ==="
         log_info "Package: $PKG_PATH$PKG_NAME"
+        log_info "Build mode: $BUILD_MODE"
+        if [ "$BUILD_MODE" = "local" ]; then
+            log_info "Source: $(realpath "$SOURCE_DIR")"
+        else
+            log_info "Source: $CUSTOM_REPO_URL"
+        fi
         log_info "Install with: sudo dpkg -i $PKG_PATH$PKG_NAME"
         log_info "Or: sudo apt install ./$PKG_NAME"
         echo

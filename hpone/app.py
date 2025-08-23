@@ -92,7 +92,45 @@ try:
 except ImportError:
     ALWAYS_IMPORT = True
 
-## Self-test moved to test.run_import_self_test
+def check_permissions(args):
+    """Check Docker and honeypots directory permissions for commands that need them."""
+    # Docker commands that require permission checks
+    docker_commands = [
+        "up", "down", "status", "shell", "logs", "clean", "inspect", "list"
+    ]
+
+    # Commands that need honeypots directory write access
+    honeypots_write_commands = ["enable", "disable"]
+    command = getattr(args, 'command', None)
+
+    try:
+        # Import locally to avoid circular imports
+        from scripts.error_handlers import check_docker_permissions, check_directory_permissions
+
+        # Check Docker permissions for Docker commands
+        if command in docker_commands and not check_docker_permissions():
+            return False
+
+        # Check honeypots directory permissions for commands that modify YAML files
+        if command in honeypots_write_commands:
+            from pathlib import Path
+            # Get honeypots directory path
+            current_dir = Path(__file__).resolve().parent.parent
+            honeypots_dir = current_dir / "honeypots"
+
+            if not check_directory_permissions(str(honeypots_dir)):
+                print(f"{PREFIX_ERROR} No write permission for honeypots directory: {honeypots_dir}")
+                print("💡 Check directory permissions or run with appropriate privileges")
+                return False
+
+        return True
+
+    except ImportError:
+        print(f"{PREFIX_WARN} Could not import permission checkers. Continuing...", file=sys.stderr)
+        return True
+    except Exception as e:
+        print(f"{PREFIX_WARN} Error checking permissions: {e}. Continuing...", file=sys.stderr)
+        return True
 
 def main(argv: List[str]) -> int:
     """Main entrypoint for the application."""
@@ -107,6 +145,10 @@ def main(argv: List[str]) -> int:
         return 0
 
     args = parser.parse_args(argv)
+
+    # Run permission checks before any command execution
+    if not check_permissions(args):
+        return 1
 
     # Check dependencies command
     if args.command == "check":
