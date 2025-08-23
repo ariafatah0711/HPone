@@ -116,16 +116,13 @@ USE_EPHEMERAL_LOGGING = True      # Real-time vs Simple output
 
 ```bash
 # Download and install the latest .deb package
-wget https://github.com/ariafatah0711/HPone/releases/latest/download/hpone_2.2.0_all.deb
+wget https://github.com/ariafatah0711/HPone/releases/latest/download/hpone_2.2.3_all.deb
 
-sudo apt install -f ./hpone_2.2.0_all.deb
+sudo apt install -f ./hpone_2.2.3_all.deb
 sudo usermod -aG docker $USER
-
-# sudo dpkg -i hpone_2.2.0_all.deb
-# sudo apt-get install -f
-
-# 🔄 Restart your shell to enable bash completion
 ```
+
+🔄 Restart your shell to enable bash completion
 
 **📍 Installation Location:** When installed via Debian package, HPone is located at `/opt/hpone/`
 
@@ -269,12 +266,9 @@ chmod +x hpone/completion/uninstall.sh
 ```bash
 sudo apt remove hpone # Remove the installed package
 sudo apt purge hpone # Optional: Remove configuration files
-
-# sudo dpkg -r hpone # Remove the installed package
-# sudo dpkg -P hpone # Optional: Remove configuration files
-
-# 🔄 Restart your shell
 ```
+
+🔄 Restart your shell if u need
 
 ### 🔄 Source Installation Removal
 

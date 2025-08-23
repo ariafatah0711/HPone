@@ -8,7 +8,7 @@ set -euo pipefail  # Enhanced error handling
 
 # Configuration
 APP_NAME="hpone"
-VERSION="2.2.0"
+VERSION="2.2.3"
 ARCHITECTURE="all"
 MAINTAINER="Aria Fatah <ariafatah07@gmail.com>"
 REPO_URL="https://github.com/ariafatah0711/HPone.git"
