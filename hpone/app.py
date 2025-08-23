@@ -184,12 +184,35 @@ def main(argv: List[str]) -> int:
             if getattr(args, "all", False):
                 # Clean all imported honeypots; if none but --data specified, still remove data directories
                 imported_ids = list_imported_honeypot_ids()
-                # Optional data removal confirmation for --all
+
+                # Sequential confirmation prompts for different removal types
                 remove_data_all = False
+                remove_images_all = False
+                remove_volumes_all = False
+
+                # First ask about data removal if --data flag is present
                 if getattr(args, "data", False):
                     reply = input("This will remove mounted data under data/<honeypot> for ALL honeypots. Continue? [y/N]: ").strip().lower()
                     print()  # Add newline after input
                     remove_data_all = reply in ("y", "yes", "ya")
+                    if not remove_data_all:
+                        print("Data removal cancelled.")
+
+                # Second ask about image removal if --image flag is present
+                if getattr(args, "image", False):
+                    reply = input("This will remove Docker images for ALL honeypots. Continue? [y/N]: ").strip().lower()
+                    print()  # Add newline after input
+                    remove_images_all = reply in ("y", "yes", "ya")
+                    if not remove_images_all:
+                        print("Image removal cancelled.")
+
+                # Third ask about volume removal if --volume flag is present
+                if getattr(args, "volume", False):
+                    reply = input("This will remove Docker volumes for ALL honeypots. Continue? [y/N]: ").strip().lower()
+                    print()  # Add newline after input
+                    remove_volumes_all = reply in ("y", "yes", "ya")
+                    if not remove_volumes_all:
+                        print("Volume removal cancelled.")
 
                 if not imported_ids:
                     if remove_data_all:
@@ -215,14 +238,14 @@ def main(argv: List[str]) -> int:
                         print("No imported honeypots.")
                         return 0
 
-                print(f"Cleaning {len(imported_ids)} imported honeypots (down + remove{' + data' if remove_data_all else ''}{' + images' if getattr(args, 'image', False) else ''}{' + volumes' if getattr(args, 'volume', False) else ''})...")
+                print(f"Cleaning {len(imported_ids)} imported honeypots (down + remove{' + data' if remove_data_all else ''}{' + images' if remove_images_all else ''}{' + volumes' if remove_volumes_all else ''})...")
                 for t in imported_ids:
                     try:
                         # Down first
                         down_honeypot(
                             t,
-                            remove_volumes=bool(getattr(args, "volume", False)),
-                            remove_images=bool(getattr(args, "image", False)),
+                            remove_volumes=remove_volumes_all,
+                            remove_images=remove_images_all,
                         )
 
                         # Remove data if confirmed
@@ -234,10 +257,10 @@ def main(argv: List[str]) -> int:
                                 print(f"{PREFIX_WARN} Failed to remove data for '{t}': {exc_data}")
 
                         # Show image/volume removal status (docker compose down with flags doesn't show explicit confirmation)
-                        if getattr(args, "image", False):
+                        if remove_images_all:
                             print(f"{PREFIX_OK}: Removed images for {t}")
 
-                        if getattr(args, "volume", False):
+                        if remove_volumes_all:
                             print(f"{PREFIX_OK}: Removed volumes for {t}")
 
                         # Then remove docker directory
@@ -249,15 +272,45 @@ def main(argv: List[str]) -> int:
                 if not args.honeypot:
                     print("You must specify a honeypot or use --all", file=sys.stderr)
                     return 2
+
+                # Sequential confirmation prompts for single honeypot
+                remove_data_single = False
+                remove_images_single = False
+                remove_volumes_single = False
+
+                # Ask about data removal if --data flag is present
+                if getattr(args, "data", False):
+                    reply = input(f"This will remove mounted data for honeypot '{args.honeypot}'. Continue? [y/N]: ").strip().lower()
+                    print()  # Add newline after input
+                    remove_data_single = reply in ("y", "yes", "ya")
+                    if not remove_data_single:
+                        print("Data removal cancelled.")
+
+                # Ask about image removal if --image flag is present
+                if getattr(args, "image", False):
+                    reply = input(f"This will remove Docker images for honeypot '{args.honeypot}'. Continue? [y/N]: ").strip().lower()
+                    print()  # Add newline after input
+                    remove_images_single = reply in ("y", "yes", "ya")
+                    if not remove_images_single:
+                        print("Image removal cancelled.")
+
+                # Ask about volume removal if --volume flag is present
+                if getattr(args, "volume", False):
+                    reply = input(f"This will remove Docker volumes for honeypot '{args.honeypot}'. Continue? [y/N]: ").strip().lower()
+                    print()  # Add newline after input
+                    remove_volumes_single = reply in ("y", "yes", "ya")
+                    if not remove_volumes_single:
+                        print("Volume removal cancelled.")
+
                 # Down first
                 down_honeypot(
                     args.honeypot,
-                    remove_volumes=bool(getattr(args, "volume", False)),
-                    remove_images=bool(getattr(args, "image", False)),
+                    remove_volumes=remove_volumes_single,
+                    remove_images=remove_images_single,
                 )
 
                 # Optionally remove data for single honeypot
-                if getattr(args, "data", False):
+                if remove_data_single:
                     try:
                         from scripts import remove_honeypot_data
                         remove_honeypot_data(args.honeypot)  # This prints its own success message
@@ -265,10 +318,10 @@ def main(argv: List[str]) -> int:
                         print(f"{PREFIX_WARN} Failed to remove data for '{args.honeypot}': {exc_data}")
 
                 # Show image/volume removal status (docker compose down with flags doesn't show explicit confirmation)
-                if getattr(args, "image", False):
+                if remove_images_single:
                     print(f"{PREFIX_OK}: Removed images for {args.honeypot}")
 
-                if getattr(args, "volume", False):
+                if remove_volumes_single:
                     print(f"{PREFIX_OK}: Removed volumes for {args.honeypot}")
 
                 # Then remove docker directory

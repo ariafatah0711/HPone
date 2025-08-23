@@ -83,35 +83,67 @@ def run_with_ephemeral_logs(
         line_lower = line.lower()
 
         # Always show these important messages
-        important_keywords = ['error', 'failed', 'fatal', 'exception', 'warn', 'warning',
-                             'done', 'finished', 'complete', 'started', 'created', 'pull complete']
+        important_keywords = ['error', 'failed', 'fatal', 'exception', 'warn', 'warning']
         if any(keyword in line_lower for keyword in important_keywords):
             return True
 
-        # Show main pull events but not progress details
-        if 'pulling' in line_lower and not any(skip in line_lower for skip in
-            ['fs layer', 'waiting', 'downloading', 'extracting', 'verifying']):
-            return True
-
-        # Skip all verbose output patterns
+        # Skip all verbose output patterns - more comprehensive filtering
         skip_patterns = [
-            # Build patterns
-            '#', 'transferring', 'load build definition', 'load metadata',
-            'building with', 'load .dockerignore', 'internal',
-            # Pull patterns
-            'pulling fs layer', 'waiting', 'downloading [', 'extracting [',
+            # BuildKit step logs - all numbered steps and their operations
+            '#1 ', '#2 ', '#3 ', '#4 ', '#5 ', '#6 ', '#7 ', '#8 ', '#9 ',
+            '#10 ', '#11 ', '#12 ', '#13 ', '#14 ', '#15 ', '#16 ', '#17 ', '#18 ', '#19 ',
+            '#20 ', '#21 ', '#22 ', '#23 ', '#24 ', '#25 ', '#26 ', '#27 ', '#28 ', '#29 ',
+            'transferring dockerfile:', 'transferring context:', 'done',
+
+            # Docker operations
+            'resolve docker.io', 'sha256:', 'kb / ', 'mb / ', 'gb / ',
+            'kb/s', 'mb/s', 'gb/s', 'done', 'downloading', 'extracting',
             'verifying checksum', 'download complete',
-            # SHA256 and hash patterns
-            'sha256:', 'resolve docker.io', 'kb / ', 'mb / ', 'gb / ',
-            # Database and progress patterns
+
+            # Pull patterns
+            'pulling fs layer', 'waiting', 'downloading [', 'extracting [', 'digest:', 'status:',
+
+            # Build patterns
+            'building with', 'load build definition', 'load metadata',
+            'load .dockerignore', 'internal', 'transferring',
+
+            # Package management and pip warnings
+            'get:', 'hit:', 'fetched', 'unpacking', 'setting up',
+            'preparing to unpack', 'processing triggers for',
+            'collecting ', 'installing collected packages',
+            'requirement already satisfied',
+            'warning: running pip as the', 'it is recommended to use a virtual environment',
+            'use the --root-user-action option', 'https://pip.pypa.io/warnings/venv',
+
+            # NPM/Yarn/Node
+            'added ', 'removed ', 'audited ', 'fetchmetadata', 'sill ', 'timing ',
+
+            # Cargo/Go/Rust
+            'compiling ', 'finished release', 'go: downloading', 'go: extracting',
+
+            # Database operations
             '(reading database', 'files and directories currently installed',
-            # Cargo/Rust download patterns
-            'downloaded ', 'kb/s', 'mb/s', ' added, ', ' removed; done'
         ]
-        if any(pattern in line_lower for pattern in skip_patterns):
+
+        # Check if line should be skipped
+        for pattern in skip_patterns:
+            if pattern in line_lower:
+                return False
+
+        # Skip BuildKit step lines dynamically (e.g., "#7 63.58 WARNING: ...")
+        import re
+        if re.match(r'^#\d+\s+', line.strip()):
             return False
 
-        # Show everything else by default
+        # Skip lines that start with step numbers (e.g., "#1 DONE 0.1s")
+        if line.strip().startswith('#') and any(word in line_lower for word in ['done', 'transferring', 'warning']):
+            return False
+
+        # Skip size/time information lines
+        if any(unit in line for unit in ['kB', 'MB', 'GB', 'B /', 's done', 's DONE']):
+            return False
+
+        # Show everything else (should be minimal now)
         return True
 
     def log_line(line: str) -> None:
