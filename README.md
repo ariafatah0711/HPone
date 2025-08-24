@@ -29,36 +29,9 @@
 - 🛡️ **Multi-Honeypot Support** - Manage multiple honeypot types simultaneously
 - 💻 **Interactive CLI** - User-friendly command-line interface with bash completion
 
-## 🔑 Operational Modes
+### 🎬 **Quick Demo**
 
-<table>
-<tr>
-<th>🤖 Automatic Mode</th>
-<th>🔧 Manual Mode</th>
-</tr>
-<tr>
-<td>
 
-**`ALWAYS_IMPORT=true`**
-- ✅ Auto-import at startup
-- ✅ Simplified commands
-- ✅ Production ready
-- ✅ Smart management
-- ✅ Ephemeral logging
-
-</td>
-<td>
-
-**`ALWAYS_IMPORT=false`**
-- 🔧 Full manual control
-- 🔧 Development friendly
-- 🔧 Debug & testing
-- 🔧 Template management
-- 🔧 Update control
-
-</td>
-</tr>
-</table>
 
 ## 📁 Project Structure
 
@@ -120,9 +93,13 @@ wget https://github.com/ariafatah0711/HPone/releases/latest/download/hpone_2.2.3
 
 sudo apt install -f ./hpone_2.2.3_all.deb
 sudo usermod -aG docker $USER
-```
 
-🔄 Restart your shell to enable bash completion
+# 🔄 IMPORTANT: Restart your shell session to activate changes
+# Choose one of the following methods:
+exec $SHELL                       # Restart current shell
+# OR logout and login again
+# OR open a new terminal window
+```
 
 **📍 Installation Location:** When installed via Debian package, HPone is located at `/opt/hpone/`
 
@@ -160,7 +137,12 @@ cd hpone
 # 🔧 Setup with global installation & bash completion
 chmod +x setup.sh
 ./setup.sh install
-# 🔄 Restart your shell after installation
+
+# 🔄 IMPORTANT: Restart your shell session to activate changes
+# Choose one of the following methods:
+exec $SHELL                       # Restart current shell
+# OR logout and login again
+# OR open a new terminal window
 ```
 
 ---
@@ -224,7 +206,9 @@ hpone -h
 # 🔧 Quick setup
 chmod +x hpone/completion/install.sh
 ./hpone/completion/install.sh
-# 🔄 Restart shell to activate
+
+# 🔄 IMPORTANT: Restart your shell session to activate completion
+exec $SHELL                       # Restart current shell
 
 # 🐄 Manual activation (session only)
 source hpone/completion/hpone-completion.bash
@@ -268,7 +252,12 @@ sudo apt remove hpone # Remove the installed package
 sudo apt purge hpone # Optional: Remove configuration files
 ```
 
-🔄 Restart your shell if u need
+🔄 **IMPORTANT:** Restart your shell session after removal:
+```bash
+exec $SHELL                       # Restart current shell
+# OR logout and login again
+# OR open a new terminal window
+```
 
 ### 🔄 Source Installation Removal
 
@@ -276,7 +265,9 @@ sudo apt purge hpone # Optional: Remove configuration files
 # 🧹 Uninstall global installation & bash completion
 chmod +x setup.sh
 ./setup.sh uninstall
-# 🔄 Restart your shell after uninstallation
+
+# 🔄 IMPORTANT: Restart your shell session after uninstallation
+exec $SHELL                       # Restart current shell
 
 # 🗂️ Optional: Remove project directory
 cd ..
@@ -487,16 +478,12 @@ volumes:
 
 ## 📝 Important Notes
 
-<div align="center">
-
 | 🤖 **Auto Mode** | 🔧 **Manual Mode** |
 |:---:|:---:|
 | `ALWAYS_IMPORT=true` | `ALWAYS_IMPORT=false` |
 | Production ready | Development friendly |
 | Minimal commands | Full control |
 | Auto-management | Manual operations |
-
-</div>
 
 > ⚠️ **Disabled honeypots** will not auto-start
 > 👍 Use `--force` to override enabled status
