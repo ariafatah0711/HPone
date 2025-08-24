@@ -73,7 +73,10 @@ from scripts import (
     clean_main,
 
     # Up
-    up_main
+    up_main,
+
+    # edit
+    edit_main
 )
 
 # Import questionary for interactive prompts
@@ -120,7 +123,9 @@ def check_permissions(args):
 
             if not check_directory_permissions(str(honeypots_dir)):
                 print(f"{PREFIX_ERROR} No write permission for honeypots directory: {honeypots_dir}")
-                print("💡 Check directory permissions or run with appropriate privileges")
+                print("   Fix: Check directory permissions or run with appropriate privileges")
+                print("   Or add user to docker group: sudo usermod -aG docker $USER")
+                print("   Then restart your shell")
                 return False
 
         return True
@@ -251,21 +256,25 @@ def main(argv: List[str]) -> int:
     # Enable command
     if args.command == "enable":
         try:
-            set_honeypot_enabled(args.honeypot, True)
+            # Handle multiple honeypots
+            for honeypot in args.honeypot:
+                set_honeypot_enabled(honeypot, True)
+                print(f"{PREFIX_OK}: Honeypot '{honeypot}' enabled.")
         except Exception as exc:
-            print(f"{PREFIX_ERROR} Failed to enable '{args.honeypot}': {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to enable honeypots: {exc}", file=sys.stderr)
             return 1
-        print(f"{PREFIX_OK}: Honeypot '{args.honeypot}' enabled.")
         return 0
 
     # Disable command
     if args.command == "disable":
         try:
-            set_honeypot_enabled(args.honeypot, False)
+            # Handle multiple honeypots
+            for honeypot in args.honeypot:
+                set_honeypot_enabled(honeypot, False)
+                print(f"{PREFIX_OK}: Honeypot '{honeypot}' disabled.")
         except Exception as exc:
-            print(f"{PREFIX_ERROR} Failed to disable '{args.honeypot}': {exc}", file=sys.stderr)
+            print(f"{PREFIX_ERROR} Failed to disable honeypots: {exc}", file=sys.stderr)
             return 1
-        print(f"{PREFIX_OK}: Honeypot '{args.honeypot}' disabled.")
         return 0
 
     # Up command
@@ -318,6 +327,14 @@ def main(argv: List[str]) -> int:
             print(f"{PREFIX_ERROR} Failed to show status: {exc}", file=sys.stderr)
             return 1
         return 0
+
+    # Edit command
+    if args.command == "edit":
+        try:
+            return edit_main(args)
+        except Exception as exc:
+            print(f"{PREFIX_ERROR} Failed to edit: {exc}", file=sys.stderr)
+            return 1
 
     parser.print_help()
     return 2

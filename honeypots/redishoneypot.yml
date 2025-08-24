@@ -4,7 +4,7 @@ enabled: true
 ports:
 - host: 6379
   container: 6379
-  description: "Redis database service"
+  description: Redis database service
 env:
 volumes:
 - data/redishoneypot/log:/var/log/redishoneypot

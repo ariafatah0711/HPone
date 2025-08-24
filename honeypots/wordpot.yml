@@ -1,10 +1,11 @@
 name: wordpot
-description: WordPress honeypot to detect and record attack attempts against WordPress CMS
+description: WordPress honeypot to detect and record attack attempts against WordPress
+  CMS
 enabled: true
 ports:
 - host: 80
   container: 80
-  description: "HTTP web server port"
+  description: HTTP web server port
 env:
 volumes:
 - data/wordpot/log:/opt/wordpot/logs

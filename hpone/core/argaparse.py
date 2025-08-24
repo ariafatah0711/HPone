@@ -40,12 +40,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	p_inspect.add_argument("honeypot", help="Honeypot name to inspect")
 
 	# Enable command
-	p_enable = sub.add_parser("enable", help="Enable honeypot in honeypots/<honeypot>.yml (set enabled: true)")
-	p_enable.add_argument("honeypot", help="Honeypot name to enable")
+	p_enable = sub.add_parser("enable", help="Enable honeypot(s) in honeypots/<honeypot>.yml (set enabled: true)")
+	p_enable.add_argument("honeypot", nargs="+", help="Honeypot name(s) to enable")
 
 	# Disable command
-	p_disable = sub.add_parser("disable", help="Disable honeypot in honeypots/<honeypot>.yml (set enabled: false)")
-	p_disable.add_argument("honeypot", help="Honeypot name to disable")
+	p_disable = sub.add_parser("disable", help="Disable honeypot(s) in honeypots/<honeypot>.yml (set enabled: false)")
+	p_disable.add_argument("honeypot", nargs="+", help="Honeypot name(s) to disable")
 
 	# Up command
 	p_up = sub.add_parser("up", help="docker compose up -d for one honeypot or all enabled honeypots")
@@ -81,6 +81,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	# Extra docker compose down options
 	p_clean.add_argument("--image", action="store_true", help="Also remove images (docker compose down --rmi local)")
 	p_clean.add_argument("--volume", action="store_true", help="Also remove volumes (docker compose down -v)")
+
+	# Edit command
+	p_edit = sub.add_parser("edit", help="Open honeypot configuration file in preferred editor")
+	group_edit = p_edit.add_mutually_exclusive_group(required=True)
+	group_edit.add_argument("honeypot", nargs="?", help="Honeypot name to edit (opens honeypots/<honeypot>.yml)")
+	group_edit.add_argument("--config", action="store_true", help="Edit main configuration file (hpone/config.py)")
+	group_edit.add_argument("--completion", action="store_true", help="Edit bash completion script")
 
 	return parser
 

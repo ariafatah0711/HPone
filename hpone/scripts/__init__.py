@@ -70,6 +70,10 @@ from .up import (
     up_single_honeypot
 )
 
+from .edit import (
+    edit_main
+)
+
 __all__ = [
     # List commands
     'list_honeypots',
@@ -124,5 +128,8 @@ __all__ = [
     # Up
     'up_main',
     'up_all_honeypots',
-    'up_single_honeypot'
+    'up_single_honeypot',
+
+    # Edit
+    'edit_main'
 ]

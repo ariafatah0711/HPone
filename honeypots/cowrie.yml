@@ -4,11 +4,10 @@ enabled: true
 ports:
 - host: 2222
   container: 22
-  description: "SSH honeypot service"
+  description: SSH honeypot service
 env:
 volumes:
 - data/cowrie/log:/home/cowrie/cowrie/log
 - data/cowrie/downloads:/home/cowrie/cowrie/dl
 - data/cowrie/keys:/home/cowrie/cowrie/etc
 - data/cowrie/log/tty:/home/cowrie/cowrie/log/tty
-# - conf/cowrie/userdb.txt:/home/cowrie/cowrie/etc/userdb.txt

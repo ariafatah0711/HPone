@@ -21,13 +21,13 @@ def handle_yaml_error(func: Callable[..., T]) -> Callable[..., T]:
         except ImportError as e:
             if "yaml" in str(e).lower():
                 print(f"{PREFIX_ERROR} PyYAML is not available!")
-                print("💡 Install with: pip install PyYAML")
+                print("   Install with: pip install PyYAML")
                 sys.exit(1)
             raise
         except Exception as e:
             if "yaml" in str(e).lower() or "yaml" in str(type(e).__name__).lower():
                 print(f"{PREFIX_ERROR} Failed to parse YAML: {e}")
-                print("💡 Make sure the YAML file is valid and contains no syntax errors")
+                print("   Make sure the YAML file is valid and contains no syntax errors")
                 sys.exit(1)
             raise
     return wrapper
@@ -42,7 +42,7 @@ def handle_docker_error(func: Callable[..., T]) -> Callable[..., T]:
         except FileNotFoundError as e:
             if "docker" in str(e).lower():
                 print(f"{PREFIX_ERROR} Docker not found!")
-                print("💡 Please install Docker first")
+                print("   Please install Docker first")
                 print("   Ubuntu/Debian: sudo apt install docker.io")
                 print("   CentOS/RHEL: sudo yum install docker")
                 print("   macOS: brew install docker")
@@ -52,7 +52,7 @@ def handle_docker_error(func: Callable[..., T]) -> Callable[..., T]:
         except Exception as e:
             if "docker" in str(e).lower():
                 print(f"{PREFIX_ERROR} Failed to run Docker command: {e}")
-                print("💡 Ensure Docker service is running and the user has permissions")
+                print("   Ensure Docker service is running and the user has permissions")
                 print("   Try: sudo systemctl start docker")
                 print("   Try: sudo usermod -aG docker $USER")
                 sys.exit(1)
@@ -96,7 +96,7 @@ def print_error_with_suggestion(error: Exception,
     """
     print(f"{PREFIX_ERROR} {error}")
     if suggestion:
-        print(f"💡 {suggestion}")
+        print(f"   {suggestion}")
 
     if exit_code != 0:
         sys.exit(exit_code)
@@ -117,14 +117,14 @@ def check_file_permissions(file_path: str) -> bool:
             f.read(1)
         return True
     except PermissionError:
-        print(f"❌ ERROR: Permission denied for file: {file_path}")
-        print("💡 Try running with sudo or check file permissions")
+        print(f"{PREFIX_ERROR} Permission denied for file: {file_path}")
+        print("   Try running with sudo or check file permissions")
         return False
     except FileNotFoundError:
-        print(f"❌ ERROR: File not found: {file_path}")
+        print(f"{PREFIX_ERROR} File not found: {file_path}")
         return False
     except Exception as e:
-        print(f"❌ ERROR: Failed to access file {file_path}: {e}")
+        print(f"{PREFIX_ERROR} Failed to access file {file_path}: {e}")
         return False
 
 
@@ -147,10 +147,11 @@ def check_docker_permissions() -> bool:
         error_output = result.stderr.lower()
         if "permission denied" in error_output:
             print(f"{PREFIX_ERROR} Docker permission denied!")
-            print("💡 Add your user to the docker group: sudo usermod -aG docker $USER")
+            print("   Fix: Add your user to the docker group: sudo usermod -aG docker $USER")
+            print("   Then restart your shell")
         elif "cannot connect" in error_output:
             print(f"{PREFIX_ERROR} Docker service is not running!")
-            print("💡 Start Docker service: sudo systemctl start docker")
+            print("   Start Docker service: sudo systemctl start docker")
         else:
             print(f"{PREFIX_ERROR} Docker command failed: {result.stderr}")
         return False

@@ -28,10 +28,20 @@
 - 🔧 **Flexible Configuration** - YAML-based honeypot definitions
 - 🛡️ **Multi-Honeypot Support** - Manage multiple honeypot types simultaneously
 - 💻 **Interactive CLI** - User-friendly command-line interface with bash completion
+- ✏️ **Built-in Editor** - Edit configurations directly from command line
 
-### 🎬 **Quick Demo**
+## 🎬 Quick Demo
 
+*Demo video coming soon - showing HPone's key features in action!*
 
+<!-- TODO: Add demo video here showing:
+- Installation process
+- Basic honeypot setup
+- Monitoring and logs
+- Configuration editing
+-->
+
+---
 
 ## 📁 Project Structure
 
@@ -95,10 +105,7 @@ sudo apt install -f ./hpone_2.2.3_all.deb
 sudo usermod -aG docker $USER
 
 # 🔄 IMPORTANT: Restart your shell session to activate changes
-# Choose one of the following methods:
-exec $SHELL                       # Restart current shell
-# OR logout and login again
-# OR open a new terminal window
+exec $SHELL # Restart current shell with: logout and login again, OR open a new terminal window
 ```
 
 **📍 Installation Location:** When installed via Debian package, HPone is located at `/opt/hpone/`
@@ -139,10 +146,7 @@ chmod +x setup.sh
 ./setup.sh install
 
 # 🔄 IMPORTANT: Restart your shell session to activate changes
-# Choose one of the following methods:
-exec $SHELL                       # Restart current shell
-# OR logout and login again
-# OR open a new terminal window
+exec $SHELL # Restart current shell with: logout and login again, OR open a new terminal window
 ```
 
 ---
@@ -200,44 +204,14 @@ hpone -h
 <details>
 <summary><strong>⌨️ Bash Completion Setup</strong></summary>
 
-### 🔍 Enhanced CLI Experience with Auto-Completion
-
 ```bash
-# 🔧 Quick setup
+# Quick setup
 chmod +x hpone/completion/install.sh
 ./hpone/completion/install.sh
-
-# 🔄 IMPORTANT: Restart your shell session to activate completion
-exec $SHELL                       # Restart current shell
-
-# 🐄 Manual activation (session only)
-source hpone/completion/hpone-completion.bash
+exec $SHELL  # Restart shell
 ```
 
-### 🎨 Usage Examples
-
-```bash
-# 📝 Local execution
-./app.py <TAB>                    # Complete commands
-./app.py inspect <TAB>            # Complete honeypot names
-./app.py logs <TAB>               # Complete honeypot names
-./app.py up <TAB>                 # Complete honeypots or --all
-
-# 🌍 Global execution
-hpone <TAB>                       # Complete commands
-hpone clean <TAB>                 # Complete honeypot names
-hpone logs <TAB>                  # Complete honeypot names
-hpone up <TAB>                    # Complete honeypots or --all
-```
-
-### 🗑️ Uninstall Completion
-
-```bash
-chmod +x hpone/completion/uninstall.sh
-./hpone/completion/uninstall.sh
-```
-
-> 📋 **More Info:** See `hpone/completion/README.md` for detailed documentation
+🎨 **Tab completion works for all commands and honeypot names!**
 
 </details>
 
@@ -252,9 +226,7 @@ sudo apt remove hpone # Remove the installed package
 sudo apt purge hpone # Optional: Remove configuration files
 
 # 🔄 **IMPORTANT:** Restart your shell session after removal:
-exec $SHELL                       # Restart current shell
-# OR logout and login again
-# OR open a new terminal window
+exec $SHELL # Restart current shell with: logout and login again, OR open a new terminal window
 ```
 
 ### 🔄 Source Installation Removal
@@ -274,108 +246,73 @@ rm -rf hpone
 
 ## 🎯 Getting Started
 
-### 🚀 **Quick Start Guide** (`ALWAYS_IMPORT=true`)
+### 🚀 **Quick Start**
 
-#### ⚙️ **Setup Phase**
+#### ⚙️ **Setup**
 ```bash
-# Enable required honeypots
-hpone enable cowrie
-hpone enable medpot
-
-# Start honeypots (auto-import & start containers)
-hpone up cowrie
-hpone up medpot
-
-# Or start all at once
-hpone up --all
+hpone enable cowrie medpot conpot # Enable multiple honeypots
+hpone up --all                    # Start all enabled honeypots
 ```
-- ✅ Enable required honeypots
-- ✅ Auto-import & start containers
-- ✅ Bulk operations supported
 
-#### 📈 **Monitoring Phase**
+#### 📈 **Monitor**
 ```bash
-# Monitor status
-hpone list
-hpone status
-
-# View logs interactively
-hpone logs cowrie
-hpone logs medpot
+hpone list -a                 # Check status
+hpone logs cowrie             # View logs
 ```
-- ✅ Check honeypot status
-- ✅ Real-time log streaming
-- ✅ Interactive file browser
 
-#### 💻 **Management Phase**
+#### 💻 **Manage**
 ```bash
-# Access containers
-hpone shell cowrie
-
-# Stop & cleanup
-hpone down cowrie
-hpone clean --all --data
+hpone edit cowrie             # Edit configuration
+hpone shell cowrie            # Container access
+hpone clean --all --data      # Stop & cleanup
 ```
-- ✅ Direct container access
-- ✅ Graceful shutdown
-- ✅ Complete cleanup options
 
 ## 🔧 Command Reference
 
 ### 📊 **Core Commands**
 
-| Command | Description | Example |
-|---------|-------------|----------|
-| 🔍 `check` | Verify dependencies | `hpone check` |
-| 📋 `list` | Show honeypots | `hpone list -a` |
-| 📈 `status` | Runtime status | `hpone status` |
-| 🔎 `inspect` | Honeypot details | `hpone inspect cowrie` |
+| Command | Description | Options | Example |
+|---------|-------------|---------|----------|
+| 🔍 `check` | Verify dependencies | - | `hpone check` |
+| 📋 `list` | Show honeypots | `-a` | `hpone list -a` |
+| 📈 `status` | Runtime status | - | `hpone status` |
+| 🔎 `inspect` | Honeypot details | - | `hpone inspect cowrie` |
+| ✏️ `edit` | Edit configurations | `<honeypot>`, `--config`, `--completion` | `hpone edit cowrie` |
+
+**✨ Edit Features:** Smart editor detection • SSH-aware • YAML validation • Interactive recovery • Tab completion
 
 ### 🏃 **Lifecycle Commands**
 
 | Command | Description | Options | Example |
 |---------|-------------|---------|----------|
-| ⚙️ `enable/disable` | Toggle honeypot | - | `hpone enable cowrie` |
+| ⚙️ `enable/disable` | Toggle honeypot(s) | - | `hpone enable cowrie medpot` |
 | 🚀 `up` | Start honeypot | `--all`, `--force` | `hpone up --all` |
 | 📏 `down` | Stop honeypot | `--all` | `hpone down cowrie` |
 | 💻 `shell` | Container access | - | `hpone shell cowrie` |
 | 📄 `logs` | Interactive logs | - | `hpone logs cowrie` |
 | 🗑️ `clean` | Stop & remove | `--all`, `--data`, `--image`, `--volume` | `hpone clean --all --data` |
 
-### 🎨 **Advanced Usage Examples**
-
-<details>
-<summary><strong>📁 Expand Examples</strong></summary>
+### 🎨 **Quick Examples**
 
 ```bash
-# 🔄 Complete workflow
-hpone enable cowrie
-hpone up cowrie
-hpone logs cowrie    # Interactive log viewer with:
-                     #   • Recent Docker logs (30 lines)
-                     #   • Follow live logs (tail -f)
-                     #   • Browse data directory files
-                     #   • Search & follow individual files
-hpone shell cowrie   # Direct container access
+# 🚀 Basic workflow
+hpone enable cowrie conpot
+hpone up --all
+hpone logs cowrie     # Interactive log viewer
+hpone shell cowrie    # Container access
 hpone down cowrie
 
-# 📊 Status monitoring
-hpone list           # Basic honeypot list
-hpone list -a        # Detailed view with descriptions
-hpone status         # Runtime status table
+# 📝 Configuration
+hpone edit cowrie     # Edit honeypot config
+hpone edit --config   # Edit main settings
 
-# 🗑️ Comprehensive cleanup
+# 📊 Monitoring
+hpone list -a         # Detailed status
+hpone status          # Port mappings
+
+# 🗑️ Cleanup
 hpone clean --all --data --image --volume
-#   • --data: Remove persistent data
-#   • --image: Remove Docker images
-#   • --volume: Remove Docker volumes
-
-# 👍 Force operations
-hpone up wordpot --force    # Override disabled status
-hpone up --all --update     # Update before starting
 ```
-
-</details>
 
 ## 🔍 Troubleshooting
 
@@ -476,16 +413,17 @@ volumes:
 
 ## 📝 Important Notes
 
-| 🤖 **Auto Mode** | 🔧 **Manual Mode** |
-|:---:|:---:|
-| `ALWAYS_IMPORT=true` | `ALWAYS_IMPORT=false` |
-| Production ready | Development friendly |
-| Minimal commands | Full control |
-| Auto-management | Manual operations |
+### 🚀 **Operation Modes**
 
-> ⚠️ **Disabled honeypots** will not auto-start
-> 👍 Use `--force` to override enabled status
-> 💻 `shell` command requires running containers
+HPone has two modes configured in `hpone/config.py`:
+
+- 🤖 **Auto Mode** (`ALWAYS_IMPORT=true`) - Production ready, auto-manages templates
+- 🔧 **Manual Mode** (`ALWAYS_IMPORT=false`) - Development friendly, full control
+
+### 📝 **Quick Tips**
+- ⚠️ Disabled honeypots won't auto-start
+- 👍 Use `--force` to override enabled status
+- 💻 `shell` command requires running containers
 
 ---
 

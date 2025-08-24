@@ -1,21 +1,20 @@
 name: ddospot
-description: Honeypot to detect, record, and analyze UDP-based attacks commonly used in DDoS
+description: Honeypot to detect, record, and analyze UDP-based attacks commonly used
+  in DDoS
 enabled: true
 ports:
 - host: 19
   container: 19/udp
-  description: "Character Generator Protocol"
+  description: Character Generator Protocol
 - host: 1053
   container: 53/udp
-  description: "DNS reflection attack"
+  description: DNS reflection attack
 - host: 123
   container: 123/udp
-  description: "NTP amplification attack"
-#- host: 161
-#  container: 161/udp
+  description: NTP amplification attack
 - host: 1900
   container: 1900/udp
-  description: "SSDP reflection attack"
+  description: SSDP reflection attack
 env:
 volumes:
 - data/ddospot/log:/opt/ddospot/ddospot/logs

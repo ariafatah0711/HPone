@@ -4,9 +4,9 @@ enabled: true
 ports:
 - host: 5555
   container: 5555
-  description: "Android Debug Bridge (ADB) service"
+  description: Android Debug Bridge (ADB) service
 env:
 volumes:
 - data/adbhoney/log:/opt/adbhoney/log
 - data/adbhoney/downloads:/opt/adbhoney/dl
-- conf/adbhoney/responses.py:/opt/adbhoney/adbhoney/responses.py # custom response
+- conf/adbhoney/responses.py:/opt/adbhoney/adbhoney/responses.py

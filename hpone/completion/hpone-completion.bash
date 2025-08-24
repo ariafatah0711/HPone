@@ -65,7 +65,7 @@ _hpone_completion() {
     prev="${COMP_WORDS[COMP_CWORD-1]}"
 
     # Available commands (hapus import dan update)
-    cmds="check list status inspect enable disable up down shell logs clean"
+    cmds="check list status inspect enable disable up down shell logs clean edit"
 
     # If this is the first argument (command)
     if [[ ${COMP_CWORD} -eq 1 ]]; then
@@ -77,8 +77,8 @@ _hpone_completion() {
     local cmd="${COMP_WORDS[1]}"
 
     case "${cmd}" in
-        "inspect"|"enable"|"disable"|"up"|"down"|"shell"|"logs"|"clean")
-            # These commands need a honeypot name
+        "inspect"|"shell"|"logs"|"up"|"down"|"clean"|"edit")
+            # These commands need a single honeypot name
             if [[ ${COMP_CWORD} -eq 2 ]]; then
                 # Get available honeypots from honeypots/ directory
                 local honeypots_dir=$(_hpone_find_honeypots_dir)
@@ -97,6 +97,39 @@ _hpone_completion() {
                 fi
             fi
             ;;
+        "enable"|"disable")
+            # These commands support multiple honeypot names
+            local honeypots_dir=$(_hpone_find_honeypots_dir)
+            local honeypots=""
+
+            if [[ "${honeypots_dir}" == "__DYNAMIC__" ]]; then
+                # Use dynamic discovery via HPone command
+                honeypots=$(_hpone_get_honeypots_dynamic)
+            elif [[ -n "${honeypots_dir}" ]] && [[ -d "${honeypots_dir}" ]]; then
+                # Use directory scanning
+                honeypots=$(find "${honeypots_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
+            fi
+
+            if [[ -n "${honeypots}" ]]; then
+                # Filter out already completed honeypots for multiple completion
+                local already_completed=""
+                for ((i=2; i<COMP_CWORD; i++)); do
+                    already_completed="${already_completed} ${COMP_WORDS[i]}"
+                done
+
+                # Remove already completed honeypots from the list
+                local available_honeypots=""
+                for honeypot in ${honeypots}; do
+                    if [[ ! " ${already_completed} " =~ " ${honeypot} " ]]; then
+                        available_honeypots="${available_honeypots} ${honeypot}"
+                    fi
+                done
+
+                if [[ -n "${available_honeypots}" ]]; then
+                    COMPREPLY=( $(compgen -W "${available_honeypots}" -- "${cur}") )
+                fi
+            fi
+            ;;
         "list")
             # List command has -a option for details
             if [[ ${COMP_CWORD} -eq 2 ]]; then
@@ -105,6 +138,29 @@ _hpone_completion() {
             ;;
         "status"|"check")
             # These commands don't need additional arguments
+            ;;
+        "edit")
+            if [[ ${COMP_CWORD} -eq 2 ]]; then
+                # Edit command can complete honeypot names or special options
+                local honeypots_dir=$(_hpone_find_honeypots_dir)
+                local honeypots=""
+
+                if [[ "${honeypots_dir}" == "__DYNAMIC__" ]]; then
+                    # Use dynamic discovery via HPone command
+                    honeypots=$(_hpone_get_honeypots_dynamic)
+                elif [[ -n "${honeypots_dir}" ]] && [[ -d "${honeypots_dir}" ]]; then
+                    # Use directory scanning
+                    honeypots=$(find "${honeypots_dir}" -name "*.yml" -exec basename {} .yml \; 2>/dev/null)
+                fi
+
+                # Combine honeypot names with edit command options
+                local edit_options="--config --completion"
+                if [[ -n "${honeypots}" ]]; then
+                    COMPREPLY=( $(compgen -W "${honeypots} ${edit_options}" -- "${cur}") )
+                else
+                    COMPREPLY=( $(compgen -W "${edit_options}" -- "${cur}") )
+                fi
+            fi
             ;;
     esac
 
