@@ -182,3 +182,96 @@ def check_directory_permissions(dir_path: str) -> bool:
 
     except Exception:
         return False
+
+
+def auto_fix_permissions() -> bool:
+    """Automatically fix HPone directory permissions if possible."""
+    import subprocess
+    import os
+    from pathlib import Path
+
+    try:
+        # Flexible path detection for different installation types
+        hpone_base = None
+
+        # Check if we're in a .deb package installation
+        if Path("/opt/hpone").exists():
+            hpone_base = Path("/opt/hpone")
+        else:
+            # Fallback to script location for development/manual installs
+            # Go up from hpone/scripts/error_handlers.py to project root
+            script_dir = Path(__file__).resolve().parent.parent.parent
+            if (script_dir / "app.py").exists():
+                hpone_base = script_dir
+
+        if not hpone_base or not hpone_base.exists():
+            return False  # Cannot determine HPone installation path
+
+        # Directories that need permission fixing
+        target_dirs = []
+        for dirname in ["docker", "conf", "honeypots", "data"]:
+            dir_path = hpone_base / dirname
+            if dir_path.exists():
+                target_dirs.append((dirname, dir_path))
+
+        if not target_dirs:
+            return True  # Nothing to fix
+
+        # Check if user is in docker group or has sudo access
+        in_docker_group = False
+        can_sudo = False
+
+        try:
+            result = subprocess.run(["groups"], capture_output=True, text=True, timeout=5)
+            if result.returncode == 0 and "docker" in result.stdout:
+                in_docker_group = True
+        except Exception:
+            pass
+
+        try:
+            result = subprocess.run(["sudo", "-n", "true"], capture_output=True, timeout=5)
+            if result.returncode == 0:
+                can_sudo = True
+        except Exception:
+            pass
+
+        if not in_docker_group and not can_sudo:
+            return False  # Cannot fix permissions
+
+        # Fix permissions for each directory
+        for dirname, dir_path in target_dirs:
+            try:
+                if dirname == "data":
+                    # Data directory needs world-writable permissions for containers
+                    dir_perm = "2777"
+                    file_perm = "666"
+                else:
+                    # Other directories use group-writable permissions
+                    dir_perm = "2775"
+                    file_perm = "664"
+
+                if in_docker_group:
+                    # Fix without sudo
+                    subprocess.run(["find", str(dir_path), "-type", "d", "-exec", "chmod", dir_perm, "{}", ";"],
+                                 capture_output=True, timeout=10)
+                    subprocess.run(["find", str(dir_path), "-type", "f", "-exec", "chmod", file_perm, "{}", ";"],
+                                 capture_output=True, timeout=10)
+                    subprocess.run(["chgrp", "-R", "docker", str(dir_path)],
+                                 capture_output=True, timeout=10)
+                elif can_sudo:
+                    # Fix with sudo
+                    subprocess.run(["sudo", "find", str(dir_path), "-type", "d", "-exec", "chmod", dir_perm, "{}", ";"],
+                                 capture_output=True, timeout=10)
+                    subprocess.run(["sudo", "find", str(dir_path), "-type", "f", "-exec", "chmod", file_perm, "{}", ";"],
+                                 capture_output=True, timeout=10)
+                    subprocess.run(["sudo", "chgrp", "-R", "docker", str(dir_path)],
+                                 capture_output=True, timeout=10)
+
+            except Exception:
+                # Silently continue if fixing one directory fails
+                continue
+
+        return True
+
+    except Exception:
+        return False

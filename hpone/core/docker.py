@@ -48,6 +48,15 @@ def run_compose_action(honeypot_dir: Path, action: str, extra_args: Optional[Lis
     if not (honeypot_dir / "docker-compose.yml").exists():
         raise FileNotFoundError(f"docker-compose.yml not found in {honeypot_dir}")
 
+    # Auto-fix permissions before Docker operations (only for up/start actions)
+    if action in ["up", "start"]:
+        try:
+            from scripts.error_handlers import auto_fix_permissions
+            auto_fix_permissions()
+        except Exception:
+            # Continue if permission fixing fails
+            pass
+
     # Check if ephemeral logging is enabled
     try:
         from config import USE_EPHEMERAL_LOGGING
@@ -114,6 +123,14 @@ def up_honeypot(honeypot_id: str, force: bool = False) -> None:
         from .yaml import is_honeypot_enabled
         if not is_honeypot_enabled(honeypot_id):
             raise ValueError(f"Tool '{honeypot_id}' is not enabled. Run 'enable {honeypot_id}' first or use --force.")
+
+    # Auto-fix permissions before starting containers
+    try:
+        from scripts.error_handlers import auto_fix_permissions
+        auto_fix_permissions()
+    except Exception:
+        # Continue if permission fixing fails
+        pass
 
     run_compose_action(dest_dir, "up")
 

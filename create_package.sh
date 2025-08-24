@@ -8,7 +8,7 @@ set -euo pipefail  # Enhanced error handling
 
 # Configuration
 APP_NAME="hpone"
-VERSION="2.3.0"
+VERSION="2.3.1"
 ARCHITECTURE="all"
 MAINTAINER="Aria Fatah <ariafatah07@gmail.com>"
 REPO_URL="https://github.com/ariafatah0711/HPone.git"
@@ -465,37 +465,63 @@ case "\$1" in
         chmod -R 755 /opt/hpone
         chown -R root:root /opt/hpone
 
-        # Set more permissive permissions for directories that need user write access
-        # Docker directory - where compose files and .env files are generated/modified
-        if [ -d /opt/hpone/docker ]; then
-            chmod -R 775 /opt/hpone/docker
-            # Make it writable by docker group if it exists
-            if getent group docker >/dev/null 2>&1; then
-                chgrp -R docker /opt/hpone/docker
-            fi
+        # Configure automatic group inheritance for key directories
+        # Any new files/folders created will automatically inherit the docker group
+        # Use more permissive permissions to handle Docker container user ID mapping
+
+        # Check if docker group exists, create if not
+        if ! getent group docker >/dev/null 2>&1; then
+            log_warning "Docker group not found. Creating docker group..."
+            groupadd docker
         fi
 
-        # Data directory - where honeypot data is stored
+        # Docker directory - where compose files and .env files are generated/modified
+        if [ -d /opt/hpone/docker ]; then
+            chgrp -R docker /opt/hpone/docker
+            chmod -R 2775 /opt/hpone/docker  # SGID bit ensures group inheritance
+            find /opt/hpone/docker -type f -exec chmod 664 {} \;
+        fi
+
+        # Data directory - where honeypot data is stored (needs write access for any user)
         if [ -d /opt/hpone/data ]; then
-            chmod -R 775 /opt/hpone/data
-            if getent group docker >/dev/null 2>&1; then
-                chgrp -R docker /opt/hpone/data
-            fi
+            chgrp -R docker /opt/hpone/data
+            chmod -R 2775 /opt/hpone/data  # SGID + world writable for container users
+            find /opt/hpone/data -type f -exec chmod 664 {} \;
         fi
 
         # Conf directory - where configurations are stored
         if [ -d /opt/hpone/conf ]; then
-            chmod -R 775 /opt/hpone/conf
-            if getent group docker >/dev/null 2>&1; then
-                chgrp -R docker /opt/hpone/conf
-            fi
+            chgrp -R docker /opt/hpone/conf
+            chmod -R 2775 /opt/hpone/conf  # SGID bit ensures group inheritance
+            find /opt/hpone/conf -type f -exec chmod 664 {} \;
         fi
 
         # Honeypots directory - where YAML files might be modified
         if [ -d /opt/hpone/honeypots ]; then
-            chmod -R 775 /opt/hpone/honeypots
-            if getent group docker >/dev/null 2>&1; then
-                chgrp -R docker /opt/hpone/honeypots
+            chgrp -R docker /opt/hpone/honeypots
+            chmod -R 2775 /opt/hpone/honeypots  # SGID bit ensures group inheritance
+            find /opt/hpone/honeypots -type f -exec chmod 664 {} \;
+        fi
+
+        # Set default ACLs for even better inheritance (if available)
+        if command -v setfacl >/dev/null 2>&1; then
+            log_info "Setting up ACLs for automatic group inheritance..."
+            # Standard directories with normal permissions
+            for dir in docker conf honeypots; do
+                if [ -d "/opt/hpone/\$dir" ]; then
+                    setfacl -R -d -m g:docker:rwx "/opt/hpone/\$dir" 2>/dev/null || true
+                    setfacl -R -d -m u::rwx "/opt/hpone/\$dir" 2>/dev/null || true
+                    setfacl -R -d -m o::r-- "/opt/hpone/\$dir" 2>/dev/null || true
+                    setfacl -R -m g:docker:rwx "/opt/hpone/\$dir" 2>/dev/null || true
+                fi
+            done
+            # Data directory with more permissive ACLs for container access
+            if [ -d "/opt/hpone/data" ]; then
+                setfacl -R -d -m g:docker:rwx "/opt/hpone/data" 2>/dev/null || true
+                setfacl -R -d -m u::rwx "/opt/hpone/data" 2>/dev/null || true
+                setfacl -R -d -m o::rwx "/opt/hpone/data" 2>/dev/null || true
+                setfacl -R -m g:docker:rwx "/opt/hpone/data" 2>/dev/null || true
+                setfacl -R -m o::rwx "/opt/hpone/data" 2>/dev/null || true
             fi
         fi
 
@@ -510,18 +536,9 @@ case "\$1" in
 
         log_success "HPone installation completed successfully!"
         log_info "Run 'hpone --help' to get started"
-
-        # Provide guidance on docker group membership
-        if getent group docker >/dev/null 2>&1; then
-            log_info "Important: Add your user to the docker group for proper permissions:"
-            log_info "  sudo usermod -aG docker \$USER"
-            log_info "  Then logout and login again, or run: newgrp docker"
-        else
-            log_warning "Docker group not found. Make sure Docker is properly installed."
-        fi
-
-        log_info "If you encounter permission errors, you may need to run with sudo"
-        log_info "or ensure your user has proper access to /opt/hpone directories"
+        log_info "Permission setup complete - containers can write to data directory"
+        log_info "Add your user to docker group: sudo usermod -aG docker \$USER"
+        log_info "Then logout and login again, or run: newgrp docker"
         ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
@@ -706,7 +723,7 @@ build_package() {
     # Ensure output directory exists
     mkdir -p "$(dirname "$PKG_PATH$PKG_NAME")"
 
-    # Build the package
+    # Build the versioned package
     if dpkg-deb --build "$BUILD_DIR" "$PKG_PATH$PKG_NAME"; then
         log_success "Package built successfully: $PKG_PATH$PKG_NAME"
 
@@ -721,6 +738,17 @@ build_package() {
             log_success "Package validation passed"
         else
             log_warning "Package validation failed, but package was created"
+        fi
+
+        # Create latest version copy
+        local latest_pkg_name="hpone_all.deb"
+        local latest_pkg_path="$PKG_PATH$latest_pkg_name"
+
+        log_info "Creating latest version package..."
+        if cp "$PKG_PATH$PKG_NAME" "$latest_pkg_path"; then
+            log_success "Latest package created: $latest_pkg_path"
+        else
+            log_warning "Failed to create latest package copy"
         fi
 
         return 0
@@ -791,14 +819,16 @@ main() {
     if build_package; then
         echo
         log_success "=== BUILD COMPLETED SUCCESSFULLY ==="
-        log_info "Package: $PKG_PATH$PKG_NAME"
+        log_info "Versioned package: $PKG_PATH$PKG_NAME"
+        log_info "Latest package: ${PKG_PATH}hpone_all.deb"
         log_info "Build mode: $BUILD_MODE"
         if [ "$BUILD_MODE" = "local" ]; then
             log_info "Source: $(realpath "$SOURCE_DIR")"
         else
             log_info "Source: $CUSTOM_REPO_URL"
         fi
-        log_info "Install with: sudo dpkg -i $PKG_PATH$PKG_NAME"
+        log_info "Install versioned: sudo dpkg -i $PKG_PATH$PKG_NAME && sudo apt-get install -f"
+        log_info "Install latest: sudo dpkg -i ${PKG_PATH}hpone_all.deb && sudo apt-get install -f"
         log_info "Or: sudo apt install ./$PKG_NAME"
         echo
     else
