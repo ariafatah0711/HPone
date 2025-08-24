@@ -250,10 +250,8 @@ chmod +x hpone/completion/uninstall.sh
 ```bash
 sudo apt remove hpone # Remove the installed package
 sudo apt purge hpone # Optional: Remove configuration files
-```
 
-🔄 **IMPORTANT:** Restart your shell session after removal:
-```bash
+# 🔄 **IMPORTANT:** Restart your shell session after removal:
 exec $SHELL                       # Restart current shell
 # OR logout and login again
 # OR open a new terminal window
