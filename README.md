@@ -32,14 +32,7 @@
 
 ## 🎬 Quick Demo
 
-*Demo video coming soon - showing HPone's key features in action!*
-
-<!-- TODO: Add demo video here showing:
-- Installation process
-- Basic honeypot setup
-- Monitoring and logs
-- Configuration editing
--->
+https://github.com/user-attachments/assets/927fa1fe-27e8-401f-9d18-f7cb63a3e9e1
 
 ---
 
