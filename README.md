@@ -99,7 +99,7 @@ USE_EPHEMERAL_LOGGING = True      # Real-time vs Simple output
 
 ```bash
 # Download and install the latest .deb package
-wget https://github.com/ariafatah0711/HPone/releases/latest/download/hpone_2.2.3_all.deb
+wget https://github.com/ariafatah0711/HPone/releases/latest/download/hpone_2.3.0_all.deb
 
 sudo apt install -f ./hpone_2.2.3_all.deb
 sudo usermod -aG docker $USER

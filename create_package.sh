@@ -2,13 +2,13 @@
 # HPone Debian Package Builder
 # Creates a professional .deb package for HPone honeypot management tool
 # Author: Aria Fatah <ariafatah07@gmail.com>
-# Version: 2.2.0
+# Version: 2.3.0
 
 set -euo pipefail  # Enhanced error handling
 
 # Configuration
 APP_NAME="hpone"
-VERSION="2.2.3"
+VERSION="2.3.0"
 ARCHITECTURE="all"
 MAINTAINER="Aria Fatah <ariafatah07@gmail.com>"
 REPO_URL="https://github.com/ariafatah0711/HPone.git"
@@ -230,7 +230,6 @@ copy_local_source() {
         --exclude='*.pyo' \
         --exclude='.pytest_cache' \
         --exclude='build/' \
-        --exclude='dist/' \
         --exclude='*.egg-info' \
         --exclude='node_modules' \
         --exclude='.vscode' \
