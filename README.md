@@ -98,7 +98,7 @@ sudo apt install -f ./hpone_all.deb
 sudo usermod -aG docker $USER
 
 # 🔄 IMPORTANT: Restart your shell session to activate changes
-exec $SHELL # Restart current shell with: logout and login again, OR open a new terminal window
+sudo newgrp docker # Restart current shell with: logout and login again, OR open a new terminal window
 ```
 
 **📍 Installation Location:** When installed via Debian package, HPone is located at `/opt/hpone/`
@@ -139,7 +139,7 @@ chmod +x setup.sh
 ./setup.sh install
 
 # 🔄 IMPORTANT: Restart your shell session to activate changes
-exec $SHELL # Restart current shell with: logout and login again, OR open a new terminal window
+sudo newgrp docker # Restart current shell with: logout and login again, OR open a new terminal window
 ```
 
 ---
