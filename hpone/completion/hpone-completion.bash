@@ -65,7 +65,7 @@ _hpone_completion() {
     prev="${COMP_WORDS[COMP_CWORD-1]}"
 
     # Available commands (hapus import dan update)
-    cmds="check list status inspect enable disable up down shell logs clean edit"
+    cmds="check list status web inspect enable disable up down shell logs clean edit"
 
     # If this is the first argument (command)
     if [[ ${COMP_CWORD} -eq 1 ]]; then
@@ -136,7 +136,7 @@ _hpone_completion() {
                 COMPREPLY=( $(compgen -W "-a" -- "${cur}") )
             fi
             ;;
-        "status"|"check")
+        "status"|"check"|"web")
             # These commands don't need additional arguments
             ;;
         "edit")

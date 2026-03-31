@@ -1,0 +1,106 @@
+{% extends "honeypots/base.html" %}
+
+{% block content %}
+<div class="rounded-3xl border border-slate-800 bg-slate-900/70 shadow-2xl shadow-black/30">
+  <div class="flex flex-col gap-4 border-b border-slate-800 px-6 py-5 md:flex-row md:items-center md:justify-between">
+    <div>
+      <div class="text-lg font-semibold">Dashboard</div>
+      <div class="text-sm text-slate-400">Live view of configured honeypots.</div>
+    </div>
+    <a class="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/70 px-4 py-2 text-xs uppercase tracking-wide text-slate-200 hover:border-emerald-400" href="/">
+      Refresh
+    </a>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="bg-slate-950/60 text-xs uppercase tracking-wide text-slate-400">
+        <tr>
+          <th class="px-6 py-4">Name</th>
+          <th class="px-6 py-4">Description</th>
+          <th class="px-6 py-4">Status</th>
+          <th class="px-6 py-4">Enable</th>
+          <th class="px-6 py-4">Imported</th>
+          <th class="px-6 py-4">Ports</th>
+          <th class="px-6 py-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800">
+        {% for hp in honeypots %}
+        <tr class="hover:bg-slate-900/50">
+          <td class="px-6 py-4">
+            <a class="font-semibold text-white hover:text-emerald-300" href="{% url 'honeypot-detail' hp.honeypot_id %}">{{ hp.name }}</a>
+            <div class="text-xs text-slate-500">{{ hp.honeypot_id }}</div>
+          </td>
+          <td class="px-6 py-4 text-slate-300">{{ hp.description|default:"-" }}</td>
+          <td class="px-6 py-4">
+            {% if hp.running %}
+              <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">Running</span>
+            {% else %}
+              <span class="inline-flex items-center gap-2 rounded-full border border-rose-400/40 bg-rose-500/10 px-3 py-1 text-xs text-rose-200">Stopped</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4">
+            {% if hp.enabled %}
+              <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">Enabled</span>
+            {% else %}
+              <span class="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs text-amber-200">Disabled</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4">
+            {% if hp.imported %}
+              <span class="inline-flex items-center gap-2 rounded-full border border-slate-500/40 bg-slate-500/10 px-3 py-1 text-xs text-slate-200">Yes</span>
+            {% else %}
+              <span class="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-400">No</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4 font-mono text-xs text-slate-300">
+            {% for host, container in hp.ports %}
+              <div>{{ host }} : {{ container }}</div>
+            {% empty %}
+              <div class="text-slate-500">No ports</div>
+            {% endfor %}
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex flex-wrap gap-2">
+              <form method="post" action="{% url 'honeypot-start' hp.honeypot_id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="group inline-flex h-9 w-9 items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-500/10 text-xs font-semibold text-emerald-200 transition hover:border-emerald-300 hover:bg-emerald-500/20" type="submit" title="Start" aria-label="Start">
+                  <span class="text-sm">▶</span>
+                </button>
+              </form>
+              <form method="post" action="{% url 'honeypot-stop' hp.honeypot_id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="group inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-400/40 bg-rose-500/10 text-xs font-semibold text-rose-200 transition hover:border-rose-300 hover:bg-rose-500/20" type="submit" title="Stop" aria-label="Stop">
+                  <span class="text-sm">■</span>
+                </button>
+              </form>
+              <form method="post" action="{% url 'honeypot-enable' hp.honeypot_id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="group inline-flex h-9 w-9 items-center justify-center rounded-full border border-sky-400/40 bg-sky-500/10 text-xs font-semibold text-sky-200 transition hover:border-sky-300 hover:bg-sky-500/20" type="submit" title="Enable" aria-label="Enable">
+                  <span class="text-sm">+</span>
+                </button>
+              </form>
+              <form method="post" action="{% url 'honeypot-disable' hp.honeypot_id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="group inline-flex h-9 w-9 items-center justify-center rounded-full border border-amber-400/40 bg-amber-500/10 text-xs font-semibold text-amber-200 transition hover:border-amber-300 hover:bg-amber-500/20" type="submit" title="Disable" aria-label="Disable">
+                  <span class="text-sm">−</span>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td class="px-6 py-6 text-slate-400" colspan="7">No honeypots found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

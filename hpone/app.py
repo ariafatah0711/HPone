@@ -76,7 +76,10 @@ from scripts import (
     up_main,
 
     # edit
-    edit_main
+    edit_main,
+
+    # web
+    web_main
 )
 
 # Import questionary for interactive prompts
@@ -317,6 +320,14 @@ def main(argv: List[str]) -> int:
             print(f"{PREFIX_ERROR} Failed to show logs for '{args.honeypot}': {exc}", file=sys.stderr)
             return 1
         return 0
+
+    # Web command
+    if args.command == "web":
+        try:
+            return web_main()
+        except Exception as exc:
+            print(f"{PREFIX_ERROR} Failed to start HPone Web: {exc}", file=sys.stderr)
+            return 1
 
     # Status command
     if args.command == "status":

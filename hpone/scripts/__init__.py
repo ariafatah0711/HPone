@@ -74,6 +74,10 @@ from .edit import (
     edit_main
 )
 
+from .web import (
+    web_main
+)
+
 __all__ = [
     # List commands
     'list_honeypots',
@@ -131,5 +135,8 @@ __all__ = [
     'up_single_honeypot',
 
     # Edit
-    'edit_main'
+    'edit_main',
+
+    # Web
+    'web_main'
 ]

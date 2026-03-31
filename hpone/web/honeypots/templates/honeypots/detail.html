@@ -1,0 +1,144 @@
+{% extends "honeypots/base.html" %}
+
+{% block content %}
+<div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
+  <div class="lg:col-span-2 rounded-3xl border border-slate-800 bg-slate-900/70 p-5 shadow-2xl shadow-black/30">
+    <div>
+      <h1 class="text-xl font-semibold">{{ name }}</h1>
+      <div class="text-sm text-slate-400">{{ honeypot_id }}</div>
+      <p class="mt-2 text-sm text-slate-300">{{ config.description|default:"No description" }}</p>
+    </div>
+
+    <div class="mt-4 flex flex-wrap gap-2">
+      <form method="post" action="{% url 'honeypot-start' honeypot_id %}">
+        {% csrf_token %}
+        <button class="inline-flex h-10 w-28 items-center justify-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 text-xs font-semibold text-emerald-200 transition hover:border-emerald-300 hover:bg-emerald-500/20" type="submit">
+          <span class="text-sm">▶</span>
+          Start
+        </button>
+      </form>
+      <form method="post" action="{% url 'honeypot-stop' honeypot_id %}">
+        {% csrf_token %}
+        <button class="inline-flex h-10 w-28 items-center justify-center gap-2 rounded-full border border-rose-400/40 bg-rose-500/10 text-xs font-semibold text-rose-200 transition hover:border-rose-300 hover:bg-rose-500/20" type="submit">
+          <span class="text-sm">■</span>
+          Stop
+        </button>
+      </form>
+      <form method="post" action="{% url 'honeypot-enable' honeypot_id %}">
+        {% csrf_token %}
+        <button class="inline-flex h-10 w-28 items-center justify-center gap-2 rounded-full border border-sky-400/40 bg-sky-500/10 text-xs font-semibold text-sky-200 transition hover:border-sky-300 hover:bg-sky-500/20" type="submit">
+          <span class="text-sm">+</span>
+          Enable
+        </button>
+      </form>
+      <form method="post" action="{% url 'honeypot-disable' honeypot_id %}">
+        {% csrf_token %}
+        <button class="inline-flex h-10 w-28 items-center justify-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/10 text-xs font-semibold text-amber-200 transition hover:border-amber-300 hover:bg-amber-500/20" type="submit">
+          <span class="text-sm">−</span>
+          Disable
+        </button>
+      </form>
+      <a class="inline-flex h-10 w-28 items-center justify-center gap-2 rounded-full border border-slate-600 bg-slate-900 text-xs font-semibold text-slate-200 transition hover:border-slate-400" href="{% url 'honeypot-edit' honeypot_id %}">
+        <span class="text-sm">✎</span>
+        Edit YAML
+      </a>
+    </div>
+
+    <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-3">
+        <div class="text-xs uppercase tracking-wide text-slate-500">Status</div>
+        <div class="mt-2 text-sm">
+          {% if running %}
+            <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">Running</span>
+          {% else %}
+            <span class="inline-flex items-center gap-2 rounded-full border border-rose-400/40 bg-rose-500/10 px-3 py-1 text-xs text-rose-200">Stopped</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-3">
+        <div class="text-xs uppercase tracking-wide text-slate-500">Enabled</div>
+        <div class="mt-2 text-sm">
+          {% if enabled %}
+            <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">Yes</span>
+          {% else %}
+            <span class="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs text-amber-200">No</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-3">
+        <div class="text-xs uppercase tracking-wide text-slate-500">Imported</div>
+        <div class="mt-2 text-sm">
+          {% if imported %}
+            <span class="inline-flex items-center gap-2 rounded-full border border-slate-500/40 bg-slate-500/10 px-3 py-1 text-xs text-slate-200">Yes</span>
+          {% else %}
+            <span class="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-400">No</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
+      <div>
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Ports</h3>
+        <div class="mt-2 space-y-1 font-mono text-xs text-slate-200">
+          {% for host, container in ports %}
+            <div class="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2">{{ host }} -> {{ container }}</div>
+          {% empty %}
+            <div class="text-slate-500">No ports</div>
+          {% endfor %}
+        </div>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Volumes</h3>
+        <div class="mt-2 space-y-1 font-mono text-xs text-slate-200">
+          {% for src, dst in volumes %}
+            <div class="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2">{{ src }} -> {{ dst }}</div>
+          {% empty %}
+            <div class="text-slate-500">No volumes</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400">YAML Path</h3>
+      <div class="mt-2 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 font-mono text-xs text-slate-300">
+        {{ yaml_path }}
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-3xl border border-slate-800 bg-slate-900/70 p-5 shadow-2xl shadow-black/30">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="text-lg font-semibold">Live Logs</h3>
+        <div class="text-xs text-slate-400">Auto-refresh every 3 seconds</div>
+      </div>
+      <span class="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1 text-xs text-slate-300">Tail 200</span>
+    </div>
+    <div class="mt-4 max-h-[520px] overflow-auto rounded-2xl border border-slate-800 bg-slate-950/70 p-4 font-mono text-xs text-slate-200" id="logs">Loading logs...</div>
+  </div>
+</div>
+
+<script>
+  const logsEl = document.getElementById("logs");
+  const logsUrl = "{% url 'honeypot-logs' honeypot_id %}?lines=200";
+
+  async function refreshLogs() {
+    try {
+      const res = await fetch(logsUrl);
+      if (!res.ok) {
+        logsEl.textContent = "Failed to load logs.";
+        return;
+      }
+      const text = await res.text();
+      logsEl.textContent = text || "(no logs)";
+    } catch (err) {
+      logsEl.textContent = "Failed to load logs.";
+    }
+  }
+
+  refreshLogs();
+  setInterval(refreshLogs, 3000);
+</script>
+{% endblock %}

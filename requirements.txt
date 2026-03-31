@@ -1,2 +1,3 @@
 PyYAML==6.0.2
 questionary==2.0.1
+django

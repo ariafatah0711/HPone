@@ -1,0 +1,31 @@
+{% extends "honeypots/base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-slate-900/70 border border-slate-700 rounded-2xl p-6 shadow-xl">
+  <h1 class="text-xl font-semibold text-white">Sign in</h1>
+  <p class="text-slate-400 text-sm mt-1">Use the credentials printed when HPone Web starts.</p>
+
+  {% if error %}
+    <div class="mt-4 rounded-lg border border-rose-500/40 bg-rose-500/10 text-rose-200 px-4 py-2 text-sm">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  <form method="post" class="mt-5 space-y-4">
+    {% csrf_token %}
+    <div>
+      <label class="text-xs uppercase tracking-wide text-slate-400">Username</label>
+      <input name="username" type="text" required
+        class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white focus:border-emerald-400 focus:outline-none">
+    </div>
+    <div>
+      <label class="text-xs uppercase tracking-wide text-slate-400">Password</label>
+      <input name="password" type="password" required
+        class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white focus:border-emerald-400 focus:outline-none">
+    </div>
+    <button type="submit" class="w-full rounded-lg bg-emerald-500/90 text-slate-900 font-semibold py-2.5 hover:bg-emerald-400">
+      Enter Dashboard
+    </button>
+  </form>
+</div>
+{% endblock %}

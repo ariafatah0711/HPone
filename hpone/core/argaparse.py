@@ -35,6 +35,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	# Status command (running only)
 	p_status = sub.add_parser("status", help="Show port mappings of running honeypots (HOST -> CONTAINER)")
 
+	# Web command
+	p_web = sub.add_parser("web", help="Run HPone Web (Django UI)")
+
 	# Inspect command
 	p_inspect = sub.add_parser("inspect", help="Show detailed configuration information for one honeypot")
 	p_inspect.add_argument("honeypot", help="Honeypot name to inspect")
@@ -120,7 +123,7 @@ def format_full_help(parser: argparse.ArgumentParser) -> str:
 
 	# Urutan tampilan yang diinginkan; sisanya mengikuti urutan asli
 	desired_order = [
-		"check", "import", "update", "list", "status",
+		"check", "import", "update", "list", "status", "web",
 		"inspect", "enable", "disable", "up", "down", "shell", "logs", "clean"
 	]
 	names_in_choice = list(choices.keys())

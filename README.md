@@ -29,6 +29,7 @@
 - 🛡️ **Multi-Honeypot Support** - Manage multiple honeypot types simultaneously
 - 💻 **Interactive CLI** - User-friendly command-line interface with bash completion
 - ✏️ **Built-in Editor** - Edit configurations directly from command line
+- 🌐 **Web Dashboard** - Run the HPone Web UI with a single command
 
 ## 🎬 Quick Demo
 
@@ -253,6 +254,11 @@ hpone list -a                 # Check status
 hpone logs cowrie             # View logs
 ```
 
+#### 🌐 **Web UI**
+```bash
+hpone web                     # Run HPone Web (Django UI)
+```
+
 #### 💻 **Manage**
 ```bash
 hpone edit cowrie             # Edit configuration
@@ -269,6 +275,7 @@ hpone clean --all --data      # Stop & cleanup
 | 🔍 `check` | Verify dependencies | - | `hpone check` |
 | 📋 `list` | Show honeypots | `-a` | `hpone list -a` |
 | 📈 `status` | Runtime status | - | `hpone status` |
+| 🌐 `web` | Run HPone Web UI | - | `hpone web` |
 | 🔎 `inspect` | Honeypot details | - | `hpone inspect cowrie` |
 | ✏️ `edit` | Edit configurations | `<honeypot>`, `--config`, `--completion` | `hpone edit cowrie` |
 
@@ -302,6 +309,7 @@ hpone edit --config   # Edit main settings
 # 📊 Monitoring
 hpone list -a         # Detailed status
 hpone status          # Port mappings
+hpone web             # Run HPone Web UI
 
 # 🗑️ Cleanup
 hpone clean --all --data --image --volume

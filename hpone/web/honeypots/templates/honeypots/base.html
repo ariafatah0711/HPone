@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HPone Web</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Space Grotesk", "ui-sans-serif", "system-ui"],
+            mono: ["Fira Mono", "ui-monospace", "SFMono-Regular"],
+          },
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+  <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_#1e293b,_#020617)]"></div>
+
+  <div class="max-w-6xl mx-auto px-5 py-6">
+    <header class="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 px-6 py-5 shadow-2xl shadow-black/30 md:flex-row md:items-center md:justify-between">
+      <div>
+        <div class="text-2xl font-semibold tracking-tight">HPone Web Control</div>
+        <p class="text-slate-400 text-sm">Run and monitor honeypots from a modern dashboard.</p>
+      </div>
+      <div class="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/60 px-4 py-2 text-xs uppercase tracking-wide text-slate-300">
+        Controller Mode
+      </div>
+    </header>
+
+    {% if breadcrumbs %}
+      <nav class="mt-4 flex flex-wrap items-center gap-2 text-xs uppercase tracking-wide text-slate-400">
+        {% for crumb in breadcrumbs %}
+          {% if not forloop.first %}
+            <span class="text-slate-600">/</span>
+          {% endif %}
+          {% if crumb.url %}
+            <a class="rounded-full border px-3 py-2
+              {% if crumb.active %} border-slate-800 bg-slate-950/70 text-slate-300
+              {% else %} border-slate-700 bg-slate-900/70 text-slate-200 hover:border-emerald-400 {% endif %}"
+              href="{{ crumb.url }}" {% if crumb.active %} aria-current="page"{% endif %}>{{ crumb.label }}</a>
+          {% else %}
+            <span class="rounded-full border border-slate-800 bg-slate-950/70 px-3 py-2 text-slate-400">{{ crumb.label }}</span>
+          {% endif %}
+        {% endfor %}
+      </nav>
+    {% endif %}
+
+    {% if messages %}
+      <div class="mt-6 space-y-2">
+        {% for message in messages %}
+          <div class="rounded-xl border px-4 py-3 text-sm
+            {% if 'error' in message.tags %} border-rose-500/40 bg-rose-500/10 text-rose-200
+            {% elif 'success' in message.tags %} border-emerald-400/40 bg-emerald-500/10 text-emerald-200
+            {% else %} border-slate-700 bg-slate-900/70 text-slate-200 {% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <main class="mt-5">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>
